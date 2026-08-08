@@ -19,8 +19,8 @@
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.50.0",
     "react-router-dom": "^6.23.0",
-    "react-toastify": "^10.0.6",
     "recharts": "^2.15.4",
+    "sweetalert2": "^11.26.25",
     "zod": "^3.22.4",
     "zustand": "^4.4.1"
   },

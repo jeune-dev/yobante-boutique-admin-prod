@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { toast } from 'react-toastify';
+import { showSuccess, showError } from '@/shared/utils/alert';
 import { blocsPromoApi } from '@/domains/shop/api/blocs-promo.api';
 import Icon from '@/shared/components/dashboard/Icon';
 import Modal, { BoutonPrincipal, BoutonSecondaire, Champ } from './Modal';
@@ -38,12 +38,12 @@ export default function SousSectionModal({ section, bloc, onFermer, onEnregistre
       if (fichier) fd.append('image', fichier);
       return edition ? blocsPromoApi.update(bloc.id, fd) : blocsPromoApi.create(fd);
     },
-    onSuccess: () => {
-      toast.success(edition ? 'Sous-section modifiée' : 'Sous-section créée');
+    onSuccess: (data) => {
+      showSuccess(data);
       onEnregistre();
       onFermer();
     },
-    onError: (e: any) => toast.error(e?.message ?? 'Enregistrement impossible'),
+    onError: (e: any) => showError(e),
   });
 
   const choisirImage = (f: File | null) => {
@@ -54,7 +54,7 @@ export default function SousSectionModal({ section, bloc, onFermer, onEnregistre
 
   const valider = () => {
     if (!titre.trim()) {
-      toast.error('Donnez un titre à la sous-section');
+      showError('Donnez un titre à la sous-section');
       return;
     }
     enregistrer.mutate();

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
-import { toast } from 'react-toastify';
+import { showSuccess, showError } from '@/shared/utils/alert';
 import Icon from '@/shared/components/dashboard/Icon';
 import SousSectionModal from './components/SousSectionModal';
 import PromotionModal from './components/PromotionModal';
@@ -59,13 +59,13 @@ export default function AccueilPage() {
   const mutation = (fn: (id: string) => Promise<any>, cle: string, message: string) =>
     useMutation({
       mutationFn: fn,
-      onSuccess: () => {
+      // Le message affiché est celui renvoyé par le backend (`data._message`) ;
+      // `message` ne sert que de repli si le backend n'en renvoie aucun.
+      onSuccess: (data) => {
         rafraichir(cle);
-        toast.success(message);
+        showSuccess(data, message);
       },
-      // Le client rejette un objet normalisé { status, message } : lire
-      // e.response.data.message ne donnerait jamais rien.
-      onError: (e: any) => toast.error(e?.message ?? 'Action impossible'),
+      onError: (e: any) => showError(e),
     });
 
   const supprBanniere = mutation(api.supprimerBanniere, 'bannieres', 'Bannière supprimée');

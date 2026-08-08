@@ -2,16 +2,16 @@ import shopClient from '@/infrastructure/http/shop.client';
 import type { ShopStats, KpiStocks, TopProduit, ClientActif } from '../types';
 
 export const dashboardApi = {
-  getStats: (): Promise<{ data: { stats: ShopStats } }> =>
+  getStats: (): Promise<any> =>
     shopClient.get('/admin/dashboard/stats'),
 
-  getKpiStocks: (): Promise<{ data: { kpi: KpiStocks } }> =>
+  getKpiStocks: (): Promise<any> =>
     shopClient.get('/admin/dashboard/kpi-stocks'),
 
-  getTopProduits: (limit = 5): Promise<{ data: { produits: TopProduit[] } }> =>
+  getTopProduits: (limit = 5): Promise<any> =>
     shopClient.get('/admin/dashboard/top-produits', { params: { limit } }),
 
-  getClientsActifs: (limit = 5): Promise<{ data: { clients: ClientActif[] } }> =>
+  getClientsActifs: (limit = 5): Promise<any> =>
     shopClient.get('/admin/dashboard/clients-actifs', { params: { limit } }),
 
   getRevenus: (periode?: string): Promise<any> =>

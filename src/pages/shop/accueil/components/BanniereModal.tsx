@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { toast } from 'react-toastify';
+import { showSuccess, showError } from '@/shared/utils/alert';
 import shopClient from '@/infrastructure/http/shop.client';
 import Icon from '@/shared/components/dashboard/Icon';
 import Modal, { BoutonPrincipal, BoutonSecondaire, Champ } from './Modal';
@@ -79,28 +79,28 @@ export default function BanniereModal({ banniere, onFermer, onEnregistre }: Prop
         ? shopClient.put(`/admin/bannieres/${banniere.id}`, fd, options)
         : shopClient.post('/admin/bannieres', fd, options);
     },
-    onSuccess: () => {
-      toast.success(edition ? 'Bannière modifiée' : 'Bannière créée');
+    onSuccess: (data) => {
+      showSuccess(data);
       onEnregistre();
       onFermer();
     },
-    onError: (e: any) => toast.error(e?.message ?? 'Enregistrement impossible'),
+    onError: (e: any) => showError(e),
   });
 
   const associer = useMutation({
     mutationFn: (produitId: string) =>
       shopClient.post(`/admin/bannieres/${banniere.id}/produits`, { produitId }),
-    onSuccess: () => {
-      toast.success('Produit mis en avant');
+    onSuccess: (data) => {
+      showSuccess(data);
       setRecherche('');
       onEnregistre();
     },
-    onError: (e: any) => toast.error(e?.message ?? 'Association impossible'),
+    onError: (e: any) => showError(e),
   });
 
   const valider = () => {
-    if (!titre.trim()) return toast.error('Le titre est obligatoire');
-    if (!edition && !fichier) return toast.error('Choisissez une image');
+    if (!titre.trim()) return showError('Le titre est obligatoire');
+    if (!edition && !fichier) return showError('Choisissez une image');
     enregistrer.mutate();
   };
 

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'react-toastify';
+import { showSuccess, showError, showConfirm } from '@/shared/utils/alert';
 import {
   useProduits,
   useCategories,
@@ -38,26 +38,34 @@ export default function ProduitsPanel() {
   const { data, isLoading, isError } = useProduits({ limit: 100 });
   const qc = useQueryClient();
   const [search, setSearch] = useState('');
-  const [confirmDelete, setConfirmDelete] = useState<Produit | null>(null);
   const [editor, setEditor] = useState<{ produit: Produit | null } | null>(null);
 
   const produits: Produit[] = data?.produits ?? [];
 
   const del = useMutation({
     mutationFn: (id: string) => api.supprimerProduit(id),
-    onSuccess: () => {
-      toast.success('Produit supprimé');
+    onSuccess: (data) => {
+      showSuccess(data);
       qc.invalidateQueries({ queryKey: ['boutique', 'produits'] });
-      setConfirmDelete(null);
     },
-    onError: (e: any) => toast.error(e?.message || 'Erreur'),
+    onError: (e: any) => showError(e),
   });
 
   const toggleVis = useMutation({
     mutationFn: (id: string) => api.toggleProduitVisibilite(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: boutiqueKeys.produits() }),
-    onError: (e: any) => toast.error(e?.message || 'Erreur'),
+    onError: (e: any) => showError(e),
   });
+
+  const confirmerSuppression = async (p: Produit) => {
+    const confirme = await showConfirm({
+      titre: 'Confirmer la suppression',
+      message: `Voulez-vous vraiment supprimer ${p.nom || p.titre || 'ce produit'} ?`,
+      confirmText: 'Supprimer',
+      danger: true,
+    });
+    if (confirme) del.mutate(p.id);
+  };
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -107,7 +115,7 @@ export default function ProduitsPanel() {
                     <td>
                       <div className="db-actions">
                         <button className="db-btn-ghost" onClick={() => setEditor({ produit: p })}>Modifier</button>
-                        <button className="db-btn-danger" onClick={() => setConfirmDelete(p)}>Supprimer</button>
+                        <button className="db-btn-danger" onClick={() => confirmerSuppression(p)}>Supprimer</button>
                       </div>
                     </td>
                   </tr>
@@ -118,24 +126,6 @@ export default function ProduitsPanel() {
       </div>
 
       {editor && <ProductEditor produit={editor.produit} onClose={() => setEditor(null)} />}
-
-      {confirmDelete && (
-        <div onClick={() => setConfirmDelete(null)} className="db-pop-overlay">
-          <div onClick={(e) => e.stopPropagation()} className="db-pop" style={{ maxWidth: 440 }}>
-            <div className="db-modal-head">
-              <div className="db-modal-title">Confirmer la suppression</div>
-              <button className="db-modal-close" onClick={() => setConfirmDelete(null)}><Icon name="x" size={14} /></button>
-            </div>
-            <div className="db-pop-body db-pop-text">
-              Voulez-vous vraiment supprimer <strong>{confirmDelete.nom || confirmDelete.titre}</strong> ?
-            </div>
-            <div className="db-modal-footer">
-              <button className="db-btn secondary" onClick={() => setConfirmDelete(null)}>Annuler</button>
-              <button className="db-btn confirm" disabled={del.isPending} onClick={() => del.mutate(confirmDelete.id)}>Supprimer</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

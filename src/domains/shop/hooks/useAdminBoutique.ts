@@ -1,7 +1,7 @@
 // domains/shop/hooks/useAdminBoutique.ts
 // Hooks React Query pour l'espace Admin Boutique (wired sur /api/v1/admin/*).
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'react-toastify';
+import { showSuccess, showError } from '@/shared/utils/alert';
 import * as api from '@/domains/shop/api/admin.api';
 
 // Clés de cache
@@ -35,11 +35,11 @@ export const useCreerProduit = () => {
   const invalidate = useInvalidate([boutiqueKeys.produits(), boutiqueKeys.stats]);
   return useMutation({
     mutationFn: (data: FormData) => api.creerProduit(data),
-    onSuccess: () => {
-      toast.success('Produit créé');
+    onSuccess: (data) => {
+      showSuccess(data);
       invalidate();
     },
-    onError: (e: any) => toast.error(e?.message || 'Erreur'),
+    onError: (e: any) => showError(e),
   });
 };
 
@@ -47,11 +47,11 @@ export const useModifierProduit = () => {
   const invalidate = useInvalidate([boutiqueKeys.produits()]);
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: FormData }) => api.modifierProduit(id, data),
-    onSuccess: () => {
-      toast.success('Produit mis à jour');
+    onSuccess: (data) => {
+      showSuccess(data);
       invalidate();
     },
-    onError: (e: any) => toast.error(e?.message || 'Erreur'),
+    onError: (e: any) => showError(e),
   });
 };
 
@@ -59,11 +59,11 @@ export const useCreerCategorie = () => {
   const invalidate = useInvalidate([boutiqueKeys.categories]);
   return useMutation({
     mutationFn: (data: FormData) => api.creerCategorie(data),
-    onSuccess: () => {
-      toast.success('Catégorie créée');
+    onSuccess: (data) => {
+      showSuccess(data);
       invalidate();
     },
-    onError: (e: any) => toast.error(e?.message || 'Erreur'),
+    onError: (e: any) => showError(e),
   });
 };
 
@@ -81,11 +81,11 @@ export const useValiderProduit = () => {
   return useMutation({
     mutationFn: ({ id, step }: { id: string; step: 1 | 2 }) =>
       step === 1 ? api.validerProduitStep1(id) : api.validerProduitStep2(id),
-    onSuccess: () => {
-      toast.success('Produit validé');
+    onSuccess: (data) => {
+      showSuccess(data);
       invalidate();
     },
-    onError: (e: any) => toast.error(e?.message || 'Erreur de validation'),
+    onError: (e: any) => showError(e),
   });
 };
 
@@ -93,11 +93,11 @@ export const useRejeterProduit = () => {
   const invalidate = useInvalidate([boutiqueKeys.produitsAValider]);
   return useMutation({
     mutationFn: ({ id, motif }: { id: string; motif?: string }) => api.rejeterProduit(id, motif),
-    onSuccess: () => {
-      toast.success('Produit rejeté');
+    onSuccess: (data) => {
+      showSuccess(data);
       invalidate();
     },
-    onError: (e: any) => toast.error(e?.message || 'Erreur'),
+    onError: (e: any) => showError(e),
   });
 };
 
@@ -120,11 +120,11 @@ export const useToggleClient = () => {
   return useMutation({
     mutationFn: ({ id, actif }: { id: string; actif: boolean }) =>
       actif ? api.desactiverClient(id) : api.activerClient(id),
-    onSuccess: () => {
-      toast.success('Statut client mis à jour');
+    onSuccess: (data) => {
+      showSuccess(data);
       invalidate();
     },
-    onError: (e: any) => toast.error(e?.message || 'Erreur'),
+    onError: (e: any) => showError(e),
   });
 };
 
@@ -136,11 +136,11 @@ export const useCreerAdmin = () => {
   const invalidate = useInvalidate([boutiqueKeys.admins]);
   return useMutation({
     mutationFn: (data: Record<string, any>) => api.creerAdmin(data),
-    onSuccess: () => {
-      toast.success('Administrateur créé');
+    onSuccess: (data) => {
+      showSuccess(data);
       invalidate();
     },
-    onError: (e: any) => toast.error(e?.message || 'Erreur'),
+    onError: (e: any) => showError(e),
   });
 };
 
@@ -148,11 +148,11 @@ export const useSupprimerAdmin = () => {
   const invalidate = useInvalidate([boutiqueKeys.admins]);
   return useMutation({
     mutationFn: (id: string) => api.supprimerAdmin(id),
-    onSuccess: () => {
-      toast.success('Administrateur supprimé');
+    onSuccess: (data) => {
+      showSuccess(data);
       invalidate();
     },
-    onError: (e: any) => toast.error(e?.message || 'Erreur'),
+    onError: (e: any) => showError(e),
   });
 };
 
@@ -161,7 +161,7 @@ export const useToggleAdmin = () => {
   return useMutation({
     mutationFn: (id: string) => api.toggleAdmin(id),
     onSuccess: () => invalidate(),
-    onError: (e: any) => toast.error(e?.message || 'Erreur'),
+    onError: (e: any) => showError(e),
   });
 };
 
@@ -173,11 +173,11 @@ export const useCreerVendeur = () => {
   const invalidate = useInvalidate([boutiqueKeys.vendeurs]);
   return useMutation({
     mutationFn: (data: Record<string, any>) => api.creerVendeur(data),
-    onSuccess: () => {
-      toast.success('Compte vendeur créé');
+    onSuccess: (data) => {
+      showSuccess(data);
       invalidate();
     },
-    onError: (e: any) => toast.error(e?.message || 'Erreur'),
+    onError: (e: any) => showError(e),
   });
 };
 
@@ -186,11 +186,11 @@ export const useValiderVendeur = () => {
   return useMutation({
     mutationFn: ({ id, step }: { id: string; step: 1 | 2 }) =>
       step === 1 ? api.validerVendeurStep1(id) : api.validerVendeurStep2(id),
-    onSuccess: () => {
-      toast.success('Vendeur validé');
+    onSuccess: (data) => {
+      showSuccess(data);
       invalidate();
     },
-    onError: (e: any) => toast.error(e?.message || 'Erreur'),
+    onError: (e: any) => showError(e),
   });
 };
 
@@ -199,7 +199,7 @@ export const useToggleVendeur = () => {
   return useMutation({
     mutationFn: (id: string) => api.toggleVendeur(id),
     onSuccess: () => invalidate(),
-    onError: (e: any) => toast.error(e?.message || 'Erreur'),
+    onError: (e: any) => showError(e),
   });
 };
 
@@ -211,11 +211,11 @@ export const useSupprimerBanniere = () => {
   const invalidate = useInvalidate([boutiqueKeys.bannieres]);
   return useMutation({
     mutationFn: (id: string) => api.supprimerBanniere(id),
-    onSuccess: () => {
-      toast.success('Bannière supprimée');
+    onSuccess: (data) => {
+      showSuccess(data);
       invalidate();
     },
-    onError: (e: any) => toast.error(e?.message || 'Erreur'),
+    onError: (e: any) => showError(e),
   });
 };
 
@@ -224,7 +224,7 @@ export const useToggleBanniere = () => {
   return useMutation({
     mutationFn: (id: string) => api.toggleBanniere(id),
     onSuccess: () => invalidate(),
-    onError: (e: any) => toast.error(e?.message || 'Erreur'),
+    onError: (e: any) => showError(e),
   });
 };
 
@@ -242,11 +242,11 @@ export const useCreerPromotion = () => {
   const invalidate = useInvalidate(PROMO_KEYS);
   return useMutation({
     mutationFn: (data: Record<string, any>) => api.creerPromotion(data),
-    onSuccess: () => {
-      toast.success('Produit ajouté au bloc');
+    onSuccess: (data) => {
+      showSuccess(data);
       invalidate();
     },
-    onError: (e: any) => toast.error(e?.message || 'Erreur'),
+    onError: (e: any) => showError(e),
   });
 };
 
@@ -255,11 +255,11 @@ export const useModifierPromotion = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Record<string, any> }) =>
       api.modifierPromotion(id, data),
-    onSuccess: () => {
-      toast.success('Promotion mise à jour');
+    onSuccess: (data) => {
+      showSuccess(data);
       invalidate();
     },
-    onError: (e: any) => toast.error(e?.message || 'Erreur'),
+    onError: (e: any) => showError(e),
   });
 };
 
@@ -267,11 +267,11 @@ export const useSupprimerPromotion = () => {
   const invalidate = useInvalidate(PROMO_KEYS);
   return useMutation({
     mutationFn: (id: string) => api.supprimerPromotion(id),
-    onSuccess: () => {
-      toast.success('Promotion retirée du bloc');
+    onSuccess: (data) => {
+      showSuccess(data);
       invalidate();
     },
-    onError: (e: any) => toast.error(e?.message || 'Erreur'),
+    onError: (e: any) => showError(e),
   });
 };
 
@@ -280,7 +280,7 @@ export const useTogglePromotion = () => {
   return useMutation({
     mutationFn: (id: string) => api.togglePromotion(id),
     onSuccess: () => invalidate(),
-    onError: (e: any) => toast.error(e?.message || 'Erreur'),
+    onError: (e: any) => showError(e),
   });
 };
 
@@ -293,11 +293,11 @@ export const useUpdateBlocPromo = () => {
   return useMutation({
     mutationFn: ({ section, data }: { section: string; data: FormData }) =>
       api.updateBlocPromo(section, data),
-    onSuccess: () => {
-      toast.success('Bloc mis à jour');
+    onSuccess: (data) => {
+      showSuccess(data);
       invalidate();
     },
-    onError: (e: any) => toast.error(e?.message || 'Erreur'),
+    onError: (e: any) => showError(e),
   });
 };
 

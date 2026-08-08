@@ -1,13 +1,15 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
-import { toast } from 'react-toastify';
+import { showSuccess, showError } from '@/shared/utils/alert';
 
 const api = {
   getCommande: (id: string) =>
     shopClient.get(`/admin/commandes/${id}`).then((r: any) => r.commande ?? r),
   valider: (id: string) => shopClient.patch(`/admin/commandes/${id}/valider`),
-  rejeter: (id: string) => shopClient.patch(`/admin/commandes/${id}/rejeter`),
+  rejeter: (id: string, motif?: string) =>
+    shopClient.patch(`/admin/commandes/${id}/rejeter`, { motif }),
 };
 
 const STATUT_COLORS: Record<string, string> = {
@@ -17,12 +19,15 @@ const STATUT_COLORS: Record<string, string> = {
   expediee: 'bg-indigo-100 text-indigo-700',
   livree: 'bg-green-100 text-green-700',
   annulee: 'bg-red-100 text-red-700',
+  rejetee: 'bg-red-100 text-red-700',
 };
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectMotif, setRejectMotif] = useState('');
 
   const { data: commande, isLoading } = useQuery({
     queryKey: ['commande', id],
@@ -32,20 +37,23 @@ export default function OrderDetailPage() {
 
   const validerMutation = useMutation({
     mutationFn: () => api.valider(id!),
-    onSuccess: () => {
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['commande', id] });
       qc.invalidateQueries({ queryKey: ['commandes'] });
-      toast.success('Commande validée');
+      showSuccess(data);
     },
   });
 
   const rejeterMutation = useMutation({
-    mutationFn: () => api.rejeter(id!),
-    onSuccess: () => {
+    mutationFn: ({ motif }: { motif: string }) => api.rejeter(id!, motif),
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['commande', id] });
       qc.invalidateQueries({ queryKey: ['commandes'] });
-      toast.success('Commande rejetée');
+      showSuccess(data);
+      setShowRejectModal(false);
+      setRejectMotif('');
     },
+    onError: (e: any) => showError(e),
   });
 
   if (isLoading) {
@@ -131,6 +139,13 @@ export default function OrderDetailPage() {
         </div>
       </div>
 
+      {commande.motifRejet && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <p className="text-sm font-medium text-red-900 mb-2">Motif du rejet :</p>
+          <p className="text-sm text-red-700 whitespace-pre-wrap">{commande.motifRejet}</p>
+        </div>
+      )}
+
       {commande.statut === 'en_attente' && (
         <div className="flex gap-3">
           <button
@@ -141,14 +156,59 @@ export default function OrderDetailPage() {
             Valider la commande
           </button>
           <button
-            onClick={() => {
-              if (confirm('Rejeter cette commande ?')) rejeterMutation.mutate();
-            }}
+            onClick={() => setShowRejectModal(true)}
             disabled={rejeterMutation.isPending}
             className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 disabled:opacity-60"
           >
             Rejeter
           </button>
+        </div>
+      )}
+
+      {/* Modal de rejet */}
+      {showRejectModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full mx-4">
+            <div className="p-6">
+              <h2 className="text-lg font-bold text-gray-900 mb-4">
+                Rejeter la commande
+              </h2>
+              <p className="text-sm text-gray-600 mb-4">
+                Veuillez indiquer le motif du rejet. Ce motif sera visible au client.
+              </p>
+              <textarea
+                value={rejectMotif}
+                onChange={(e) => setRejectMotif(e.target.value)}
+                placeholder="Motif du rejet (ex: Stock insuffisant, Produit indisponible)…"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none"
+                rows={4}
+              />
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => {
+                    setShowRejectModal(false);
+                    setRejectMotif('');
+                  }}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={() => {
+                    if (!rejectMotif.trim()) {
+                      showError('Le motif du rejet est obligatoire');
+                      return;
+                    }
+                    rejeterMutation.mutate({ motif: rejectMotif });
+                  }}
+                  disabled={rejeterMutation.isPending}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 disabled:bg-gray-400 rounded-lg"
+                >
+                  {rejeterMutation.isPending ? 'En cours…' : 'Rejeter'}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

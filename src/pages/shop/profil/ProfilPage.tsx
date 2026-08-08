@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { toast } from 'react-toastify';
+import { showSuccess, showError } from '@/shared/utils/alert';
 import shopClient from '@/infrastructure/http/shop.client';
 import Icon from '@/shared/components/dashboard/Icon';
 
@@ -71,11 +71,11 @@ function Informations({
 
   const enregistrer = useMutation({
     mutationFn: () => api.modifier({ nom, prenom, telephone }),
-    onSuccess: () => {
-      toast.success('Profil mis à jour');
+    onSuccess: (data) => {
+      showSuccess(data);
       onEnregistre();
     },
-    onError: (e: any) => toast.error(e?.message ?? 'Mise à jour impossible'),
+    onError: (e: any) => showError(e),
   });
 
   return (
@@ -104,22 +104,22 @@ function MotDePasse() {
 
   const changer = useMutation({
     mutationFn: () => api.changerMotDePasse({ oldPassword: ancien, newPassword: nouveau }),
-    onSuccess: () => {
-      toast.success('Mot de passe modifié');
+    onSuccess: (data) => {
+      showSuccess(data);
       setAncien('');
       setNouveau('');
       setConfirmation('');
     },
-    onError: (e: any) => toast.error(e?.message ?? 'Modification impossible'),
+    onError: (e: any) => showError(e),
   });
 
   const valider = () => {
     if (nouveau.length < 8) {
-      toast.error('Le nouveau mot de passe doit faire au moins 8 caractères');
+      showError('Le nouveau mot de passe doit faire au moins 8 caractères');
       return;
     }
     if (nouveau !== confirmation) {
-      toast.error('La confirmation ne correspond pas');
+      showError('La confirmation ne correspond pas');
       return;
     }
     changer.mutate();

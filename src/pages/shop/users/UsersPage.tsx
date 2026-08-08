@@ -1,6 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useUsers, useToggleUserActive } from '@/domains/shop/hooks/useUsers';
 import { ShopUser } from '@/domains/shop/api/users.api';
+import { showSuccess } from '@/shared/utils/alert';
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -16,15 +17,6 @@ export default function UsersPage() {
   const [page, setPage] = useState(1);
   const [activeFilter, setActiveFilter] = useState<boolean | undefined>();
 
-  const [toast, setToast] = useState({ msg: '', show: false });
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const showToast = (msg: string) => {
-    setToast({ msg, show: true });
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(t => ({ ...t, show: false })), 2800);
-  };
-
   const { data, isLoading, isError } = useUsers({ page, limit: 15, search, isActive: activeFilter });
   const toggleMut = useToggleUserActive();
 
@@ -35,7 +27,7 @@ export default function UsersPage() {
 
   const handleToggle = (u: ShopUser) => {
     toggleMut.mutate({ id: u.id, isActive: u.isActive }, {
-      onSuccess: () => showToast(u.isActive ? 'Compte bloqué' : 'Compte activé'),
+      onSuccess: (data) => showSuccess(data),
     });
   };
 
@@ -159,13 +151,6 @@ export default function UsersPage() {
             <button className="db-btn-ghost" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Suivant →</button>
           </div>
         )}
-      </div>
-
-      <div className={`db-toast${toast.show ? ' show' : ''}`}>
-        <div className="db-toast-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-        {toast.msg}
       </div>
     </div>
   );

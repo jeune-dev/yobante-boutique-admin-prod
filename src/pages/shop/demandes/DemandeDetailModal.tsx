@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { toast } from 'react-toastify';
+import { showSuccess, showError } from '@/shared/utils/alert';
 import shopClient from '@/infrastructure/http/shop.client';
 import Icon from '@/shared/components/dashboard/Icon';
 import Modal, { BoutonPrincipal, BoutonSecondaire, Champ } from '@/pages/shop/accueil/components/Modal';
@@ -80,11 +80,11 @@ export default function DemandeDetailModal({ demande, onFermer, onTraitee }: Pro
         headers: { 'Content-Type': 'multipart/form-data' },
       });
     },
-    onSuccess: () => {
-      toast.success('Fiche mise à jour');
+    onSuccess: (data) => {
+      showSuccess(data);
       onTraitee();
     },
-    onError: (e: any) => toast.error(e?.message ?? 'Modification impossible'),
+    onError: (e: any) => showError(e),
   });
 
   /**
@@ -99,23 +99,23 @@ export default function DemandeDetailModal({ demande, onFermer, onTraitee }: Pro
       }
       return shopClient.patch(`/admin/produits/${demande.id}/valider-step2`);
     },
-    onSuccess: () => {
-      toast.success('Produit publié sur le catalogue');
+    onSuccess: (data) => {
+      showSuccess(data);
       onTraitee();
       onFermer();
     },
-    onError: (e: any) => toast.error(e?.message ?? 'Publication impossible'),
+    onError: (e: any) => showError(e),
   });
 
   const rejeter = useMutation({
     mutationFn: () =>
       shopClient.patch(`/admin/produits/${demande.id}/rejeter`, { motif }),
-    onSuccess: () => {
-      toast.success('Demande rejetée');
+    onSuccess: (data) => {
+      showSuccess(data);
       onTraitee();
       onFermer();
     },
-    onError: (e: any) => toast.error(e?.message ?? 'Rejet impossible'),
+    onError: (e: any) => showError(e),
   });
 
   const enCours = publier.isPending || rejeter.isPending || enregistrer.isPending;
@@ -133,7 +133,7 @@ export default function DemandeDetailModal({ demande, onFermer, onTraitee }: Pro
             <button
               type="button"
               onClick={() => {
-                if (!motif.trim()) return toast.error('Indiquez un motif');
+                if (!motif.trim()) return showError('Indiquez un motif');
                 rejeter.mutate();
               }}
               disabled={enCours}
@@ -155,7 +155,7 @@ export default function DemandeDetailModal({ demande, onFermer, onTraitee }: Pro
                 // Publier sans rangement mettrait le produit en ligne sans
                 // qu'aucun écran mobile ne puisse l'atteindre.
                 if (!rayonId || !sousRayonId) {
-                  return toast.error('Rangez le produit dans un rayon et un sous-rayon');
+                  return showError('Rangez le produit dans un rayon et un sous-rayon');
                 }
                 publier.mutate();
               }}

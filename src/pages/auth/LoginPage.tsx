@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLogin } from '@/auth/hooks/useLogin';
 import { useAuthStore } from '@/auth/store/auth.store';
-import { toast } from 'react-toastify';
+import { showError } from '@/shared/utils/alert';
 import Icon from '@/shared/components/dashboard/Icon';
 import '@/assets/css/Login.css';
 import { PICTO } from '@/assets/images/logos';
@@ -46,7 +46,7 @@ export const LoginPage = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      toast.error('Veuillez remplir tous les champs');
+      showError('Veuillez remplir tous les champs');
       return;
     }
     login.mutate({ email, password });

@@ -13,8 +13,8 @@
 npm install
 
 # 2. Environment configuration is already in .env.local:
-# VITE_SHOP_API_URL=http://localhost:5000/api
-# VITE_SHIPMENT_API_URL=http://localhost:5001/api
+# VITE_SHOP_API_URL=https://api.yobanterek.com/api/v1
+# VITE_SHIPMENT_API_URL=https://api.yobanterek.com/api/v1
 ```
 
 ## Development Server
@@ -240,8 +240,8 @@ npm run type-check  # Check TypeScript types
 
 **Default Ports:**
 - Frontend: `http://localhost:5173`
-- Shop API: `http://localhost:5000/api`
-- Shipment API: `http://localhost:5001/api`
+- Shop API: `https://api.yobanterek.com/api/v1`
+- Shipment API: `https://api.yobanterek.com/api/v1`
 
 **Store Paths:**
 - Auth store: `useAuthStore()`

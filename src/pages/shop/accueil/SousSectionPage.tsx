@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'react-toastify';
+import { showSuccess, showError } from '@/shared/utils/alert';
 import shopClient from '@/infrastructure/http/shop.client';
 import Icon from '@/shared/components/dashboard/Icon';
 import PromotionModal from './components/PromotionModal';
@@ -60,13 +60,13 @@ export default function SousSectionPage() {
 
   const rafraichir = () => qc.invalidateQueries({ queryKey: ['sous-section', id] });
 
-  const surErreur = (e: any) => toast.error(e?.message ?? 'Action impossible');
+  const surErreur = (e: any) => showError(e);
 
   const supprimer = useMutation({
     mutationFn: api.supprimer,
-    onSuccess: () => {
+    onSuccess: (data) => {
       rafraichir();
-      toast.success('Produit retiré de la sous-section');
+      showSuccess(data);
     },
     onError: surErreur,
   });
@@ -79,9 +79,9 @@ export default function SousSectionPage() {
 
   const reordonner = useMutation({
     mutationFn: api.reordonner,
-    onSuccess: () => {
+    onSuccess: (data) => {
       rafraichir();
-      toast.success('Ordre mis à jour');
+      showSuccess(data);
     },
     onError: surErreur,
   });

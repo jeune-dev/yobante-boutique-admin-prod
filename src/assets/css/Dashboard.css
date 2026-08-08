@@ -1153,44 +1153,6 @@ tbody tr:hover td { background: var(--gray); }
 .db-pop-text { color: #4b5563; font-size: 0.92rem; line-height: 1.55; }
 .db-pop-text strong { color: #111827; }
 
-/* ════ TOAST ════ */
-.db-toast {
-  position: fixed;
-  bottom: 1.4rem;
-  right: 1.4rem;
-  z-index: 9999;
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--green);
-  border-radius: 10px;
-  padding: 0.72rem 1.1rem;
-  font-size: 0.87rem;
-  color: var(--black);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transform: translateY(14px);
-  opacity: 0;
-  transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-  pointer-events: none;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-}
-
-.db-toast.show { transform: none; opacity: 1; }
-
-.db-toast-icon {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--green);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.db-toast-icon svg { width: 9px; height: 9px; color: #fff; }
-
 /* ── Section label ── */
 .db-section-label {
   font-size: 0.78rem;

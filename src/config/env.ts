@@ -18,7 +18,7 @@ const parseEnv = (): Env => {
         .map((err) => `${err.path.join('.')}: ${err.message}`)
         .join('\n');
       throw new Error(
-        `❌ Missing or invalid environment variables:\n${missingVars}\n\nCreate a .env.local file with:\nVITE_SHOP_API_URL=http://localhost:5000/api/v1\nVITE_SHIPMENT_API_URL=http://localhost:5001/api`
+        `❌ Missing or invalid environment variables:\n${missingVars}\n\nCreate a .env.local file with:\nVITE_SHOP_API_URL=https://api.yobanterek.com/api/v1\nVITE_SHIPMENT_API_URL=https://api.yobanterek.com/api/v1`
       );
     }
     throw error;

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import shopClient from '@/infrastructure/http/shop.client';
-import { toast } from 'react-toastify';
+import { showSuccess, showError } from '@/shared/utils/alert';
 
 const api = {
   getRayons: (params?: any) => shopClient.get('/admin/rayons', { params }),
@@ -45,56 +45,56 @@ export default function RayonsPage() {
 
   const creerMutation = useMutation({
     mutationFn: (data: any) => api.creerRayon(data),
-    onSuccess: () => {
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['rayons'] });
       setShowModal(false);
-      toast.success('Rayon créé');
+      showSuccess(data);
     },
-    onError: () => toast.error('Erreur lors de la création'),
+    onError: (e: any) => showError(e),
   });
 
   const modifierMutation = useMutation({
     mutationFn: ({ id, data }: any) => api.modifierRayon(id, data),
-    onSuccess: () => {
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['rayons'] });
       setShowModal(false);
-      toast.success('Rayon modifié');
+      showSuccess(data);
     },
-    onError: () => toast.error('Erreur'),
+    onError: (e: any) => showError(e),
   });
 
   const archiverMutation = useMutation({
     mutationFn: (id: string) => api.archiverRayon(id),
-    onSuccess: () => {
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['rayons'] });
-      toast.success('Fait');
+      showSuccess(data);
     },
   });
 
   const creerSrMutation = useMutation({
     mutationFn: (data: any) => api.creerSousRayon(selectedRayon, data),
-    onSuccess: () => {
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['sous-rayons'] });
       setShowSrModal(false);
-      toast.success('Sous-rayon créé');
+      showSuccess(data);
     },
-    onError: () => toast.error('Erreur'),
+    onError: (e: any) => showError(e),
   });
 
   const modifierSrMutation = useMutation({
     mutationFn: ({ id, data }: any) => api.modifierSousRayon(id, data),
-    onSuccess: () => {
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['sous-rayons'] });
       setShowSrModal(false);
-      toast.success('Modifié');
+      showSuccess(data);
     },
   });
 
   const archiverSrMutation = useMutation({
     mutationFn: (id: string) => api.archiverSousRayon(id),
-    onSuccess: () => {
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['sous-rayons'] });
-      toast.success('Fait');
+      showSuccess(data);
     },
   });
 

@@ -1,6 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { usePayments, useRembourser } from '@/domains/shop/hooks/usePayments';
 import { Payment } from '@/domains/shop/api/payments.api';
+import { showSuccess, showConfirm } from '@/shared/utils/alert';
 
 function fmtFcfa(n: number) { return Number(n).toLocaleString('fr-FR') + ' FCFA'; }
 function fmtDate(iso: string) {
@@ -21,16 +22,6 @@ const METHODES: Record<string, string> = {
 export default function PaymentsPage() {
   const [page, setPage] = useState(1);
   const [statutFilter, setStatutFilter] = useState('');
-  const [refundTarget, setRefundTarget] = useState<Payment | null>(null);
-
-  const [toast, setToast] = useState({ msg: '', show: false });
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const showToast = (msg: string) => {
-    setToast({ msg, show: true });
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(t => ({ ...t, show: false })), 2800);
-  };
 
   const { data, isLoading, isError } = usePayments({ page, limit: 15, statut: statutFilter || undefined });
   const rembourserMut = useRembourser();
@@ -44,10 +35,17 @@ export default function PaymentsPage() {
     .filter((p: Payment) => p.statut === 'succes')
     .reduce((a: number, p: Payment) => a + Number(p.montant), 0);
 
-  const handleRefund = () => {
-    if (!refundTarget) return;
-    rembourserMut.mutate(refundTarget.id, {
-      onSuccess: () => { setRefundTarget(null); showToast('Paiement remboursé'); },
+  const confirmerRemboursement = (p: Payment) => {
+    showConfirm({
+      titre: 'Confirmer le remboursement',
+      message: `Rembourser ${fmtFcfa(Number(p.montant))} pour la commande #${p.commandeId?.slice(0, 8).toUpperCase() ?? ''} ?`,
+      confirmText: 'Confirmer',
+      danger: true,
+    }).then((confirme) => {
+      if (!confirme) return;
+      rembourserMut.mutate(p.id, {
+        onSuccess: (data) => showSuccess(data),
+      });
     });
   };
 
@@ -137,7 +135,7 @@ export default function PaymentsPage() {
                       <td><span className={`badge ${s?.cls}`}>{s?.label ?? p.statut}</span></td>
                       <td>
                         {p.statut === 'succes' && (
-                          <button className="db-btn-ghost" onClick={() => setRefundTarget(p)}>
+                          <button className="db-btn-ghost" onClick={() => confirmerRemboursement(p)}>
                             Rembourser
                           </button>
                         )}
@@ -157,34 +155,6 @@ export default function PaymentsPage() {
             <button className="db-btn-ghost" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Suivant →</button>
           </div>
         )}
-      </div>
-
-      {/* Confirm remboursement */}
-      {refundTarget && (
-        <div className="db-modal-overlay db-modal-overlay--visible" onClick={(e) => e.target === e.currentTarget && setRefundTarget(null)}>
-          <div className="db-modal db-modal--visible" style={{ maxWidth: 400, width: '95%' }}>
-            <div style={{ padding: '1.1rem 1.4rem', borderBottom: '1px solid var(--border)', fontWeight: 700 }}>
-              Confirmer le remboursement
-            </div>
-            <div style={{ padding: '1.2rem 1.4rem', fontSize: '0.9rem', color: 'var(--text2)' }}>
-              Rembourser <strong>{fmtFcfa(Number(refundTarget.montant))}</strong> pour la commande{' '}
-              <strong>#{refundTarget.commandeId?.slice(0, 8).toUpperCase()}</strong> ?
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.6rem', padding: '1rem 1.4rem', borderTop: '1px solid var(--border)' }}>
-              <button className="db-btn secondary" onClick={() => setRefundTarget(null)}>Annuler</button>
-              <button className="db-btn confirm" disabled={rembourserMut.isPending} onClick={handleRefund}>
-                {rembourserMut.isPending ? 'Traitement…' : 'Confirmer'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className={`db-toast${toast.show ? ' show' : ''}`}>
-        <div className="db-toast-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-        {toast.msg}
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
-import { toast } from 'react-toastify';
+import { showSuccess, showError } from '@/shared/utils/alert';
 
 const api = {
   getVendeurs: (p: any) =>
@@ -39,36 +39,36 @@ export default function VendeursPage() {
 
   const creerMutation = useMutation({
     mutationFn: (data: any) => api.creerVendeur(data),
-    onSuccess: () => {
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['vendeurs'] });
       setShowModal(false);
       setForm({ nom: '', prenom: '', email: '', telephone: '', nomBoutique: '' });
-      toast.success('Vendeur créé');
+      showSuccess(data);
     },
-    onError: () => toast.error('Erreur'),
+    onError: (e: any) => showError(e),
   });
 
   const validerStep1Mutation = useMutation({
     mutationFn: (id: string) => api.validerStep1(id),
-    onSuccess: () => {
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['vendeurs'] });
-      toast.success('Étape 1 validée');
+      showSuccess(data);
     },
   });
 
   const validerStep2Mutation = useMutation({
     mutationFn: (id: string) => api.validerStep2(id),
-    onSuccess: () => {
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['vendeurs'] });
-      toast.success('Vendeur activé');
+      showSuccess(data);
     },
   });
 
   const rejeterMutation = useMutation({
     mutationFn: (id: string) => api.rejeter(id),
-    onSuccess: () => {
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['vendeurs'] });
-      toast.success('Vendeur rejeté');
+      showSuccess(data);
     },
   });
 

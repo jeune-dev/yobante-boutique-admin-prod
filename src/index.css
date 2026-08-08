@@ -13,3 +13,18 @@
     @apply mx-auto px-4 sm:px-6 lg:px-8;
   }
 }
+
+/* ── SweetAlert2 — harmonisé avec la charte Yobante ──────────── */
+.swal2-yobante {
+  font-family: inherit;
+  border-radius: 0.75rem;
+}
+.swal2-yobante__titre {
+  font-weight: 700;
+  color: #111827;
+}
+.swal2-yobante .swal2-confirm,
+.swal2-yobante .swal2-cancel {
+  border-radius: 0.5rem;
+  font-weight: 600;
+}

@@ -1,6 +1,6 @@
 ﻿import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import { showError } from '@/shared/utils/alert';
 import { authService, LoginPayload } from '@/auth/services/auth.service';
 import { useAuthStore } from '@/auth/store/auth.store';
 
@@ -22,7 +22,7 @@ export const useLogin = (onBothAvailable?: () => void) => {
           result.shop.error?.message ||
           result.shipment.error?.message ||
           'Identifiant ou mot de passe incorrect';
-        toast.error(message);
+        showError(message);
         setLoading(false);
         return;
       }
@@ -48,7 +48,7 @@ export const useLogin = (onBothAvailable?: () => void) => {
       setLoading(false);
     },
     onError: () => {
-      toast.error('Connexion impossible. Réessayez.');
+      showError('Connexion impossible. Réessayez.');
       setLoading(false);
     },
   });

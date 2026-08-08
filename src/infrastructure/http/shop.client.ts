@@ -30,7 +30,20 @@ shopClient.interceptors.response.use(
     // l'enveloppe. Une réponse hors convention est renvoyée telle quelle.
     const corps = response.data;
     if (corps && typeof corps === 'object' && 'success' in corps && 'data' in corps) {
-      return corps.data;
+      const donnees = corps.data;
+      // L'admin affiche les messages renvoyés par le backend, pas du texte
+      // codé en dur. On attache `message` à la donnée résolue en propriété
+      // non-énumérable : invisible dans un spread / JSON / tableau, mais lue
+      // par shared/utils/alert.ts au moment d'afficher une notification.
+      if (donnees && typeof donnees === 'object' && !Array.isArray(donnees) && corps.message) {
+        Object.defineProperty(donnees, '_message', {
+          value: corps.message,
+          writable: true,
+          configurable: true,
+          enumerable: false,
+        });
+      }
+      return donnees;
     }
     return corps;
   },

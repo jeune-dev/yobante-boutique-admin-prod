@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
-import { toast } from 'react-toastify';
+import { showSuccess, showError } from '@/shared/utils/alert';
 
 const api = {
   getCommandes: (p: any) =>
@@ -20,6 +20,7 @@ const STATUT_COLORS: Record<string, string> = {
   expediee: 'bg-indigo-100 text-indigo-700',
   livree: 'bg-green-100 text-green-700',
   annulee: 'bg-red-100 text-red-700',
+  rejetee: 'bg-red-100 text-red-700',
 };
 
 export default function OrdersPage() {
@@ -28,6 +29,8 @@ export default function OrdersPage() {
   const [search, setSearch] = useState('');
   const [statut, setStatut] = useState('');
   const [page, setPage] = useState(1);
+  const [showRejectModal, setShowRejectModal] = useState<string | null>(null);
+  const [rejectMotif, setRejectMotif] = useState('');
 
   const { data } = useQuery({
     queryKey: ['commandes', search, statut, page],
@@ -41,22 +44,25 @@ export default function OrdersPage() {
 
   const validerMutation = useMutation({
     mutationFn: (id: string) => api.valider(id),
-    onSuccess: () => {
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['commandes'] });
       qc.invalidateQueries({ queryKey: ['commandes-kpi'] });
-      toast.success('Commande validée');
+      showSuccess(data);
     },
-    onError: () => toast.error('Erreur'),
+    onError: (e: any) => showError(e),
   });
 
   const rejeterMutation = useMutation({
-    mutationFn: (id: string) => api.rejeter(id),
-    onSuccess: () => {
+    mutationFn: ({ id, motif }: { id: string; motif: string }) =>
+      api.rejeter(id, motif),
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['commandes'] });
       qc.invalidateQueries({ queryKey: ['commandes-kpi'] });
-      toast.success('Commande rejetée');
+      showSuccess(data);
+      setShowRejectModal(null);
+      setRejectMotif('');
     },
-    onError: () => toast.error('Erreur'),
+    onError: (e: any) => showError(e),
   });
 
   const commandes = data?.commandes || [];
@@ -106,6 +112,7 @@ export default function OrdersPage() {
             <option value="en_preparation">En préparation</option>
             <option value="expediee">Expédiée</option>
             <option value="livree">Livrée</option>
+            <option value="rejetee">Rejetée</option>
             <option value="annulee">Annulée</option>
           </select>
         </div>
@@ -169,9 +176,7 @@ export default function OrdersPage() {
                             </svg>
                           </button>
                           <button
-                            onClick={() => {
-                              if (confirm('Rejeter cette commande ?')) rejeterMutation.mutate(c.id);
-                            }}
+                            onClick={() => setShowRejectModal(c.id)}
                             title="Rejeter"
                             className="p-1.5 rounded hover:bg-red-50 text-gray-500 hover:text-red-500"
                           >
@@ -211,6 +216,56 @@ export default function OrdersPage() {
           </div>
         )}
       </div>
+
+      {/* Modal de rejet */}
+      {showRejectModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full mx-4">
+            <div className="p-6">
+              <h2 className="text-lg font-bold text-gray-900 mb-4">
+                Rejeter la commande
+              </h2>
+              <p className="text-sm text-gray-600 mb-4">
+                Veuillez indiquer le motif du rejet. Ce motif sera visible au client.
+              </p>
+              <textarea
+                value={rejectMotif}
+                onChange={(e) => setRejectMotif(e.target.value)}
+                placeholder="Motif du rejet (ex: Stock insuffisant, Produit indisponible)…"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none"
+                rows={4}
+              />
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => {
+                    setShowRejectModal(null);
+                    setRejectMotif('');
+                  }}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={() => {
+                    if (!rejectMotif.trim()) {
+                      showError('Le motif du rejet est obligatoire');
+                      return;
+                    }
+                    rejeterMutation.mutate({
+                      id: showRejectModal,
+                      motif: rejectMotif,
+                    });
+                  }}
+                  disabled={rejeterMutation.isPending}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 disabled:bg-gray-400 rounded-lg"
+                >
+                  {rejeterMutation.isPending ? 'En cours…' : 'Rejeter'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

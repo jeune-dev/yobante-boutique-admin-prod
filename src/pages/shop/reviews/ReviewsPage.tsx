@@ -1,6 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useReviews, useToggleApprove, useDeleteReview } from '@/domains/shop/hooks/useReviews';
 import { Review } from '@/domains/shop/api/reviews.api';
+import { showSuccess, showConfirm } from '@/shared/utils/alert';
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -21,16 +22,6 @@ function Stars({ note }: { note: number }) {
 export default function ReviewsPage() {
   const [page, setPage] = useState(1);
   const [approvedFilter, setApprovedFilter] = useState<boolean | undefined>();
-  const [deleteTarget, setDeleteTarget] = useState<Review | null>(null);
-
-  const [toast, setToast] = useState({ msg: '', show: false });
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const showToast = (msg: string) => {
-    setToast({ msg, show: true });
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(t => ({ ...t, show: false })), 2800);
-  };
 
   const { data, isLoading, isError } = useReviews({ page, limit: 15, isApproved: approvedFilter });
   const approveMut = useToggleApprove();
@@ -43,14 +34,21 @@ export default function ReviewsPage() {
 
   const handleToggle = (r: Review) => {
     approveMut.mutate(r.id, {
-      onSuccess: () => showToast(r.isApproved ? 'Avis désapprouvé' : 'Avis approuvé'),
+      onSuccess: (data) => showSuccess(data),
     });
   };
 
-  const handleDelete = () => {
-    if (!deleteTarget) return;
-    deleteMut.mutate(deleteTarget.id, {
-      onSuccess: () => { setDeleteTarget(null); showToast('Avis supprimé'); },
+  const confirmerSuppression = (r: Review) => {
+    showConfirm({
+      titre: 'Confirmer la suppression',
+      message: `Supprimer l'avis de ${r.user?.nom ?? ''} ${r.user?.prenom ?? ''} sur ${r.produit?.nom ?? 'ce produit'} ?`,
+      confirmText: 'Supprimer',
+      danger: true,
+    }).then((confirme) => {
+      if (!confirme) return;
+      deleteMut.mutate(r.id, {
+        onSuccess: (data) => showSuccess(data),
+      });
     });
   };
 
@@ -136,7 +134,7 @@ export default function ReviewsPage() {
                           onClick={() => handleToggle(r)} disabled={approveMut.isPending}>
                           {r.isApproved ? 'Désapprouver' : 'Approuver'}
                         </button>
-                        <button className="db-btn-danger" onClick={() => setDeleteTarget(r)}>
+                        <button className="db-btn-danger" onClick={() => confirmerSuppression(r)}>
                           Supprimer
                         </button>
                       </div>
@@ -155,33 +153,6 @@ export default function ReviewsPage() {
             <button className="db-btn-ghost" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Suivant →</button>
           </div>
         )}
-      </div>
-
-      {/* Confirm suppression */}
-      {deleteTarget && (
-        <div className="db-modal-overlay db-modal-overlay--visible" onClick={(e) => e.target === e.currentTarget && setDeleteTarget(null)}>
-          <div className="db-modal db-modal--visible" style={{ maxWidth: 380, width: '95%' }}>
-            <div style={{ padding: '1.1rem 1.4rem', borderBottom: '1px solid var(--border)', fontWeight: 700 }}>
-              Confirmer la suppression
-            </div>
-            <div style={{ padding: '1.2rem 1.4rem', fontSize: '0.9rem', color: 'var(--text2)' }}>
-              Supprimer l'avis de <strong>{deleteTarget.user?.nom} {deleteTarget.user?.prenom}</strong> sur <strong>{deleteTarget.produit?.nom}</strong> ?
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.6rem', padding: '1rem 1.4rem', borderTop: '1px solid var(--border)' }}>
-              <button className="db-btn secondary" onClick={() => setDeleteTarget(null)}>Annuler</button>
-              <button className="db-btn confirm" disabled={deleteMut.isPending} onClick={handleDelete}>
-                {deleteMut.isPending ? 'Suppression…' : 'Supprimer'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className={`db-toast${toast.show ? ' show' : ''}`}>
-        <div className="db-toast-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-        {toast.msg}
       </div>
     </div>
   );

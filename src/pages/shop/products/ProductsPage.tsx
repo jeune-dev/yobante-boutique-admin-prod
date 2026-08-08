@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
-import { toast } from 'react-toastify';
+import { showSuccess, showError } from '@/shared/utils/alert';
 
 const api = {
   getProduits: (p: any) =>
@@ -55,20 +55,20 @@ export default function ProductsPage() {
 
   const supprimerMutation = useMutation({
     mutationFn: (id: string) => api.supprimerProduit(id),
-    onSuccess: () => {
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['admin-produits'] });
-      toast.success('Produit supprimé');
+      showSuccess(data);
     },
-    onError: () => toast.error('Erreur'),
+    onError: (e: any) => showError(e),
   });
 
   const promoMutation = useMutation({
     mutationFn: ({ id, data }: any) => api.creerPromo(id, data),
-    onSuccess: () => {
+    onSuccess: (data) => {
       setPromoModal(null);
-      toast.success('Promotion créée');
+      showSuccess(data);
     },
-    onError: () => toast.error('Erreur'),
+    onError: (e: any) => showError(e),
   });
 
   const produits = data?.produits || [];

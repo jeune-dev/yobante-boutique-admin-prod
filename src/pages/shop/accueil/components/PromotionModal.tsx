@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { toast } from 'react-toastify';
+import { showSuccess, showError } from '@/shared/utils/alert';
 import shopClient from '@/infrastructure/http/shop.client';
 import { promotionsApi } from '@/domains/shop/api/promotions.api';
 import Icon from '@/shared/components/dashboard/Icon';
@@ -122,25 +122,25 @@ export default function PromotionModal({
       if (edition) return promotionsApi.update(promotion.id, corps);
       return promotionsApi.create({ ...corps, produitId: produit.id });
     },
-    onSuccess: () => {
-      toast.success(edition ? 'Promotion modifiée' : 'Produit ajouté à la promotion');
+    onSuccess: (data) => {
+      showSuccess(data);
       onEnregistre();
       onFermer();
     },
-    onError: (e: any) => toast.error(e?.message ?? 'Enregistrement impossible'),
+    onError: (e: any) => showError(e),
   });
 
   const valider = () => {
     if (!edition && !produit) {
-      toast.error('Choisissez un produit');
+      showError('Choisissez un produit');
       return;
     }
     if (prixBase > 0 && Number(prixPromo) >= prixBase) {
-      toast.error('Le prix promotionnel doit être inférieur au prix du produit');
+      showError('Le prix promotionnel doit être inférieur au prix du produit');
       return;
     }
     if (dateDebut && dateFin && new Date(dateFin) < new Date(dateDebut)) {
-      toast.error('La date de fin précède la date de début');
+      showError('La date de fin précède la date de début');
       return;
     }
     enregistrer.mutate();

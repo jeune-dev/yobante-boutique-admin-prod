@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
-import { toast } from 'react-toastify';
+import { showSuccess, showError } from '@/shared/utils/alert';
 
 export default function ProductEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -62,11 +62,11 @@ export default function ProductEditPage() {
 
   const updateMutation = useMutation({
     mutationFn: (fd: FormData) => shopClient.put(`/admin/produits/${id}`, fd),
-    onSuccess: () => {
-      toast.success('Produit mis à jour');
+    onSuccess: (data) => {
+      showSuccess(data);
       navigate('/boutique/produits');
     },
-    onError: () => toast.error('Erreur lors de la mise à jour'),
+    onError: (e: any) => showError(e),
   });
 
   const handleSubmit = (e: React.FormEvent) => {

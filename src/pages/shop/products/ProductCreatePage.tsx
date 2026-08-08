@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
 import { categoriesApi } from '@/domains/shop/api/categories.api';
-import { toast } from 'react-toastify';
+import { showSuccess, showError } from '@/shared/utils/alert';
 
 export default function ProductCreatePage() {
   const navigate = useNavigate();
@@ -47,20 +47,20 @@ export default function ProductCreatePage() {
 
   const createMutation = useMutation({
     mutationFn: (fd: FormData) => shopClient.post('/admin/produits', fd),
-    onSuccess: () => {
-      toast.success('Produit créé avec succès');
+    onSuccess: (data) => {
+      showSuccess(data);
       navigate('/boutique/produits');
     },
     // Le backend refuse notamment un sous-rayon étranger au rayon choisi :
     // afficher son message vaut mieux qu'un « Erreur » opaque.
-    onError: (e: any) => toast.error(e?.message ?? 'Erreur lors de la création'),
+    onError: (e: any) => showError(e),
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!categorieId) return toast.error('Choisissez une catégorie');
-    if (!rayonId) return toast.error('Choisissez un rayon');
-    if (!sousRayonId) return toast.error('Choisissez un sous-rayon');
+    if (!categorieId) return showError('Choisissez une catégorie');
+    if (!rayonId) return showError('Choisissez un rayon');
+    if (!sousRayonId) return showError('Choisissez un sous-rayon');
 
     const fd = new FormData();
     fd.append('nom', nom);

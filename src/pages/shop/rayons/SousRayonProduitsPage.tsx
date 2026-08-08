@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'react-toastify';
+import { showSuccess, showError } from '@/shared/utils/alert';
 import shopClient from '@/infrastructure/http/shop.client';
 import Icon from '@/shared/components/dashboard/Icon';
 import Modal, { BoutonSecondaire } from '@/pages/shop/accueil/components/Modal';
@@ -59,21 +59,21 @@ export default function SousRayonProduitsPage() {
   const retirer = useMutation({
     mutationFn: (produitId: string) =>
       api.ranger(produitId, { rayonId: null, sousRayonId: null }),
-    onSuccess: () => {
-      toast.success('Produit retiré du sous-rayon');
+    onSuccess: (data) => {
+      showSuccess(data);
       rafraichir();
     },
-    onError: (e: any) => toast.error(e?.message ?? 'Retrait impossible'),
+    onError: (e: any) => showError(e),
   });
 
   const ajouter = useMutation({
     mutationFn: (produitId: string) =>
       api.ranger(produitId, { rayonId: rayon?.id, sousRayonId: id }),
-    onSuccess: () => {
-      toast.success('Produit ajouté au sous-rayon');
+    onSuccess: (data) => {
+      showSuccess(data);
       rafraichir();
     },
-    onError: (e: any) => toast.error(e?.message ?? 'Ajout impossible'),
+    onError: (e: any) => showError(e),
   });
 
   return (
