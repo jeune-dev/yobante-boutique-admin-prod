@@ -1,0 +1,54 @@
+name: Deploy Admin to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Write .env
+        run: |
+          echo "VITE_SHOP_API_URL=${{ secrets.VITE_SHOP_API_URL }}" > .env
+          echo "VITE_SHIPMENT_API_URL=${{ secrets.VITE_SHIPMENT_API_URL }}" >> .env
+          echo "VITE_APP_NAME=${{ secrets.VITE_APP_NAME }}" >> .env
+          echo "VITE_APP_VERSION=${{ secrets.VITE_APP_VERSION }}" >> .env
+
+      - name: Build
+        run: npm run build
+
+      - name: Deploy dist/ to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "dist/*"
+          target: "/var/www/yobante-admin"
+          strip_components: 1
+          overwrite: true
+
+      - name: Verify deployment
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            curl -f -I https://admin.yobanterek.com || exit 1

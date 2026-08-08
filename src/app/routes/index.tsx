@@ -85,7 +85,6 @@ export const router = createBrowserRouter(
     },
   ],
   {
-    basename: '/yobante-admin',
     future: {
       v7_relativeSplatPath: true,
       v7_fetcherPersist: true,

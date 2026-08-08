@@ -206,6 +206,70 @@ npm run build        # Build optimized bundle
 npm run preview      # Preview production build locally
 ```
 
+## Déploiement Production (VPS Contabo)
+
+L'app est servie à la racine de **`https://admin.yobanterek.com`** par nginx, sur un VPS Contabo.
+Le build statique est envoyé par GitHub Actions (même principe que le projet `sign-admin`).
+
+### Architecture
+
+```
+push sur main (GitHub)
+      ↓
+GitHub Actions (.github/workflows/deploy.yml)
+      ↓  npm ci → écrit .env → npm run build
+      ↓
+SCP de dist/* → /var/www/yobante-admin  (sur le VPS)
+      ↓
+nginx sert admin.yobanterek.com (fallback SPA → /index.html)
+```
+
+### Secrets GitHub à configurer
+
+Dans le repo **`jeune-dev/yobante-boutique-admin-prod`** → *Settings → Secrets and variables → Actions*, créer ces secrets :
+
+| Secret | Valeur attendue |
+|---|---|
+| `VPS_HOST` | IP ou hostname du VPS Contabo (ex: `185.xxx.xxx.xxx`) |
+| `VPS_USER` | Utilisateur SSH (ex: `root`) |
+| `VPS_SSH_KEY` | Clé SSH privée complète (au format `-----BEGIN OPENSSH PRIVATE KEY-----…`) |
+| `VITE_SHOP_API_URL` | `https://api.yobanterek.com/api/v1` |
+| `VITE_SHIPMENT_API_URL` | `https://api.yobanterek.com/api/v1` |
+| `VITE_APP_NAME` | `Yobante Admin` |
+| `VITE_APP_VERSION` | `1.0.0` |
+
+> Les 4 variables `VITE_*` sont injectées dans le build (pas secrètes en soi) mais passent par des secrets
+> pour changer d'URL sans toucher au code.
+
+### Préparation du VPS (une seule fois)
+
+```bash
+# 1. Dossier cible du déploiement
+mkdir -p /var/www/yobante-admin
+
+# 2. Copier deploy/nginx-admin.yobanterek.com.conf depuis ce repo
+#    (ou utiliser scp depuis la machine locale)
+sudo cp nginx-admin.yobanterek.com.conf /etc/nginx/sites-available/yobante-admin
+sudo ln -s /etc/nginx/sites-available/yobante-admin /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+
+# 3. HTTPS (Let's Encrypt)
+sudo certbot --nginx -d admin.yobanterek.com
+
+# 4. DNS : pointez un enregistrement A (admin) vers l'IP du VPS
+```
+
+> Le workflow SCP écrit les fichiers en root. Après chaque déploiement, nginx lit
+> `/var/www/yobante-admin` directement — pas de redémarrage nécessaire.
+
+### Vérification
+
+Chaque push sur `main` déclenche le workflow qui termine par :
+```bash
+curl -f -I https://admin.yobanterek.com   # doit répondre 200
+```
+Suivez l'exécution dans *Actions* du repo GitHub.
+
 ## Development Commands
 
 ```bash
