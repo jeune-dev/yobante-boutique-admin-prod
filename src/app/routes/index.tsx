@@ -3,6 +3,7 @@ import { PrivateRoute } from './PrivateRoute';
 import ShopLayout from '@/layouts/ShopLayout';
 import ShipmentLayout from '@/layouts/ShipmentLayout';
 import { LoginPage } from '@/pages/auth/LoginPage';
+import SuppressionComptePage from '@/pages/public/SuppressionComptePage';
 import ShopDashboard from '@/pages/shop/dashboard/DashboardPage';
 import AccueilPage from '@/pages/shop/accueil/AccueilPage';
 import SousSectionPage from '@/pages/shop/accueil/SousSectionPage';
@@ -43,6 +44,7 @@ export const router = createBrowserRouter(
       children: [
         { index: true, element: <Navigate to="/login" replace /> },
         { path: 'login', element: <LoginPage /> },
+        { path: 'suppression-compte', element: <SuppressionComptePage /> },
         {
           element: <PrivateRoute />,
           children: [
