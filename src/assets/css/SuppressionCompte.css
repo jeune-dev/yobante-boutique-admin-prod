@@ -115,6 +115,16 @@
   margin-top: 0.35rem;
 }
 
+.sc-section a {
+  color: #1a56db;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.sc-section a:hover {
+  text-decoration: underline;
+}
+
 .sc-form {
   display: flex;
   flex-direction: column;
