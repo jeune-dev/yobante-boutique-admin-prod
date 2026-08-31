@@ -174,31 +174,24 @@ export const useCreerVendeur = () => {
   return useMutation({
     mutationFn: (data: Record<string, any>) => api.creerVendeur(data),
     onSuccess: (data) => {
-      showSuccess(data);
       invalidate();
+      showSuccess(data);
     },
     onError: (e: any) => showError(e),
   });
 };
 
-export const useValiderVendeur = () => {
+// Blocage / déblocage d'un vendeur. La liste est invalidée avant l'alerte :
+// l'interface reflète le nouvel état au moment où le message s'affiche.
+export const useStatutVendeur = () => {
   const invalidate = useInvalidate([boutiqueKeys.vendeurs]);
   return useMutation({
-    mutationFn: ({ id, step }: { id: string; step: 1 | 2 }) =>
-      step === 1 ? api.validerVendeurStep1(id) : api.validerVendeurStep2(id),
+    mutationFn: ({ id, bloquer }: { id: string; bloquer: boolean }) =>
+      bloquer ? api.bloquerVendeur(id) : api.debloquerVendeur(id),
     onSuccess: (data) => {
-      showSuccess(data);
       invalidate();
+      showSuccess(data);
     },
-    onError: (e: any) => showError(e),
-  });
-};
-
-export const useToggleVendeur = () => {
-  const invalidate = useInvalidate([boutiqueKeys.vendeurs]);
-  return useMutation({
-    mutationFn: (id: string) => api.toggleVendeur(id),
-    onSuccess: () => invalidate(),
     onError: (e: any) => showError(e),
   });
 };

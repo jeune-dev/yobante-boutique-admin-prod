@@ -1,79 +1,138 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
-import { showSuccess, showError } from '@/shared/utils/alert';
+import { showSuccess, showError, showConfirm } from '@/shared/utils/alert';
 
 const api = {
-  getVendeurs: (p: any) =>
-    shopClient.get('/admin/vendeurs', { params: p }),
+  getVendeurs: (p: any) => shopClient.get('/admin/vendeurs', { params: p }),
   creerVendeur: (data: any) => shopClient.post('/admin/vendeurs', data),
-  validerStep1: (id: string) => shopClient.patch(`/admin/vendeurs/${id}/valider-step1`),
-  validerStep2: (id: string) => shopClient.patch(`/admin/vendeurs/${id}/valider-step2`),
-  rejeter: (id: string) => shopClient.patch(`/admin/vendeurs/${id}/rejeter`),
+  bloquer: (id: string) => shopClient.patch(`/admin/vendeurs/${id}/bloquer`),
+  debloquer: (id: string) => shopClient.patch(`/admin/vendeurs/${id}/debloquer`),
 };
 
-const STATUT_COLORS: Record<string, string> = {
-  actif: 'bg-green-100 text-green-700',
-  en_attente: 'bg-yellow-100 text-yellow-700',
-  rejete: 'bg-red-100 text-red-700',
-  suspendu: 'bg-gray-100 text-gray-500',
-};
+interface Vendeur {
+  id: string;
+  nom?: string;
+  prenom?: string;
+  email?: string;
+  telephone?: string | null;
+  statut?: 'actif' | 'bloque';
+  isBlocked?: boolean;
+  isActive?: boolean;
+  nomBoutique?: string | null;
+  adresseBoutique?: string | null;
+  telephoneBoutique?: string | null;
+  boutique?: { nom?: string | null; adresse?: string | null } | null;
+}
+
+/** Le backend renvoie `statut`; `isActive` sert de repli défensif. */
+const estBloque = (v: Vendeur) =>
+  v.statut ? v.statut === 'bloque' : v.isBlocked ?? v.isActive === false;
+
+const nomBoutique = (v: Vendeur) => v.nomBoutique || v.boutique?.nom || '—';
+const adresseBoutique = (v: Vendeur) => v.adresseBoutique || v.boutique?.adresse || '';
+
+/** Cadenas affiché à côté du nom d'un vendeur bloqué. */
+function IconeBlocage() {
+  return (
+    <span
+      title="Vendeur bloqué"
+      aria-label="Vendeur bloqué"
+      className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-100 text-red-600"
+    >
+      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+        />
+      </svg>
+    </span>
+  );
+}
+
+const CHAMPS_VIDES = { nom: '', prenom: '', email: '', telephone: '', nomBoutique: '', adresseBoutique: '' };
 
 export default function VendeursPage() {
   const qc = useQueryClient();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({
-    nom: '',
-    prenom: '',
-    email: '',
-    telephone: '',
-    nomBoutique: '',
-  });
+  const [form, setForm] = useState(CHAMPS_VIDES);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ['vendeurs', search, page],
     queryFn: () => api.getVendeurs({ search, page, limit: 20 }),
   });
 
+  const rafraichir = () => qc.invalidateQueries({ queryKey: ['vendeurs'] });
+
   const creerMutation = useMutation({
-    mutationFn: (data: any) => api.creerVendeur(data),
-    onSuccess: (data) => {
-      qc.invalidateQueries({ queryKey: ['vendeurs'] });
+    mutationFn: (payload: any) => api.creerVendeur(payload),
+    onSuccess: (reponse) => {
+      // La liste est rechargée avant l'alerte : l'interface reflète le nouvel
+      // état au moment même où l'administrateur lit le message de succès.
+      rafraichir();
       setShowModal(false);
-      setForm({ nom: '', prenom: '', email: '', telephone: '', nomBoutique: '' });
-      showSuccess(data);
+      setForm(CHAMPS_VIDES);
+      showSuccess(reponse);
     },
     onError: (e: any) => showError(e),
   });
 
-  const validerStep1Mutation = useMutation({
-    mutationFn: (id: string) => api.validerStep1(id),
-    onSuccess: (data) => {
-      qc.invalidateQueries({ queryKey: ['vendeurs'] });
-      showSuccess(data);
+  const statutMutation = useMutation({
+    mutationFn: ({ id, bloquer }: { id: string; bloquer: boolean }) =>
+      bloquer ? api.bloquer(id) : api.debloquer(id),
+    onSuccess: (reponse) => {
+      rafraichir();
+      showSuccess(reponse);
     },
+    onError: (e: any) => showError(e),
   });
 
-  const validerStep2Mutation = useMutation({
-    mutationFn: (id: string) => api.validerStep2(id),
-    onSuccess: (data) => {
-      qc.invalidateQueries({ queryKey: ['vendeurs'] });
-      showSuccess(data);
-    },
-  });
-
-  const rejeterMutation = useMutation({
-    mutationFn: (id: string) => api.rejeter(id),
-    onSuccess: (data) => {
-      qc.invalidateQueries({ queryKey: ['vendeurs'] });
-      showSuccess(data);
-    },
-  });
-
-  const vendeurs = data?.vendeurs || [];
+  const vendeurs: Vendeur[] = data?.vendeurs || [];
   const pagination = data?.pagination;
+
+  const handleCreer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const confirme = await showConfirm({
+      titre: 'Créer le vendeur',
+      message: `Créer le compte vendeur de ${form.prenom} ${form.nom} ? Un mot de passe temporaire lui sera envoyé par email.`,
+      confirmText: 'Créer',
+    });
+    if (!confirme) return;
+
+    // Les champs facultatifs vides ne sont pas envoyés : le backend valide des
+    // chaînes non vides quand la clé est présente.
+    const payload: Record<string, string> = {
+      nom: form.nom.trim(),
+      prenom: form.prenom.trim(),
+      email: form.email.trim(),
+      nomBoutique: form.nomBoutique.trim(),
+    };
+    if (form.telephone.trim()) payload.telephone = form.telephone.trim();
+    if (form.adresseBoutique.trim()) payload.adresseBoutique = form.adresseBoutique.trim();
+
+    creerMutation.mutate(payload);
+  };
+
+  const handleStatut = async (v: Vendeur) => {
+    const bloquer = !estBloque(v);
+    const nomComplet = `${v.prenom ?? ''} ${v.nom ?? ''}`.trim();
+
+    const confirme = await showConfirm({
+      titre: bloquer ? 'Bloquer le vendeur' : 'Débloquer le vendeur',
+      message: bloquer
+        ? `Êtes-vous sûr de vouloir bloquer ${nomComplet} ? Il ne pourra plus accéder à son espace vendeur.`
+        : `Êtes-vous sûr de vouloir débloquer ${nomComplet} ? Il retrouvera l'accès à son espace vendeur.`,
+      confirmText: bloquer ? 'Bloquer' : 'Débloquer',
+      danger: bloquer,
+    });
+    if (!confirme) return;
+
+    statutMutation.mutate({ id: v.id, bloquer });
+  };
 
   return (
     <div>
@@ -102,6 +161,10 @@ export default function VendeursPage() {
 
         {isLoading ? (
           <div className="p-8 text-center text-gray-400">Chargement…</div>
+        ) : isError ? (
+          <div className="p-8 text-center text-red-500 text-sm">
+            {(error as any)?.message || 'Impossible de charger les vendeurs.'}
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -115,58 +178,53 @@ export default function VendeursPage() {
                 </tr>
               </thead>
               <tbody>
-                {vendeurs.map((v: any) => (
-                  <tr key={v.id} className="border-b border-gray-50 hover:bg-gray-50">
-                    <td className="p-4 font-medium">
-                      {v.prenom} {v.nom}
-                    </td>
-                    <td className="p-4 text-gray-600">{v.nomBoutique || '—'}</td>
-                    <td className="p-4 text-gray-500 text-xs">
-                      <div>{v.email}</div>
-                      <div>{v.telephone}</div>
-                    </td>
-                    <td className="p-4">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs ${
-                          STATUT_COLORS[v.statut] || 'bg-gray-100 text-gray-500'
-                        }`}
-                      >
-                        {v.statut || 'en_attente'}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center justify-center gap-1">
-                        {(v.statut === 'en_attente' || !v.statut) && (
-                          <>
-                            <button
-                              onClick={() => validerStep1Mutation.mutate(v.id)}
-                              title="Valider étape 1"
-                              className="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs hover:bg-blue-100"
-                            >
-                              Step 1
-                            </button>
-                            <button
-                              onClick={() => validerStep2Mutation.mutate(v.id)}
-                              title="Valider étape 2 (activer)"
-                              className="px-2 py-1 bg-green-50 text-green-600 rounded text-xs hover:bg-green-100"
-                            >
-                              Activer
-                            </button>
-                            <button
-                              onClick={() => {
-                                if (confirm('Rejeter ce vendeur ?')) rejeterMutation.mutate(v.id);
-                              }}
-                              title="Rejeter"
-                              className="px-2 py-1 bg-red-50 text-red-600 rounded text-xs hover:bg-red-100"
-                            >
-                              Rejeter
-                            </button>
-                          </>
+                {vendeurs.map((v) => {
+                  const bloque = estBloque(v);
+                  return (
+                    <tr key={v.id} className="border-b border-gray-50 hover:bg-gray-50">
+                      <td className="p-4 font-medium">
+                        <span className="inline-flex items-center gap-2">
+                          {v.prenom} {v.nom}
+                          {bloque && <IconeBlocage />}
+                        </span>
+                      </td>
+                      <td className="p-4 text-gray-600">
+                        <div>{nomBoutique(v)}</div>
+                        {adresseBoutique(v) && (
+                          <div className="text-xs text-gray-400">{adresseBoutique(v)}</div>
                         )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="p-4 text-gray-500 text-xs">
+                        <div>{v.email || '—'}</div>
+                        <div>{v.telephone || v.telephoneBoutique || '—'}</div>
+                      </td>
+                      <td className="p-4">
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs ${
+                            bloque ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                          }`}
+                        >
+                          {bloque ? 'Bloqué' : 'Actif'}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex items-center justify-center">
+                          <button
+                            onClick={() => handleStatut(v)}
+                            disabled={statutMutation.isPending}
+                            className={`px-3 py-1 rounded text-xs font-medium disabled:opacity-50 ${
+                              bloque
+                                ? 'bg-green-50 text-green-700 hover:bg-green-100'
+                                : 'bg-red-50 text-red-600 hover:bg-red-100'
+                            }`}
+                          >
+                            {bloque ? 'Débloquer' : 'Bloquer'}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
                 {vendeurs.length === 0 && (
                   <tr>
                     <td colSpan={5} className="p-8 text-center text-gray-400">
@@ -196,7 +254,8 @@ export default function VendeursPage() {
         )}
       </div>
 
-      {/* Modal Créer vendeur */}
+      {/* Modal Créer vendeur — aucun champ mot de passe : il est généré par le
+          backend et transmis au vendeur par email. */}
       {showModal && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
@@ -206,14 +265,12 @@ export default function VendeursPage() {
             className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-lg font-bold mb-4">Nouveau vendeur</h2>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                creerMutation.mutate(form);
-              }}
-              className="space-y-4"
-            >
+            <h2 className="text-lg font-bold mb-1">Nouveau vendeur</h2>
+            <p className="text-xs text-gray-500 mb-4">
+              Le compte sera <strong>actif immédiatement</strong>. Un mot de passe temporaire est
+              envoyé par email ; le vendeur devra le changer à sa première connexion.
+            </p>
+            <form onSubmit={handleCreer} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-sm font-medium text-gray-700">Prénom *</label>
@@ -253,10 +310,19 @@ export default function VendeursPage() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Nom de la boutique</label>
+                <label className="text-sm font-medium text-gray-700">Nom de la boutique *</label>
                 <input
+                  required
                   value={form.nomBoutique}
                   onChange={(e) => setForm((f) => ({ ...f, nomBoutique: e.target.value }))}
+                  className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Adresse de la boutique</label>
+                <input
+                  value={form.adresseBoutique}
+                  onChange={(e) => setForm((f) => ({ ...f, adresseBoutique: e.target.value }))}
                   className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
                 />
               </div>

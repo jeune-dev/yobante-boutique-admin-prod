@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
-import { showSuccess, showError } from '@/shared/utils/alert';
+import { showSuccess, showError, showConfirm } from '@/shared/utils/alert';
 
 export default function ProductEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -69,8 +69,17 @@ export default function ProductEditPage() {
     onError: (e: any) => showError(e),
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Modification importante : confirmation avant l'appel API.
+    const confirme = await showConfirm({
+      titre: 'Enregistrer les modifications',
+      message: `Confirmez-vous la modification du produit « ${nom} » ?`,
+      confirmText: 'Enregistrer',
+    });
+    if (!confirme) return;
+
     const fd = new FormData();
     fd.append('nom', nom);
     fd.append('description', description);

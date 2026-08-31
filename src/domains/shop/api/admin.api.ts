@@ -124,23 +124,25 @@ export const listerVendeurs = (params?: Record<string, any>) =>
 export const getVendeur = (id: string) =>
   unwrap(shopClient.get(`/admin/vendeurs/${id}`));
 
-// Création d'un compte vendeur (user rôle VENDEUR + profil boutique)
-// Champs : nom, prenom, email, password, nomBoutique (requis) ;
-// telephone, adresseBoutique, description, infoLegale (optionnels)
+// Création d'un compte vendeur (user rôle VENDEUR + profil boutique).
+// Champs requis : nom, prenom, email, nomBoutique ;
+// optionnels : telephone, adresseBoutique, description, infoLegale.
+// Le mot de passe temporaire est généré par le backend et envoyé par email.
 export const creerVendeur = (data: Record<string, any>) =>
   unwrap(shopClient.post('/admin/vendeurs', data));
 
-export const validerVendeurStep1 = (id: string) =>
-  unwrap(shopClient.patch(`/admin/vendeurs/${id}/valider-step1`));
+// Statut du vendeur : 'actif' | 'bloque'. Le circuit de validation en deux
+// étapes a été supprimé — un vendeur est actif dès sa création.
+export const getStatutVendeur = (id: string) =>
+  unwrap<{ statut: 'actif' | 'bloque'; isBlocked: boolean }>(
+    shopClient.get(`/admin/vendeurs/${id}/statut`)
+  );
 
-export const validerVendeurStep2 = (id: string) =>
-  unwrap(shopClient.patch(`/admin/vendeurs/${id}/valider-step2`));
+export const bloquerVendeur = (id: string) =>
+  unwrap(shopClient.patch(`/admin/vendeurs/${id}/bloquer`));
 
-export const rejeterVendeur = (id: string, motif?: string) =>
-  unwrap(shopClient.patch(`/admin/vendeurs/${id}/rejeter`, { motif }));
-
-export const toggleVendeur = (id: string) =>
-  unwrap(shopClient.patch(`/admin/vendeurs/${id}/toggle`));
+export const debloquerVendeur = (id: string) =>
+  unwrap(shopClient.patch(`/admin/vendeurs/${id}/debloquer`));
 
 // ─── Bannières ────────────────────────────────────────────────
 export const listerBannieres = () =>

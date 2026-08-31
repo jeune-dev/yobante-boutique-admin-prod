@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
-import { showSuccess, showError } from '@/shared/utils/alert';
+import { showSuccess, showError, showConfirm } from '@/shared/utils/alert';
 
 const api = {
   getProduits: (p: any) =>
@@ -191,8 +191,14 @@ export default function ProductsPage() {
                         </Tooltip>
                         <Tooltip label="Supprimer">
                           <button
-                            onClick={() => {
-                              if (confirm('Supprimer ce produit ?')) supprimerMutation.mutate(p.id);
+                            onClick={async () => {
+                              const confirme = await showConfirm({
+                                titre: 'Supprimer le produit',
+                                message: `Êtes-vous sûr de vouloir supprimer « ${p.nom} » ? Cette action est irréversible.`,
+                                confirmText: 'Supprimer',
+                                danger: true,
+                              });
+                              if (confirme) supprimerMutation.mutate(p.id);
                             }}
                             className="p-1.5 rounded hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors"
                           >

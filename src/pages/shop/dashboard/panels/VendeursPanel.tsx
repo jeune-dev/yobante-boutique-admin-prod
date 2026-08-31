@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useVendeurs, useValiderVendeur, useToggleVendeur, useCreerVendeur } from '@/domains/shop/hooks/useAdminBoutique';
+import { useVendeurs, useStatutVendeur, useCreerVendeur } from '@/domains/shop/hooks/useAdminBoutique';
+import { showConfirm } from '@/shared/utils/alert';
 import Icon from '@/shared/components/dashboard/Icon';
 import { StateRow } from './_state';
 
@@ -10,28 +11,74 @@ interface Vendeur {
   email?: string;
   telephone?: string | null;
   isActive?: boolean;
-  statutValidation?: string;
-  boutique?: { nom?: string } | string;
+  isBlocked?: boolean;
+  statut?: 'actif' | 'bloque';
+  nomBoutique?: string | null;
+  adresseBoutique?: string | null;
+  boutique?: { nom?: string | null; adresse?: string | null } | null;
 }
 
-const nomBoutique = (b: Vendeur['boutique']) =>
-  typeof b === 'string' ? b : b?.nom || '—';
+/** Le backend renvoie `statut`; `isActive` sert de repli défensif. */
+const estBloque = (v: Vendeur) =>
+  v.statut ? v.statut === 'bloque' : v.isBlocked ?? v.isActive === false;
 
-const EMPTY = { nom: '', prenom: '', email: '', telephone: '', password: '', nomBoutique: '', adresseBoutique: '' };
+const nomBoutique = (v: Vendeur) => v.nomBoutique || v.boutique?.nom || '—';
+
+const EMPTY = { nom: '', prenom: '', email: '', telephone: '', nomBoutique: '', adresseBoutique: '' };
 
 export default function VendeursPanel() {
   const { data, isLoading, isError } = useVendeurs();
-  const valider = useValiderVendeur();
-  const toggle = useToggleVendeur();
+  const statut = useStatutVendeur();
   const creer = useCreerVendeur();
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState(EMPTY);
 
   const vendeurs: Vendeur[] = data?.vendeurs ?? [];
 
-  const handleCreer = () => {
-    if (!form.nom || !form.prenom || !form.email || !form.password || !form.nomBoutique) return;
-    creer.mutate(form, { onSuccess: () => { setModal(false); setForm(EMPTY); } });
+  const handleCreer = async () => {
+    if (!form.nom || !form.prenom || !form.email || !form.nomBoutique) return;
+
+    const confirme = await showConfirm({
+      titre: 'Créer le vendeur',
+      message: `Créer le compte vendeur de ${form.prenom} ${form.nom} ? Un mot de passe temporaire lui sera envoyé par email.`,
+      confirmText: 'Créer',
+    });
+    if (!confirme) return;
+
+    // Les champs facultatifs vides ne sont pas transmis : le backend valide des
+    // chaînes non vides dès que la clé est présente.
+    const payload: Record<string, string> = {
+      nom: form.nom.trim(),
+      prenom: form.prenom.trim(),
+      email: form.email.trim(),
+      nomBoutique: form.nomBoutique.trim(),
+    };
+    if (form.telephone.trim()) payload.telephone = form.telephone.trim();
+    if (form.adresseBoutique.trim()) payload.adresseBoutique = form.adresseBoutique.trim();
+
+    creer.mutate(payload, {
+      onSuccess: () => {
+        setModal(false);
+        setForm(EMPTY);
+      },
+    });
+  };
+
+  const handleStatut = async (v: Vendeur) => {
+    const bloquer = !estBloque(v);
+    const nomComplet = `${v.prenom ?? ''} ${v.nom ?? ''}`.trim();
+
+    const confirme = await showConfirm({
+      titre: bloquer ? 'Bloquer le vendeur' : 'Débloquer le vendeur',
+      message: bloquer
+        ? `Êtes-vous sûr de vouloir bloquer ${nomComplet} ? Il ne pourra plus accéder à son espace vendeur.`
+        : `Êtes-vous sûr de vouloir débloquer ${nomComplet} ? Il retrouvera l'accès à son espace vendeur.`,
+      confirmText: bloquer ? 'Bloquer' : 'Débloquer',
+      danger: bloquer,
+    });
+    if (!confirme) return;
+
+    statut.mutate({ id: v.id, bloquer });
   };
 
   return (
@@ -50,35 +97,50 @@ export default function VendeursPanel() {
                 <th>Vendeur</th>
                 <th>Boutique</th>
                 <th>Email</th>
-                <th>Validation</th>
                 <th>Statut</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              <StateRow colSpan={6} loading={isLoading} error={isError} empty={vendeurs.length === 0} emptyLabel="Aucun vendeur" />
+              <StateRow colSpan={5} loading={isLoading} error={isError} empty={vendeurs.length === 0} emptyLabel="Aucun vendeur" />
               {!isLoading && !isError &&
-                vendeurs.map((v) => (
-                  <tr key={v.id}>
-                    <td className="db-td-bold">{v.prenom} {v.nom}</td>
-                    <td>{nomBoutique(v.boutique)}</td>
-                    <td>{v.email || '—'}</td>
-                    <td>
-                      <span className="badge bgo">{v.statutValidation || 'En attente'}</span>
-                    </td>
-                    <td>
-                      <span style={{ background: v.isActive ? '#d1fae5' : '#fee2e2', color: v.isActive ? '#065f46' : '#991b1b', padding: '3px 12px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 600 }}>
-                        {v.isActive ? 'Actif' : 'Inactif'}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="db-actions">
-                        <button className="db-btn-ghost" style={{ color: '#065f46', borderColor: '#065f46' }} disabled={valider.isPending} onClick={() => valider.mutate({ id: v.id, step: 1 })}>Valider</button>
-                        <button className="db-btn-ghost" disabled={toggle.isPending} onClick={() => toggle.mutate(v.id)}>{v.isActive ? 'Désactiver' : 'Activer'}</button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                vendeurs.map((v) => {
+                  const bloque = estBloque(v);
+                  return (
+                    <tr key={v.id}>
+                      <td className="db-td-bold">
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                          {v.prenom} {v.nom}
+                          {/* Repère visuel immédiat d'un compte bloqué */}
+                          {bloque && (
+                            <span title="Vendeur bloqué" aria-label="Vendeur bloqué" style={{ color: '#dc2626', display: 'inline-flex' }}>
+                              <Icon name="lock" size={13} />
+                            </span>
+                          )}
+                        </span>
+                      </td>
+                      <td>{nomBoutique(v)}</td>
+                      <td>{v.email || '—'}</td>
+                      <td>
+                        <span style={{ background: bloque ? '#fee2e2' : '#d1fae5', color: bloque ? '#991b1b' : '#065f46', padding: '3px 12px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 600 }}>
+                          {bloque ? 'Bloqué' : 'Actif'}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="db-actions">
+                          <button
+                            className="db-btn-ghost"
+                            style={{ color: bloque ? '#065f46' : '#991b1b', borderColor: bloque ? '#065f46' : '#991b1b' }}
+                            disabled={statut.isPending}
+                            onClick={() => handleStatut(v)}
+                          >
+                            {bloque ? 'Débloquer' : 'Bloquer'}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
             </tbody>
           </table>
         </div>
@@ -92,6 +154,10 @@ export default function VendeursPanel() {
               <button className="db-modal-close" onClick={() => setModal(false)}><Icon name="x" size={14} /></button>
             </div>
             <div className="db-pop-body">
+              <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.8rem' }}>
+                Le compte sera <strong>actif immédiatement</strong>. Un mot de passe temporaire est
+                envoyé par email ; le vendeur devra le changer à sa première connexion.
+              </p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' }}>
                 <div className="db-form-group">
                   <label className="db-form-label">Prénom</label>
@@ -117,10 +183,6 @@ export default function VendeursPanel() {
               <div className="db-form-group">
                 <label className="db-form-label">Adresse de la boutique</label>
                 <input className="db-form-input" value={form.adresseBoutique} onChange={(e) => setForm({ ...form, adresseBoutique: e.target.value })} />
-              </div>
-              <div className="db-form-group">
-                <label className="db-form-label">Mot de passe</label>
-                <input className="db-form-input" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Min. 8 car., 1 majuscule, 1 chiffre" />
               </div>
             </div>
             <div className="db-modal-footer">

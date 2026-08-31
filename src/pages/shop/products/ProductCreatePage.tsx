@@ -2,8 +2,7 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
-import { categoriesApi } from '@/domains/shop/api/categories.api';
-import { showSuccess, showError } from '@/shared/utils/alert';
+import { showSuccess, showError, showConfirm } from '@/shared/utils/alert';
 
 export default function ProductCreatePage() {
   const navigate = useNavigate();
@@ -15,14 +14,8 @@ export default function ProductCreatePage() {
   const [stock, setStock] = useState('0');
   const [poids, setPoids] = useState('');
   const [reference, setReference] = useState('');
-  const [categorieId, setCategorieId] = useState('');
   const [rayonId, setRayonId] = useState('');
   const [sousRayonId, setSousRayonId] = useState('');
-
-  const { data: categoriesData } = useQuery({
-    queryKey: ['categories-select'],
-    queryFn: () => categoriesApi.getAll().then((r: any) => r.categories ?? r ?? []),
-  });
 
   const { data: rayonsData } = useQuery({
     queryKey: ['rayons-select'],
@@ -41,7 +34,6 @@ export default function ProductCreatePage() {
     enabled: !!rayonId,
   });
 
-  const categories: any[] = categoriesData || [];
   const rayons: any[] = rayonsData || [];
   const sousRayons: any[] = sousRayonsData || [];
 
@@ -56,18 +48,24 @@ export default function ProductCreatePage() {
     onError: (e: any) => showError(e),
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!categorieId) return showError('Choisissez une catégorie');
     if (!rayonId) return showError('Choisissez un rayon');
     if (!sousRayonId) return showError('Choisissez un sous-rayon');
+
+    // Confirmation avant tout appel : l'API n'est sollicitée qu'après un « oui ».
+    const confirme = await showConfirm({
+      titre: 'Créer le produit',
+      message: `Confirmez-vous la création du produit « ${nom} » ?`,
+      confirmText: 'Créer',
+    });
+    if (!confirme) return;
 
     const fd = new FormData();
     fd.append('nom', nom);
     fd.append('description', description);
     fd.append('prix', prix);
     fd.append('stock', stock);
-    fd.append('categorieId', categorieId);
     fd.append('rayonId', rayonId);
     fd.append('sousRayonId', sousRayonId);
     if (poids) fd.append('poids', poids);
@@ -140,25 +138,9 @@ export default function ProductCreatePage() {
             </div>
           </div>
 
-          <div>
-            <label className="text-sm font-medium text-gray-700">Catégorie *</label>
-            <select
-              required
-              value={categorieId}
-              onChange={(e) => setCategorieId(e.target.value)}
-              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
-            >
-              <option value="">— Sélectionner une catégorie —</option>
-              {categories.map((c: any) => (
-                <option key={c.id} value={c.id}>
-                  {c.nom}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Le rangement en rayon décide de la place du produit dans la
-              navigation mobile : les deux niveaux sont donc exigés. */}
+          {/* Le rangement du produit se fait uniquement par rayon puis
+              sous-rayon : la catégorie a été retirée du formulaire, et le
+              backend ne l'attend plus. */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-gray-700">Rayon *</label>

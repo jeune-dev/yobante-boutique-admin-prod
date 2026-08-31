@@ -1,20 +1,25 @@
 ﻿import shopClient from '@/infrastructure/http/shop.client';
 
+export type StatutVendeur = 'actif' | 'bloque';
+
 export interface VendeurFilters {
   search?: string;
-  statut?: 'en_attente' | 'step1' | 'valide';
+  statut?: StatutVendeur;
   page?: number;
   limit?: number;
 }
 
+// Pas de `password` : le mot de passe temporaire est généré par le backend
+// puis envoyé au vendeur par email.
 export interface CreateVendeurData {
   nom: string;
   prenom: string;
   email: string;
-  password: string;
   telephone?: string;
   nomBoutique: string;
+  adresseBoutique?: string;
   description?: string;
+  infoLegale?: string;
 }
 
 export const vendorsApi = {
@@ -27,18 +32,16 @@ export const vendorsApi = {
   create: (data: CreateVendeurData): Promise<any> =>
     shopClient.post('/admin/vendeurs', data),
 
-  validerStep1: (id: string): Promise<any> =>
-    shopClient.patch(`/admin/vendeurs/${id}/valider-step1`),
+  // Un vendeur est actif dès sa création : seul le blocage le désactive.
+  getStatut: (id: string): Promise<any> =>
+    shopClient.get(`/admin/vendeurs/${id}/statut`),
 
-  validerStep2: (id: string): Promise<any> =>
-    shopClient.patch(`/admin/vendeurs/${id}/valider-step2`),
+  bloquer: (id: string): Promise<any> =>
+    shopClient.patch(`/admin/vendeurs/${id}/bloquer`),
 
-  rejeter: (id: string, motifRejet?: string): Promise<any> =>
-    shopClient.patch(`/admin/vendeurs/${id}/rejeter`, { motifRejet }),
-
-  toggleActivation: (id: string): Promise<any> =>
-    shopClient.patch(`/admin/vendeurs/${id}/toggle`),
+  debloquer: (id: string): Promise<any> =>
+    shopClient.patch(`/admin/vendeurs/${id}/debloquer`),
 
   updateProfil: (id: string, data: Record<string, any>): Promise<any> =>
-    shopClient.put(`/admin/vendeurs/${id}/profil`, data),
+    shopClient.put(`/admin/vendeurs/${id}`, data),
 };
