@@ -15,6 +15,7 @@ export default function ProductCreatePage() {
   const [stock, setStock] = useState('0');
   const [poids, setPoids] = useState('');
   const [reference, setReference] = useState('');
+  const [avecEtat, setAvecEtat] = useState(false);
   const [etat, setEtat] = useState<'neuf' | 'reconditionne'>('neuf');
   const [rayonId, setRayonId] = useState('');
   const [sousRayonId, setSousRayonId] = useState('');
@@ -71,7 +72,7 @@ export default function ProductCreatePage() {
     fd.append('stock', stock);
     fd.append('rayonId', rayonId);
     fd.append('sousRayonId', sousRayonId);
-    fd.append('etat', etat);
+    fd.append('etat', avecEtat ? etat : 'neuf');
     if (poids) fd.append('poids', poids);
     if (reference) fd.append('reference', reference);
     const files = fileRef.current?.files;
@@ -229,15 +230,25 @@ export default function ProductCreatePage() {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">État du produit</label>
-            <select
-              value={etat}
-              onChange={(e) => setEtat(e.target.value as 'neuf' | 'reconditionne')}
-              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
-            >
-              <option value="neuf">Neuf</option>
-              <option value="reconditionne">Reconditionné</option>
-            </select>
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+              <input
+                type="checkbox"
+                checked={avecEtat}
+                onChange={(e) => setAvecEtat(e.target.checked)}
+                className="rounded border-gray-300 text-yellow-500 focus:ring-yellow-300"
+              />
+              Préciser l'état du produit (neuf / reconditionné)
+            </label>
+            {avecEtat && (
+              <select
+                value={etat}
+                onChange={(e) => setEtat(e.target.value as 'neuf' | 'reconditionne')}
+                className="mt-2 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              >
+                <option value="neuf">Neuf</option>
+                <option value="reconditionne">Reconditionné</option>
+              </select>
+            )}
           </div>
 
           <div>

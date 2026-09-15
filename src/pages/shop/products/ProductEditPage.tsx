@@ -16,6 +16,7 @@ export default function ProductEditPage() {
   const [stock, setStock] = useState('0');
   const [poids, setPoids] = useState('');
   const [reference, setReference] = useState('');
+  const [avecEtat, setAvecEtat] = useState(false);
   const [etat, setEtat] = useState<'neuf' | 'reconditionne'>('neuf');
   const [rayonId, setRayonId] = useState('');
   const [sousRayonId, setSousRayonId] = useState('');
@@ -37,6 +38,9 @@ export default function ProductEditPage() {
       setStock(String(produit.stock || '0'));
       setPoids(String(produit.poids || ''));
       setReference(produit.reference || '');
+      // Le backend stocke toujours un état (défaut « neuf ») : la case n'est
+      // pré-cochée que si un état explicite (reconditionné) a été renseigné.
+      setAvecEtat(produit.etat === 'reconditionne');
       setEtat(produit.etat === 'reconditionne' ? 'reconditionne' : 'neuf');
       setRayonId(produit.rayonId || produit.rayon?.id || '');
       setSousRayonId(produit.sousRayonId || produit.sousRayon?.id || '');
@@ -90,7 +94,7 @@ export default function ProductEditPage() {
     fd.append('prix', prix);
     fd.append('venduAuPoids', String(venduAuPoids));
     fd.append('stock', stock);
-    fd.append('etat', etat);
+    fd.append('etat', avecEtat ? etat : 'neuf');
     if (poids) fd.append('poids', poids);
     if (reference) fd.append('reference', reference);
     if (rayonId) fd.append('rayonId', rayonId);
@@ -237,15 +241,25 @@ export default function ProductEditPage() {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">État du produit</label>
-            <select
-              value={etat}
-              onChange={(e) => setEtat(e.target.value as 'neuf' | 'reconditionne')}
-              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
-            >
-              <option value="neuf">Neuf</option>
-              <option value="reconditionne">Reconditionné</option>
-            </select>
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+              <input
+                type="checkbox"
+                checked={avecEtat}
+                onChange={(e) => setAvecEtat(e.target.checked)}
+                className="rounded border-gray-300 text-yellow-500 focus:ring-yellow-300"
+              />
+              Préciser l'état du produit (neuf / reconditionné)
+            </label>
+            {avecEtat && (
+              <select
+                value={etat}
+                onChange={(e) => setEtat(e.target.value as 'neuf' | 'reconditionne')}
+                className="mt-2 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              >
+                <option value="neuf">Neuf</option>
+                <option value="reconditionne">Reconditionné</option>
+              </select>
+            )}
           </div>
 
           <div>
