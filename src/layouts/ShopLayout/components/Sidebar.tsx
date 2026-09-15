@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import Icon from '@/shared/components/dashboard/Icon';
-import pictogramme from '@/assets/images/Logo Yobante pictogramme - Version 1.png';
+import { PICTO } from '@/assets/images/logos';
 
 const NAV = [
   { label: 'Dashboard', icon: 'layout-dashboard', path: '/boutique/dashboard' },
@@ -37,7 +37,7 @@ export default function ShopSidebar({ replie, onBasculer }: Props) {
           replie ? 'justify-center px-2' : 'px-4'
         }`}
       >
-        <img src={pictogramme} alt="Yobante Boutique" className="h-9 w-auto shrink-0" />
+        <img src={PICTO} alt="Yobante Boutique" className="h-9 w-auto shrink-0" />
         {!replie && (
           <span className="font-bold text-[15px] text-gray-900 leading-tight truncate">
             Yobante <span className="text-yellow-500">Boutique</span>
