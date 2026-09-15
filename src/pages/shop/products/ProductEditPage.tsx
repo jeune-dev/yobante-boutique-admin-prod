@@ -12,9 +12,11 @@ export default function ProductEditPage() {
   const [nom, setNom] = useState('');
   const [description, setDescription] = useState('');
   const [prix, setPrix] = useState('');
+  const [venduAuPoids, setVenduAuPoids] = useState(false);
   const [stock, setStock] = useState('0');
   const [poids, setPoids] = useState('');
   const [reference, setReference] = useState('');
+  const [etat, setEtat] = useState<'neuf' | 'reconditionne'>('neuf');
   const [rayonId, setRayonId] = useState('');
   const [sousRayonId, setSousRayonId] = useState('');
   const [loaded, setLoaded] = useState(false);
@@ -31,9 +33,11 @@ export default function ProductEditPage() {
       setNom(produit.nom || '');
       setDescription(produit.description || '');
       setPrix(String(produit.prix || ''));
+      setVenduAuPoids(Boolean(produit.venduAuPoids));
       setStock(String(produit.stock || '0'));
       setPoids(String(produit.poids || ''));
       setReference(produit.reference || '');
+      setEtat(produit.etat === 'reconditionne' ? 'reconditionne' : 'neuf');
       setRayonId(produit.rayonId || produit.rayon?.id || '');
       setSousRayonId(produit.sousRayonId || produit.sousRayon?.id || '');
       setLoaded(true);
@@ -84,7 +88,9 @@ export default function ProductEditPage() {
     fd.append('nom', nom);
     fd.append('description', description);
     fd.append('prix', prix);
+    fd.append('venduAuPoids', String(venduAuPoids));
     fd.append('stock', stock);
+    fd.append('etat', etat);
     if (poids) fd.append('poids', poids);
     if (reference) fd.append('reference', reference);
     if (rayonId) fd.append('rayonId', rayonId);
@@ -138,7 +144,9 @@ export default function ProductEditPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-gray-700">Prix (FCFA) *</label>
+              <label className="text-sm font-medium text-gray-700">
+                {venduAuPoids ? 'Prix au kg (FCFA) *' : 'Prix (FCFA) *'}
+              </label>
               <input
                 required
                 type="number"
@@ -147,6 +155,15 @@ export default function ProductEditPage() {
                 onChange={(e) => setPrix(e.target.value)}
                 className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
               />
+              <label className="mt-2 flex items-center gap-2 text-xs text-gray-600">
+                <input
+                  type="checkbox"
+                  checked={venduAuPoids}
+                  onChange={(e) => setVenduAuPoids(e.target.checked)}
+                  className="rounded border-gray-300 text-yellow-500 focus:ring-yellow-300"
+                />
+                Vendre au poids (prix à la pesée)
+              </label>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-700">Stock *</label>
@@ -217,6 +234,18 @@ export default function ProductEditPage() {
                 className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700">État du produit</label>
+            <select
+              value={etat}
+              onChange={(e) => setEtat(e.target.value as 'neuf' | 'reconditionne')}
+              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+            >
+              <option value="neuf">Neuf</option>
+              <option value="reconditionne">Reconditionné</option>
+            </select>
           </div>
 
           <div>

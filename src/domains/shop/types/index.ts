@@ -33,6 +33,7 @@ export interface Produit {
   description?: string;
   prix: number;
   prixPromo?: number;
+  venduAuPoids?: boolean;
   stock: number;
   images: string[];
   categorieId: string;
@@ -41,6 +42,7 @@ export interface Produit {
   isFeatured: boolean;
   statutValidation: StatutValidationProduit;
   reference?: string;
+  etat?: 'neuf' | 'reconditionne';
   noteMoyenne?: number;
   nombreAvis?: number;
   categorie?: Categorie;

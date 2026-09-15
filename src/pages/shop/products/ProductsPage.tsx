@@ -154,6 +154,11 @@ export default function ProductsPage() {
                           <div className="w-10 h-10 rounded-lg bg-gray-100" />
                         )}
                         <span className="font-medium">{p.nom}</span>
+                        {p.etat === 'reconditionne' && (
+                          <span className="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700">
+                            Reconditionné
+                          </span>
+                        )}
                       </div>
                     </td>
                     <td className="p-4 text-gray-500">
@@ -162,6 +167,7 @@ export default function ProductsPage() {
                     </td>
                     <td className="p-4 font-medium">
                       {p.prix?.toLocaleString('fr-FR')} FCFA
+                      {p.venduAuPoids ? ' / kg' : ''}
                     </td>
                     <td className="p-4 text-center">{p.stock}</td>
                     <td className="p-4 text-center">
