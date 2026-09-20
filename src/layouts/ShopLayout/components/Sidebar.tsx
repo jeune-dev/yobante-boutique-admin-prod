@@ -1,3 +1,5 @@
+import { useState, type FocusEvent, type MouseEvent } from 'react';
+import { createPortal } from 'react-dom';
 import { NavLink } from 'react-router-dom';
 import Icon from '@/shared/components/dashboard/Icon';
 import { PICTO } from '@/assets/images/logos';
@@ -16,6 +18,16 @@ const NAV = [
   { label: 'Profil', icon: 'user', path: '/boutique/profil' },
   { label: 'Paramètres', icon: 'settings', path: '/boutique/parametres' },
 ];
+
+/** Infobulle affichée à droite d'une icône quand la barre est repliée. */
+interface Infobulle {
+  label: string;
+  top: number;
+  left: number;
+}
+
+/** Point de rupture `lg` de Tailwind : en dessous, le tiroir est toujours déplié. */
+const ECRAN_LARGE = '(min-width: 1024px)';
 
 interface Props {
   /** Repliée (écran large) : seules les icônes restent visibles. */
@@ -36,6 +48,18 @@ interface Props {
  *    ou avec Échap. Sur écran étroit, le tiroir est toujours déplié.
  */
 export default function ShopSidebar({ replie, onBasculer, tiroirOuvert, onFermerTiroir }: Props) {
+  const [infobulle, setInfobulle] = useState<Infobulle | null>(null);
+
+  // Barre repliée : le libellé n'est plus visible, on l'affiche dès le survol
+  // (ou le focus clavier) de l'icône. Rendu dans un portail, en position
+  // fixe, pour ne pas être rogné par le défilement de la barre.
+  const montrerInfobulle = (label: string) => (e: MouseEvent | FocusEvent) => {
+    if (!replie || !window.matchMedia(ECRAN_LARGE).matches) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    setInfobulle({ label, top: r.top + r.height / 2, left: r.right + 10 });
+  };
+  const cacherInfobulle = () => setInfobulle(null);
+
   return (
     <>
       {/* Voile derrière le tiroir (écran étroit uniquement). */}
@@ -114,9 +138,15 @@ export default function ShopSidebar({ replie, onBasculer, tiroirOuvert, onFermer
             <NavLink
               key={item.path}
               to={item.path}
-              // `title` sert d'infobulle quand le libellé est masqué.
-              title={replie ? item.label : undefined}
-              onClick={onFermerTiroir}
+              aria-label={item.label}
+              onMouseEnter={montrerInfobulle(item.label)}
+              onMouseLeave={cacherInfobulle}
+              onFocus={montrerInfobulle(item.label)}
+              onBlur={cacherInfobulle}
+              onClick={() => {
+                cacherInfobulle();
+                onFermerTiroir();
+              }}
               className={({ isActive }) =>
                 `flex items-center gap-3 mx-2 my-0.5 rounded-lg py-2.5 text-sm font-medium transition-colors px-4 ${
                   replie ? 'lg:justify-center lg:px-0' : ''
@@ -133,6 +163,23 @@ export default function ShopSidebar({ replie, onBasculer, tiroirOuvert, onFermer
           ))}
         </nav>
       </aside>
+
+      {infobulle &&
+        createPortal(
+          <div
+            role="tooltip"
+            className="pointer-events-none fixed z-50 -translate-y-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2.5 py-1.5 text-xs font-medium text-white shadow-lg"
+            style={{ top: infobulle.top, left: infobulle.left }}
+          >
+            {/* Petite flèche vers l'icône survolée. */}
+            <span
+              aria-hidden="true"
+              className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-gray-900"
+            />
+            {infobulle.label}
+          </div>,
+          document.body,
+        )}
     </>
   );
 }
