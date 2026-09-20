@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { usePayments, useRembourser } from '@/domains/shop/hooks/usePayments';
 import { Payment } from '@/domains/shop/api/payments.api';
 import { showSuccess, showConfirm } from '@/shared/utils/alert';
+import Pagination from '@/shared/components/tables/Pagination';
 
 function fmtFcfa(n: number) { return Number(n).toLocaleString('fr-FR') + ' FCFA'; }
 function fmtDate(iso: string) {
@@ -58,7 +59,7 @@ export default function PaymentsPage() {
   ];
 
   return (
-    <div style={{ padding: '1.6rem' }}>
+    <div>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.2rem', flexWrap: 'wrap', gap: '0.6rem' }}>
         <div>
@@ -94,8 +95,8 @@ export default function PaymentsPage() {
         ) : payments.length === 0 ? (
           <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text3)' }}>Aucun paiement trouvé.</div>
         ) : (
-          <div className="db-table-wrap">
-            <table>
+          <div className="db-table-wrap tbl-wrap">
+            <table className="tbl-cards">
               <thead>
                 <tr>
                   <th>Commande</th>
@@ -113,27 +114,29 @@ export default function PaymentsPage() {
                   const user = (p as any).Commande?.User;
                   return (
                     <tr key={p.id}>
-                      <td style={{ fontFamily: 'monospace', fontSize: '0.82rem', fontWeight: 600 }}>
+                      <td className="tbl-primary" style={{ fontFamily: 'monospace', fontSize: '0.82rem', fontWeight: 600 }}>
                         #{p.commandeId?.slice(0, 8).toUpperCase() ?? '—'}
                       </td>
-                      <td>
+                      <td data-label="Client">
                         {user ? (
-                          <>
+                          <div>
                             <div style={{ fontWeight: 600, fontSize: '0.87rem' }}>{user.nom} {user.prenom}</div>
-                            <div style={{ fontSize: '0.72rem', color: 'var(--text3)' }}>{user.email}</div>
-                          </>
+                            <div className="wrap-anywhere" style={{ fontSize: '0.72rem', color: 'var(--text3)' }}>{user.email}</div>
+                          </div>
                         ) : <span style={{ color: 'var(--text3)' }}>—</span>}
                       </td>
-                      <td style={{ fontSize: '0.84rem' }}>
+                      <td style={{ fontSize: '0.84rem' }} data-label="Méthode">
                         {/* Le backend expose `methode`, pas `methodePaiement`. */}
                         {METHODES[p.methode] ?? p.methode ?? '—'}
                       </td>
-                      <td className="db-td-bold">{fmtFcfa(Number(p.montant))}</td>
-                      <td style={{ fontSize: '0.82rem', color: 'var(--text3)', whiteSpace: 'nowrap' }}>
+                      <td className="db-td-bold" data-label="Montant" style={{ whiteSpace: 'nowrap' }}>{fmtFcfa(Number(p.montant))}</td>
+                      {/* Date et heure peuvent passer sur deux lignes : sur un
+                          petit portable, la colonne forçait un défilement. */}
+                      <td style={{ fontSize: '0.82rem', color: 'var(--text3)', minWidth: 96 }} data-label="Date">
                         {p.payeAt ? fmtDate(p.payeAt) : p.createdAt ? fmtDate(p.createdAt) : '—'}
                       </td>
-                      <td><span className={`badge ${s?.cls}`}>{s?.label ?? p.statut}</span></td>
-                      <td>
+                      <td data-label="Statut"><span className={`badge ${s?.cls}`}>{s?.label ?? p.statut}</span></td>
+                      <td className="tbl-actions" data-label="Actions">
                         {p.statut === 'succes' && (
                           <button className="db-btn-ghost" onClick={() => confirmerRemboursement(p)}>
                             Rembourser
@@ -148,14 +151,8 @@ export default function PaymentsPage() {
           </div>
         )}
 
-        {totalPages > 1 && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '1rem', borderTop: '1px solid var(--border)' }}>
-            <button className="db-btn-ghost" disabled={page === 1} onClick={() => setPage(p => p - 1)}>← Précédent</button>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text3)' }}>Page {page} / {totalPages}</span>
-            <button className="db-btn-ghost" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Suivant →</button>
-          </div>
-        )}
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} />
       </div>
     </div>
   );
-};
+}

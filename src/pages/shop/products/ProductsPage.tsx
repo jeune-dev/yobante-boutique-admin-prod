@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
 import { showSuccess, showError, showConfirm } from '@/shared/utils/alert';
+import Pagination from '@/shared/components/tables/Pagination';
 
 const api = {
   getProduits: (p: any) =>
@@ -20,11 +21,17 @@ const SECTIONS = {
 
 type Section = keyof typeof SECTIONS;
 
+/**
+ * Infobulle au survol (souris uniquement : au doigt, `aria-label` et `title`
+ * des boutons prennent le relais). Non rendue tant qu'on ne survole pas :
+ * transparente ou invisible, elle occupait encore de la place et, en bout de
+ * ligne, faisait apparaître un défilement horizontal parasite du tableau.
+ */
 function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="relative group">
       {children}
-      <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+      <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs rounded px-2 py-1 hidden group-hover:block whitespace-nowrap pointer-events-none z-10">
         {label}
       </span>
     </div>
@@ -101,11 +108,11 @@ export default function ProductsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Produits</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Produits</h1>
         <button
           onClick={() => navigate('/boutique/produits/nouveau')}
-          className="bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-600"
+          className="w-full sm:w-auto bg-yellow-500 text-white px-4 py-2.5 sm:py-2 rounded-lg text-sm font-medium hover:bg-yellow-600"
         >
           + Nouveau produit
         </button>
@@ -120,19 +127,20 @@ export default function ProductsPage() {
               setPage(1);
             }}
             placeholder="Rechercher un produit…"
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-72 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+            aria-label="Rechercher un produit"
+            className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-72 focus:outline-none focus:ring-2 focus:ring-yellow-300"
           />
         </div>
 
         {isLoading ? (
           <div className="p-8 text-center text-gray-400">Chargement…</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="tbl-wrap">
+            <table className="w-full text-sm tbl-cards">
               <thead>
                 <tr className="border-b border-gray-100 text-left">
                   <th className="p-4 font-medium text-gray-500">Produit</th>
-                  <th className="p-4 font-medium text-gray-500">Rayon</th>
+                  <th className="p-4 font-medium text-gray-500 hidden xl:table-cell">Rayon</th>
                   <th className="p-4 font-medium text-gray-500">Prix</th>
                   <th className="p-4 font-medium text-gray-500">Stock</th>
                   <th className="p-4 font-medium text-gray-500">Statut</th>
@@ -142,35 +150,43 @@ export default function ProductsPage() {
               <tbody>
                 {produits.map((p: any) => (
                   <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50">
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
+                    <td className="p-4 tbl-primary">
+                      <div className="flex items-center gap-3 min-w-0">
                         {p.images?.[0] ? (
                           <img
                             src={p.images[0]}
-                            className="w-10 h-10 rounded-lg object-cover"
+                            className="w-10 h-10 rounded-lg object-cover shrink-0"
                             alt=""
                           />
                         ) : (
-                          <div className="w-10 h-10 rounded-lg bg-gray-100" />
+                          <div className="w-10 h-10 rounded-lg bg-gray-100 shrink-0" />
                         )}
-                        <span className="font-medium">{p.nom}</span>
-                        {p.etat === 'reconditionne' && (
-                          <span className="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700">
-                            Reconditionné
+                        <span className="min-w-0">
+                          <span className="font-medium line-clamp-2">{p.nom}</span>
+                          {p.etat === 'reconditionne' && (
+                            <span className="inline-block px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700 align-middle">
+                              Reconditionné
+                            </span>
+                          )}
+                          {/* Sous 1280 px, la colonne Rayon est masquée : on
+                              rappelle l'information sous le nom. */}
+                          <span className="hidden md:block xl:hidden text-xs text-gray-400">
+                            {p.rayon?.nom || '—'}
+                            {p.sousRayon ? ` / ${p.sousRayon.nom}` : ''}
                           </span>
-                        )}
+                        </span>
                       </div>
                     </td>
-                    <td className="p-4 text-gray-500">
+                    <td className="p-4 text-gray-500 hidden xl:table-cell" data-label="Rayon">
                       {p.rayon?.nom || '—'}
                       {p.sousRayon ? ` / ${p.sousRayon.nom}` : ''}
                     </td>
-                    <td className="p-4 font-medium">
+                    <td className="p-4 font-medium whitespace-nowrap" data-label="Prix">
                       {p.prix?.toLocaleString('fr-FR')} FCFA
                       {p.venduAuPoids ? ' / kg' : ''}
                     </td>
-                    <td className="p-4 text-center">{p.stock}</td>
-                    <td className="p-4 text-center">
+                    <td className="p-4 text-center" data-label="Stock">{p.stock}</td>
+                    <td className="p-4 text-center" data-label="Statut">
                       <span
                         className={`px-2 py-1 rounded-full text-xs ${
                           p.statutValidation === 'valide'
@@ -183,12 +199,13 @@ export default function ProductsPage() {
                         {p.statutValidation}
                       </span>
                     </td>
-                    <td className="p-4">
+                    <td className="p-4 tbl-actions" data-label="Actions">
                       <div className="flex items-center justify-center gap-1">
                         <Tooltip label="Modifier">
                           <button
                             onClick={() => navigate(`/boutique/produits/${p.id}/modifier`)}
-                            className="p-1.5 rounded hover:bg-yellow-50 text-gray-500 hover:text-yellow-600 transition-colors"
+                            aria-label="Modifier"
+                            className="btn-icon hover:bg-yellow-50 text-gray-500 hover:text-yellow-600"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -206,7 +223,8 @@ export default function ProductsPage() {
                               });
                               if (confirme) supprimerMutation.mutate(p.id);
                             }}
-                            className="p-1.5 rounded hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors"
+                            aria-label="Supprimer"
+                            className="btn-icon hover:bg-red-50 text-gray-500 hover:text-red-500"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -216,7 +234,8 @@ export default function ProductsPage() {
                         <Tooltip label="Promo du moment">
                           <button
                             onClick={() => openPromo(p, 'nos_promos_du_moment')}
-                            className="p-1.5 rounded hover:bg-orange-50 text-gray-500 hover:text-orange-500 transition-colors"
+                            aria-label="Promo du moment"
+                            className="btn-icon hover:bg-orange-50 text-gray-500 hover:text-orange-500"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -226,7 +245,8 @@ export default function ProductsPage() {
                         <Tooltip label="À ne pas rater">
                           <button
                             onClick={() => openPromo(p, 'a_ne_pas_rater')}
-                            className="p-1.5 rounded hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors"
+                            aria-label="À ne pas rater"
+                            className="btn-icon hover:bg-red-50 text-gray-500 hover:text-red-500"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
@@ -237,7 +257,8 @@ export default function ProductsPage() {
                         <Tooltip label="Promo à venir">
                           <button
                             onClick={() => openPromo(p, 'nos_promos_a_venir')}
-                            className="p-1.5 rounded hover:bg-blue-50 text-gray-500 hover:text-blue-500 transition-colors"
+                            aria-label="Promo à venir"
+                            className="btn-icon hover:bg-blue-50 text-gray-500 hover:text-blue-500"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -250,7 +271,7 @@ export default function ProductsPage() {
                 ))}
                 {produits.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="p-8 text-center text-gray-400">
+                    <td colSpan={6} className="p-8 text-center text-gray-400 tbl-empty">
                       Aucun produit trouvé
                     </td>
                   </tr>
@@ -260,31 +281,20 @@ export default function ProductsPage() {
           </div>
         )}
 
-        {pagination && pagination.totalPages > 1 && (
-          <div className="flex justify-center p-4 gap-2">
-            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((p) => (
-              <button
-                key={p}
-                onClick={() => setPage(p)}
-                className={`w-8 h-8 rounded text-sm ${
-                  page === p ? 'bg-yellow-500 text-white' : 'hover:bg-gray-100'
-                }`}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
-        )}
+        <Pagination page={page} totalPages={pagination?.totalPages ?? 1} onChange={setPage} />
       </div>
 
       {/* Modal Promotion */}
       {promoModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          className="modal-overlay"
           onClick={() => setPromoModal(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={SECTIONS[promoModal.section].title}
         >
           <div
-            className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl"
+            className="modal-box max-w-md p-5 sm:p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-lg font-bold mb-1">
@@ -321,7 +331,7 @@ export default function ProductsPage() {
                   className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-400 cursor-not-allowed"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-sm font-medium text-gray-700">Date début</label>
                   <input
@@ -343,18 +353,18 @@ export default function ProductsPage() {
                   />
                 </div>
               </div>
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setPromoModal(null)}
-                  className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
+                  className="px-4 py-2.5 sm:py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
                   disabled={promoMutation.isPending}
-                  className="px-4 py-2 text-sm bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 disabled:opacity-60"
+                  className="px-4 py-2.5 sm:py-2 text-sm bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 disabled:opacity-60"
                 >
                   Valider la promotion
                 </button>

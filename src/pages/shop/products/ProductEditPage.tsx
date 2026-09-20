@@ -121,10 +121,10 @@ export default function ProductEditPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h1 className="text-2xl font-bold text-gray-900">Modifier le produit</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 min-w-0">Modifier le produit</h1>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-6">
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="text-sm font-medium text-gray-700">Nom *</label>
@@ -146,7 +146,7 @@ export default function ProductEditPage() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-gray-700">
                 {venduAuPoids ? 'Prix au kg (FCFA) *' : 'Prix (FCFA) *'}
@@ -218,7 +218,7 @@ export default function ProductEditPage() {
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-gray-700">Référence</label>
               <input
@@ -275,7 +275,7 @@ export default function ProductEditPage() {
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
             <button
               type="button"
               onClick={() => navigate('/boutique/produits')}

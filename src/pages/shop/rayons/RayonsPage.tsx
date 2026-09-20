@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import shopClient from '@/infrastructure/http/shop.client';
 import { showSuccess, showError } from '@/shared/utils/alert';
+import Pagination from '@/shared/components/tables/Pagination';
 
 const api = {
   getRayons: (params?: any) => shopClient.get('/admin/rayons', { params }),
@@ -122,8 +123,8 @@ export default function RayonsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Rayons &amp; Sous-rayons</h1>
+      <div className="mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Rayons &amp; Sous-rayons</h1>
       </div>
 
       {/* Tabs */}
@@ -153,16 +154,17 @@ export default function RayonsPage() {
       {/* Tab Rayons */}
       {tab === 'rayons' && (
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-          <div className="flex items-center justify-between p-4 border-b border-gray-100">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border-b border-gray-100">
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Rechercher un rayon…"
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              aria-label="Rechercher un rayon"
+              className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-yellow-300"
             />
             <button
               onClick={openCreate}
-              className="bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-600 transition-colors"
+              className="w-full sm:w-auto bg-yellow-500 text-white px-4 py-2.5 sm:py-2 rounded-lg text-sm font-medium hover:bg-yellow-600 transition-colors"
             >
               + Nouveau rayon
             </button>
@@ -170,7 +172,8 @@ export default function RayonsPage() {
           {isLoading ? (
             <div className="p-8 text-center text-gray-400">Chargement…</div>
           ) : (
-            <table className="w-full text-sm">
+            <div className="tbl-wrap">
+            <table className="w-full text-sm tbl-cards">
               <thead>
                 <tr className="border-b border-gray-100">
                   <th className="text-left p-4 font-medium text-gray-500">Nom</th>
@@ -182,9 +185,9 @@ export default function RayonsPage() {
               <tbody>
                 {rayons.map((r: any) => (
                   <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50">
-                    <td className="p-4 font-medium">{r.nom}</td>
-                    <td className="p-4 text-center">{r.sousRayons?.length || 0}</td>
-                    <td className="p-4 text-center">
+                    <td className="p-4 font-medium tbl-primary">{r.nom}</td>
+                    <td className="p-4 text-center" data-label="Sous-rayons">{r.sousRayons?.length || 0}</td>
+                    <td className="p-4 text-center" data-label="Statut">
                       <span
                         className={`px-2 py-1 rounded-full text-xs ${
                           r.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
@@ -193,12 +196,13 @@ export default function RayonsPage() {
                         {r.isActive ? 'Actif' : 'Archivé'}
                       </span>
                     </td>
-                    <td className="p-4 text-center">
-                      <div className="flex justify-center gap-2">
+                    <td className="p-4 text-center tbl-actions" data-label="Actions">
+                      <div className="flex justify-center gap-1">
                         <button
                           onClick={() => navigate(`/boutique/produits?rayonId=${r.id}`)}
                           title="Voir les produits"
-                          className="p-1.5 hover:bg-blue-50 rounded text-gray-500 hover:text-blue-600"
+                          aria-label="Voir les produits"
+                          className="btn-icon hover:bg-blue-50 text-gray-500 hover:text-blue-600"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -207,7 +211,8 @@ export default function RayonsPage() {
                         <button
                           onClick={() => openEdit(r)}
                           title="Modifier"
-                          className="p-1.5 hover:bg-yellow-50 rounded text-gray-500 hover:text-yellow-600"
+                          aria-label="Modifier"
+                          className="btn-icon hover:bg-yellow-50 text-gray-500 hover:text-yellow-600"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -216,7 +221,8 @@ export default function RayonsPage() {
                         <button
                           onClick={() => archiverMutation.mutate(r.id)}
                           title={r.isActive ? 'Archiver' : 'Restaurer'}
-                          className="p-1.5 hover:bg-gray-100 rounded text-gray-500 hover:text-gray-700"
+                          aria-label={r.isActive ? 'Archiver' : 'Restaurer'}
+                          className="btn-icon hover:bg-gray-100 text-gray-500 hover:text-gray-700"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8l1 12a2 2 0 002 2h8a2 2 0 002-2L19 8" />
@@ -228,40 +234,28 @@ export default function RayonsPage() {
                 ))}
                 {rayons.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="p-8 text-center text-gray-400">
+                    <td colSpan={4} className="p-8 text-center text-gray-400 tbl-empty">
                       Aucun rayon trouvé
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
-          )}
-          {pagination && pagination.totalPages > 1 && (
-            <div className="flex justify-center p-4 gap-2">
-              {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setPage(p)}
-                  className={`w-8 h-8 rounded text-sm ${
-                    page === p ? 'bg-yellow-500 text-white' : 'hover:bg-gray-100'
-                  }`}
-                >
-                  {p}
-                </button>
-              ))}
             </div>
           )}
+          <Pagination page={page} totalPages={pagination?.totalPages ?? 1} onChange={setPage} />
         </div>
       )}
 
       {/* Tab Sous-rayons */}
       {tab === 'sous-rayons' && (
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-          <div className="flex items-center justify-between p-4 border-b border-gray-100">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border-b border-gray-100">
             <select
               value={selectedRayon}
               onChange={(e) => setSelectedRayon(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              aria-label="Choisir un rayon"
+              className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-auto sm:max-w-xs bg-white focus:outline-none focus:ring-2 focus:ring-yellow-300"
             >
               <option value="">— Choisir un rayon —</option>
               {rayons.map((r: any) => (
@@ -277,14 +271,15 @@ export default function RayonsPage() {
                   setSrForm({ nom: '', description: '' });
                   setShowSrModal(true);
                 }}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-600"
+                className="w-full sm:w-auto bg-yellow-500 text-white px-4 py-2.5 sm:py-2 rounded-lg text-sm font-medium hover:bg-yellow-600"
               >
                 + Nouveau sous-rayon
               </button>
             )}
           </div>
           {selectedRayon ? (
-            <table className="w-full text-sm">
+            <div className="tbl-wrap">
+            <table className="w-full text-sm tbl-cards">
               <thead>
                 <tr className="border-b border-gray-100">
                   <th className="text-left p-4 font-medium text-gray-500">Nom</th>
@@ -300,13 +295,15 @@ export default function RayonsPage() {
                     onClick={() => navigate(`/boutique/rayons/sous-rayon/${sr.id}`)}
                     className="border-b border-gray-50 hover:bg-gray-50 cursor-pointer"
                   >
-                    <td className="p-4">
-                      <span className="font-medium">{sr.nom}</span>
-                      <span className="block text-xs text-gray-400 mt-0.5">
-                        Voir et gérer ses produits
+                    <td className="p-4 tbl-primary">
+                      <span>
+                        <span className="font-medium">{sr.nom}</span>
+                        <span className="block text-xs text-gray-400 mt-0.5">
+                          Voir et gérer ses produits
+                        </span>
                       </span>
                     </td>
-                    <td className="p-4 text-center">
+                    <td className="p-4 text-center" data-label="Statut">
                       <span
                         className={`px-2 py-1 rounded-full text-xs ${
                           sr.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
@@ -315,8 +312,8 @@ export default function RayonsPage() {
                         {sr.isActive ? 'Actif' : 'Archivé'}
                       </span>
                     </td>
-                    <td className="p-4 text-center">
-                      <div className="flex justify-center gap-2">
+                    <td className="p-4 text-center tbl-actions" data-label="Actions">
+                      <div className="flex justify-center gap-1">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -325,7 +322,8 @@ export default function RayonsPage() {
                             setShowSrModal(true);
                           }}
                           title="Modifier"
-                          className="p-1.5 hover:bg-yellow-50 rounded text-gray-500 hover:text-yellow-600"
+                          aria-label="Modifier"
+                          className="btn-icon hover:bg-yellow-50 text-gray-500 hover:text-yellow-600"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -337,7 +335,8 @@ export default function RayonsPage() {
                             archiverSrMutation.mutate(sr.id);
                           }}
                           title="Archiver"
-                          className="p-1.5 hover:bg-gray-100 rounded text-gray-500"
+                          aria-label="Archiver"
+                          className="btn-icon hover:bg-gray-100 text-gray-500"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8l1 12a2 2 0 002 2h8a2 2 0 002-2L19 8" />
@@ -349,13 +348,14 @@ export default function RayonsPage() {
                 ))}
                 {sousRayons.length === 0 && (
                   <tr>
-                    <td colSpan={3} className="p-8 text-center text-gray-400">
+                    <td colSpan={3} className="p-8 text-center text-gray-400 tbl-empty">
                       Aucun sous-rayon pour ce rayon
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
+            </div>
           ) : (
             <div className="p-8 text-center text-gray-400">
               Sélectionner un rayon pour voir ses sous-rayons
@@ -367,11 +367,14 @@ export default function RayonsPage() {
       {/* Modal Rayon */}
       {showModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          className="modal-overlay"
           onClick={() => setShowModal(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={editItem ? 'Modifier le rayon' : 'Nouveau rayon'}
         >
           <div
-            className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl"
+            className="modal-box max-w-md p-5 sm:p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-lg font-bold mb-4">
@@ -396,17 +399,17 @@ export default function RayonsPage() {
                   className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
                 />
               </div>
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
+                  className="px-4 py-2.5 sm:py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-sm bg-yellow-500 text-white rounded-lg hover:bg-yellow-600"
+                  className="px-4 py-2.5 sm:py-2 text-sm bg-yellow-500 text-white rounded-lg hover:bg-yellow-600"
                 >
                   {editItem ? 'Modifier' : 'Créer'}
                 </button>
@@ -419,11 +422,14 @@ export default function RayonsPage() {
       {/* Modal Sous-rayon */}
       {showSrModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          className="modal-overlay"
           onClick={() => setShowSrModal(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={editSr ? 'Modifier le sous-rayon' : 'Nouveau sous-rayon'}
         >
           <div
-            className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl"
+            className="modal-box max-w-md p-5 sm:p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-lg font-bold mb-4">
@@ -455,17 +461,17 @@ export default function RayonsPage() {
                   className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
                 />
               </div>
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowSrModal(false)}
-                  className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
+                  className="px-4 py-2.5 sm:py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-sm bg-yellow-500 text-white rounded-lg hover:bg-yellow-600"
+                  className="px-4 py-2.5 sm:py-2 text-sm bg-yellow-500 text-white rounded-lg hover:bg-yellow-600"
                 >
                   {editSr ? 'Modifier' : 'Créer'}
                 </button>

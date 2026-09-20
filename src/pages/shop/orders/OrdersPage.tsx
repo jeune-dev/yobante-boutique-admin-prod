@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
 import { showSuccess, showError } from '@/shared/utils/alert';
+import Pagination from '@/shared/components/tables/Pagination';
 
 const api = {
   getCommandes: (p: any) =>
@@ -70,10 +71,10 @@ export default function OrdersPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Commandes</h1>
+      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">Commandes</h1>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      {/* KPI Cards : 2 par ligne sur téléphone, 4 dès la tablette. */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         {[
           { label: 'Total', value: kpi?.total, color: 'bg-gray-50' },
           { label: 'En attente', value: kpi?.enAttente, color: 'bg-yellow-50' },
@@ -88,7 +89,7 @@ export default function OrdersPage() {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-        <div className="flex gap-3 p-4 border-b border-gray-100">
+        <div className="flex flex-col sm:flex-row gap-3 p-4 border-b border-gray-100">
           <input
             value={search}
             onChange={(e) => {
@@ -96,7 +97,8 @@ export default function OrdersPage() {
               setPage(1);
             }}
             placeholder="Rechercher…"
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-56 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+            aria-label="Rechercher une commande"
+            className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-56 focus:outline-none focus:ring-2 focus:ring-yellow-300"
           />
           <select
             value={statut}
@@ -104,7 +106,8 @@ export default function OrdersPage() {
               setStatut(e.target.value);
               setPage(1);
             }}
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+            aria-label="Filtrer par statut"
+            className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-auto bg-white focus:outline-none focus:ring-2 focus:ring-yellow-300"
           >
             <option value="">Tous les statuts</option>
             <option value="en_attente">En attente</option>
@@ -116,14 +119,14 @@ export default function OrdersPage() {
             <option value="annulee">Annulée</option>
           </select>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        <div className="tbl-wrap">
+          <table className="w-full text-sm tbl-cards">
             <thead>
               <tr className="border-b border-gray-100 text-left">
                 <th className="p-4 font-medium text-gray-500">Référence</th>
                 <th className="p-4 font-medium text-gray-500">Client</th>
                 <th className="p-4 font-medium text-gray-500">Montant</th>
-                <th className="p-4 font-medium text-gray-500">Articles</th>
+                <th className="p-4 font-medium text-gray-500 hidden xl:table-cell">Articles</th>
                 <th className="p-4 font-medium text-gray-500">Statut</th>
                 <th className="p-4 font-medium text-gray-500">Date</th>
                 <th className="p-4 font-medium text-gray-500 text-center">Actions</th>
@@ -132,15 +135,15 @@ export default function OrdersPage() {
             <tbody>
               {commandes.map((c: any) => (
                 <tr key={c.id} className="border-b border-gray-50 hover:bg-gray-50">
-                  <td className="p-4 font-mono text-xs">{c.reference}</td>
-                  <td className="p-4">
+                  <td className="p-4 font-mono text-xs tbl-primary">{c.reference}</td>
+                  <td className="p-4" data-label="Client">
                     {c.user?.prenom} {c.user?.nom}
                   </td>
-                  <td className="p-4 font-medium">
+                  <td className="p-4 font-medium whitespace-nowrap" data-label="Montant">
                     {c.montantTotal?.toLocaleString('fr-FR')} FCFA
                   </td>
-                  <td className="p-4 text-center">{c.items?.length || '—'}</td>
-                  <td className="p-4">
+                  <td className="p-4 text-center hidden xl:table-cell" data-label="Articles">{c.items?.length || '—'}</td>
+                  <td className="p-4" data-label="Statut">
                     <span
                       className={`px-2 py-1 rounded-full text-xs ${
                         STATUT_COLORS[c.statut] || 'bg-gray-100'
@@ -149,15 +152,16 @@ export default function OrdersPage() {
                       {c.statut}
                     </span>
                   </td>
-                  <td className="p-4 text-gray-500">
+                  <td className="p-4 text-gray-500" data-label="Date">
                     {new Date(c.createdAt).toLocaleDateString('fr-FR')}
                   </td>
-                  <td className="p-4">
+                  <td className="p-4 tbl-actions" data-label="Actions">
                     <div className="flex items-center justify-center gap-1">
                       <button
                         onClick={() => navigate(`/boutique/commandes/${c.id}`)}
                         title="Voir"
-                        className="p-1.5 rounded hover:bg-gray-100 text-gray-500"
+                        aria-label="Voir la commande"
+                        className="btn-icon hover:bg-gray-100 text-gray-500"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -169,7 +173,8 @@ export default function OrdersPage() {
                           <button
                             onClick={() => validerMutation.mutate(c.id)}
                             title="Accepter"
-                            className="p-1.5 rounded hover:bg-green-50 text-gray-500 hover:text-green-600"
+                            aria-label="Accepter la commande"
+                            className="btn-icon hover:bg-green-50 text-gray-500 hover:text-green-600"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -178,7 +183,8 @@ export default function OrdersPage() {
                           <button
                             onClick={() => setShowRejectModal(c.id)}
                             title="Rejeter"
-                            className="p-1.5 rounded hover:bg-red-50 text-gray-500 hover:text-red-500"
+                            aria-label="Rejeter la commande"
+                            className="btn-icon hover:bg-red-50 text-gray-500 hover:text-red-500"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -192,7 +198,7 @@ export default function OrdersPage() {
               ))}
               {commandes.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-gray-400">
+                  <td colSpan={7} className="p-8 text-center text-gray-400 tbl-empty">
                     Aucune commande trouvée
                   </td>
                 </tr>
@@ -200,28 +206,14 @@ export default function OrdersPage() {
             </tbody>
           </table>
         </div>
-        {pagination?.totalPages > 1 && (
-          <div className="flex justify-center p-4 gap-2">
-            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((p) => (
-              <button
-                key={p}
-                onClick={() => setPage(p)}
-                className={`w-8 h-8 rounded text-sm ${
-                  page === p ? 'bg-yellow-500 text-white' : 'hover:bg-gray-100'
-                }`}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
-        )}
+        <Pagination page={page} totalPages={pagination?.totalPages ?? 1} onChange={setPage} />
       </div>
 
       {/* Modal de rejet */}
       {showRejectModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg max-w-md w-full mx-4">
-            <div className="p-6">
+        <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Rejeter la commande">
+          <div className="modal-box max-w-md">
+            <div className="p-5 sm:p-6">
               <h2 className="text-lg font-bold text-gray-900 mb-4">
                 Rejeter la commande
               </h2>

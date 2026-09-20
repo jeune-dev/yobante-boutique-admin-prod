@@ -99,16 +99,16 @@ export default function AccueilPage() {
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="text-xl font-bold text-gray-900">Page d'accueil</h1>
+        <h1 className="text-lg sm:text-xl font-bold text-gray-900">Page d'accueil</h1>
         <p className="text-sm text-gray-500 mt-1">
           Ce que voient les clients dans l'application, connectés ou non.
         </p>
       </header>
 
       {/* ── Section principale ─────────────────────────────────────────── */}
-      <section className="bg-white rounded-xl border border-gray-100 p-5">
-        <div className="flex items-center justify-between mb-4">
-          <div>
+      <section className="bg-white rounded-xl border border-gray-100 p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div className="min-w-0">
             <h2 className="font-semibold text-gray-900">Section principale</h2>
             <p className="text-xs text-gray-500 mt-0.5">
               Bannières du haut de l'accueil. Pas de sous-sections ici.
@@ -130,7 +130,7 @@ export default function AccueilPage() {
         ) : listeBannieres.length === 0 ? (
           <Vide texte="Aucune bannière. L'accueil affichera l'image par défaut." />
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {listeBannieres.map((b: any) => (
               <Vignette
                 key={b.id}
@@ -154,10 +154,10 @@ export default function AccueilPage() {
 
       {/* ── Sections promotionnelles ───────────────────────────────────── */}
       {SECTIONS.map((section) => (
-        <section key={section.cle} className="bg-white rounded-xl border border-gray-100 p-5">
-          <div className="flex items-center justify-between mb-4">
+        <section key={section.cle} className="bg-white rounded-xl border border-gray-100 p-4 sm:p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <h2 className="font-semibold text-gray-900">{section.libelle}</h2>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => {
                   setSectionCible(section.cle);
@@ -188,7 +188,7 @@ export default function AccueilPage() {
           ) : (blocsParSection[section.cle] ?? []).length === 0 ? (
             <Vide texte="Aucune sous-section." />
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
               {(blocsParSection[section.cle] ?? []).map((bloc: any) => (
                 <Vignette
                   key={bloc.id}
@@ -218,8 +218,8 @@ export default function AccueilPage() {
           ) : (promosParSection[section.cle] ?? []).length === 0 ? (
             <Vide texte="Aucun produit rattaché à cette section." />
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+            <div className="tbl-wrap">
+              <table className="w-full text-sm tbl-cards">
                 <thead>
                   <tr className="text-left text-xs text-gray-400 uppercase">
                     <th className="py-2 pr-3 font-medium">Produit</th>
@@ -233,22 +233,22 @@ export default function AccueilPage() {
                 <tbody>
                   {(promosParSection[section.cle] ?? []).map((promo: any) => (
                     <tr key={promo.id} className="border-t border-gray-50">
-                      <td className="py-2.5 pr-3 text-gray-900">
+                      <td className="py-2.5 pr-3 text-gray-900 tbl-primary">
                         {promo.produit?.nom ?? promo.titre ?? '—'}
                       </td>
-                      <td className="py-2.5 pr-3">
+                      <td className="py-2.5 pr-3 whitespace-nowrap" data-label="Prix promo">
                         {promo.prixPromo ? `${promo.prixPromo} FCFA` : '—'}
                       </td>
-                      <td className="py-2.5 pr-3">
+                      <td className="py-2.5 pr-3" data-label="Réduction">
                         {promo.pourcentageReduction ? `−${promo.pourcentageReduction} %` : '—'}
                       </td>
-                      <td className="py-2.5 pr-3 text-gray-500 text-xs">
+                      <td className="py-2.5 pr-3 text-gray-500 text-xs" data-label="Période">
                         {formatPeriode(promo.dateDebut, promo.dateFin)}
                       </td>
-                      <td className="py-2.5 pr-3">
+                      <td className="py-2.5 pr-3" data-label="État">
                         <Etat actif={promo.isActive} />
                       </td>
-                      <td className="py-2.5 text-right whitespace-nowrap">
+                      <td className="py-2.5 text-right whitespace-nowrap tbl-actions" data-label="Actions">
                         <BoutonIcone
                           nom="pencil"
                           titre="Modifier"
@@ -358,7 +358,8 @@ function BoutonIcone({
       type="button"
       title={titre}
       onClick={onClick}
-      className={`p-1.5 rounded-lg hover:bg-gray-50 ${
+      aria-label={titre}
+      className={`btn-icon hover:bg-gray-50 ${
         danger ? 'text-red-500 hover:text-red-600' : 'text-gray-400 hover:text-gray-700'
       }`}
     >

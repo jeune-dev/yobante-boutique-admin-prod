@@ -52,21 +52,40 @@ export interface LoginResult {
   user?: AuthResponse['user'];
 }
 
+/** Seul rôle boutique autorisé à ouvrir une session sur ce dashboard. */
+export const ROLE_ADMIN = 'ADMIN';
+
+export const MESSAGE_ACCES_RESERVE = 'Accès réservé aux administrateurs Yobante.';
+
+/**
+ * Un compte boutique qui n'est pas ADMIN (vendeur, client) n'a rien à faire
+ * ici : il se connecte depuis l'application mobile. Le backend le refuse déjà
+ * sur `/auth/admin/login` ; cette garde évite qu'une réponse inattendue
+ * n'ouvre malgré tout le dashboard.
+ */
+export const estAdminBoutique = (user?: { role?: string } | null) =>
+  user?.role?.toUpperCase() === ROLE_ADMIN;
+
 export const authService = {
   login: async (payload: LoginPayload): Promise<LoginResult> => {
     const results = await Promise.allSettled([
-      // Backend boutique : attend { identifiant, password }
-      shopClient.post('/auth/login', {
+      // Backend boutique : endpoint réservé aux administrateurs, attend
+      // { identifiant, password } et répond 403 pour tout autre rôle.
+      shopClient.post('/auth/admin/login', {
         identifiant: payload.email,
         password: payload.password,
       }),
       shipmentClient.post('/auth/login', payload),
     ]);
 
-    const shopResult =
+    let shopResult: LoginResult['shop'] =
       results[0].status === 'fulfilled'
         ? { success: true, data: normalizeShopAuth(results[0].value as unknown as ShopLoginBody) }
         : { success: false, error: results[0].reason };
+
+    if (shopResult.success && !estAdminBoutique(shopResult.data?.user)) {
+      shopResult = { success: false, error: { status: 403, message: MESSAGE_ACCES_RESERVE } };
+    }
 
     const shipmentResult =
       results[1].status === 'fulfilled'

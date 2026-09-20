@@ -95,8 +95,8 @@ export default function ColisPanel() {
       </div>
 
       <div className="db-card">
-        <div className="db-table-wrap">
-          <table>
+        <div className="db-table-wrap tbl-wrap">
+          <table className="tbl-cards">
             <thead>
               <tr>
                 <th>N° Suivi</th>
@@ -111,24 +111,24 @@ export default function ColisPanel() {
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>Aucun colis trouvé</td></tr>
+                <tr><td className="tbl-empty" colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>Aucun colis trouvé</td></tr>
               ) : (
                 filtered.map((c) => (
                   <tr key={c.id}>
-                    <td className="db-td-bold" style={{ fontSize: '0.78rem' }}>{c.id}</td>
-                    <td>{c.expediteur.prenom} {c.expediteur.nom}</td>
-                    <td>{c.destinataire.prenom} {c.destinataire.nom}</td>
-                    <td><span style={{ background: '#f0f4ff', color: '#1a56db', padding: '2px 8px', borderRadius: 20, fontSize: '0.73rem', fontWeight: 600 }}>Cat. {c.categorie}</span></td>
-                    <td style={{ fontSize: '0.82rem' }}>{DIRECTIONS[c.direction]}</td>
-                    <td>
+                    <td className="tbl-primary db-td-bold" style={{ fontSize: '0.78rem' }}>{c.id}</td>
+                    <td data-label="Expéditeur">{c.expediteur.prenom} {c.expediteur.nom}</td>
+                    <td data-label="Destinataire">{c.destinataire.prenom} {c.destinataire.nom}</td>
+                    <td data-label="Cat."><span style={{ background: '#f0f4ff', color: '#1a56db', padding: '2px 8px', borderRadius: 20, fontSize: '0.73rem', fontWeight: 600 }}>Cat. {c.categorie}</span></td>
+                    <td data-label="Direction" style={{ fontSize: '0.82rem' }}>{DIRECTIONS[c.direction]}</td>
+                    <td data-label="Statut">
                       <select value={c.statut} onChange={(e) => changerStatut(c.id, e.target.value)} style={{ background: STATUTS[c.statut]?.background, color: STATUTS[c.statut]?.color, border: 'none', borderRadius: 20, padding: '3px 10px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', outline: 'none' }}>
                         {Object.entries(STATUTS).map(([key, val]) => (
                           <option key={key} value={key}>{val.label}</option>
                         ))}
                       </select>
                     </td>
-                    <td style={{ fontSize: '0.82rem' }}>{c.date}</td>
-                    <td>
+                    <td data-label="Date" style={{ fontSize: '0.82rem' }}>{c.date}</td>
+                    <td data-label="Actions" className="tbl-actions">
                       <div className="db-actions">
                         <button className="db-btn-ghost" onClick={() => setSelected(c)}>Voir</button>
                         {(c.categorie === '2' || c.categorie === '3') && c.statut === 'en_attente' && (

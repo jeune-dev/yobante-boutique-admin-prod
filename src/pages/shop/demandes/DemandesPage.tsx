@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
 import Icon from '@/shared/components/dashboard/Icon';
 import DemandeDetailModal from './DemandeDetailModal';
+import Pagination from '@/shared/components/tables/Pagination';
 
 /** Les demandes en cours d'instruction restent visibles jusqu'à publication. */
 const STATUTS = [
@@ -43,7 +44,7 @@ export default function DemandesPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Demandes de publication</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Demandes de publication</h1>
         <p className="text-sm text-gray-500 mt-1">
           Produits soumis par les vendeurs depuis l'application.
         </p>
@@ -78,7 +79,8 @@ export default function DemandesPage() {
               setPage(1);
             }}
             placeholder="Rechercher un produit…"
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+            aria-label="Rechercher un produit"
+            className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-yellow-300"
           />
         </div>
 
@@ -89,8 +91,8 @@ export default function DemandesPage() {
             Aucune demande dans cette catégorie.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="tbl-wrap">
+            <table className="w-full text-sm tbl-cards">
               <thead>
                 <tr className="border-b border-gray-100 text-left">
                   <th className="p-4 font-medium text-gray-500">Produit</th>
@@ -108,8 +110,8 @@ export default function DemandesPage() {
                     onClick={() => setDemandeOuverte(p)}
                     className="border-b border-gray-50 hover:bg-gray-50 cursor-pointer"
                   >
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
+                    <td className="p-4 tbl-primary">
+                      <div className="flex items-center gap-3 min-w-0">
                         {p.images?.[0] ? (
                           <span className="relative shrink-0">
                             <img
@@ -129,7 +131,7 @@ export default function DemandesPage() {
                           </span>
                         )}
                         <span className="min-w-0">
-                          <span className="block font-medium text-gray-900 truncate">
+                          <span className="block font-medium text-gray-900 line-clamp-2">
                             {p.nom}
                           </span>
                           {p.messageVendeur && (
@@ -140,19 +142,19 @@ export default function DemandesPage() {
                         </span>
                       </div>
                     </td>
-                    <td className="p-4 text-gray-600">{nomVendeur(p)}</td>
-                    <td className="p-4">{formaterPrix(p.prix)} FCFA</td>
-                    <td className="p-4 text-gray-600">{p.stock ?? 0}</td>
-                    <td className="p-4 text-gray-500">
+                    <td className="p-4 text-gray-600" data-label="Vendeur">{nomVendeur(p)}</td>
+                    <td className="p-4 whitespace-nowrap" data-label="Prix">{formaterPrix(p.prix)} FCFA</td>
+                    <td className="p-4 text-gray-600" data-label="Stock">{p.stock ?? 0}</td>
+                    <td className="p-4 text-gray-500" data-label="Soumise le">
                       {new Date(p.createdAt).toLocaleDateString('fr-FR')}
                     </td>
-                    <td className="p-4 text-right">
+                    <td className="p-4 text-right tbl-actions" data-label="Actions">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setDemandeOuverte(p);
                         }}
-                        className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-gray-900 text-white hover:bg-gray-800"
+                        className="px-3 py-2 sm:py-1.5 text-xs font-semibold rounded-lg bg-gray-900 text-white hover:bg-gray-800"
                       >
                         Consulter
                       </button>
@@ -164,21 +166,7 @@ export default function DemandesPage() {
           </div>
         )}
 
-        {pagination?.totalPages > 1 && (
-          <div className="flex justify-center p-4 gap-2">
-            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((n) => (
-              <button
-                key={n}
-                onClick={() => setPage(n)}
-                className={`w-8 h-8 rounded text-sm ${
-                  page === n ? 'bg-yellow-500 text-white' : 'hover:bg-gray-100'
-                }`}
-              >
-                {n}
-              </button>
-            ))}
-          </div>
-        )}
+        <Pagination page={page} totalPages={pagination?.totalPages ?? 1} onChange={setPage} />
       </div>
 
       {demandeOuverte && (

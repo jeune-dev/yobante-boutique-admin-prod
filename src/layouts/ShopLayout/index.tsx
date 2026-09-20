@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import ShopSidebar from './components/Sidebar';
 import ShopHeader from './components/Header';
 
@@ -12,18 +12,47 @@ export default function ShopLayout() {
     () => localStorage.getItem(CLE_REPLI) === 'true'
   );
 
+  // Sur écran étroit (< lg), la barre latérale devient un tiroir ouvert par
+  // le bouton du header ; il se referme à chaque navigation.
+  const [tiroirOuvert, setTiroirOuvert] = useState(false);
+  const { pathname } = useLocation();
+
   useEffect(() => {
     localStorage.setItem(CLE_REPLI, String(replie));
   }, [replie]);
+
+  useEffect(() => {
+    setTiroirOuvert(false);
+  }, [pathname]);
+
+  // Échap referme le tiroir ; le fond ne défile pas tant qu'il est ouvert.
+  useEffect(() => {
+    if (!tiroirOuvert) return;
+    const surTouche = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setTiroirOuvert(false);
+    };
+    document.addEventListener('keydown', surTouche);
+    const overflowInitial = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', surTouche);
+      document.body.style.overflow = overflowInitial;
+    };
+  }, [tiroirOuvert]);
 
   return (
     // `h-screen` + `overflow-hidden` : seule la zone de droite défile, la
     // barre latérale et l'entête restent en place.
     <div className="flex h-screen overflow-hidden bg-gray-50">
-      <ShopSidebar replie={replie} onBasculer={() => setReplie((v) => !v)} />
+      <ShopSidebar
+        replie={replie}
+        onBasculer={() => setReplie((v) => !v)}
+        tiroirOuvert={tiroirOuvert}
+        onFermerTiroir={() => setTiroirOuvert(false)}
+      />
       <div className="flex-1 flex flex-col min-w-0">
-        <ShopHeader />
-        <main className="flex-1 overflow-y-auto p-6">
+        <ShopHeader onOuvrirMenu={() => setTiroirOuvert(true)} />
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
           <Outlet />
         </main>
       </div>

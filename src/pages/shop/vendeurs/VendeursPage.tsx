@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
 import { showSuccess, showError, showConfirm } from '@/shared/utils/alert';
+import Pagination from '@/shared/components/tables/Pagination';
 
 const api = {
   getVendeurs: (p: any) => shopClient.get('/admin/vendeurs', { params: p }),
@@ -136,11 +137,11 @@ export default function VendeursPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Vendeurs</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Vendeurs</h1>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-600"
+          className="w-full sm:w-auto bg-yellow-500 text-white px-4 py-2.5 sm:py-2 rounded-lg text-sm font-medium hover:bg-yellow-600"
         >
           + Nouveau vendeur
         </button>
@@ -155,7 +156,8 @@ export default function VendeursPage() {
               setPage(1);
             }}
             placeholder="Rechercher un vendeur…"
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+            aria-label="Rechercher un vendeur"
+            className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-yellow-300"
           />
         </div>
 
@@ -166,8 +168,8 @@ export default function VendeursPage() {
             {(error as any)?.message || 'Impossible de charger les vendeurs.'}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="tbl-wrap">
+            <table className="w-full text-sm tbl-cards">
               <thead>
                 <tr className="border-b border-gray-100 text-left">
                   <th className="p-4 font-medium text-gray-500">Vendeur</th>
@@ -182,23 +184,27 @@ export default function VendeursPage() {
                   const bloque = estBloque(v);
                   return (
                     <tr key={v.id} className="border-b border-gray-50 hover:bg-gray-50">
-                      <td className="p-4 font-medium">
+                      <td className="p-4 font-medium tbl-primary">
                         <span className="inline-flex items-center gap-2">
                           {v.prenom} {v.nom}
                           {bloque && <IconeBlocage />}
                         </span>
                       </td>
-                      <td className="p-4 text-gray-600">
-                        <div>{nomBoutique(v)}</div>
-                        {adresseBoutique(v) && (
-                          <div className="text-xs text-gray-400">{adresseBoutique(v)}</div>
-                        )}
+                      <td className="p-4 text-gray-600" data-label="Boutique">
+                        <div>
+                          <div>{nomBoutique(v)}</div>
+                          {adresseBoutique(v) && (
+                            <div className="text-xs text-gray-400">{adresseBoutique(v)}</div>
+                          )}
+                        </div>
                       </td>
-                      <td className="p-4 text-gray-500 text-xs">
-                        <div>{v.email || '—'}</div>
-                        <div>{v.telephone || v.telephoneBoutique || '—'}</div>
+                      <td className="p-4 text-gray-500 text-xs" data-label="Contact">
+                        <div>
+                          <div>{v.email || '—'}</div>
+                          <div>{v.telephone || v.telephoneBoutique || '—'}</div>
+                        </div>
                       </td>
-                      <td className="p-4">
+                      <td className="p-4" data-label="Statut">
                         <span
                           className={`px-2 py-1 rounded-full text-xs ${
                             bloque ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
@@ -207,12 +213,12 @@ export default function VendeursPage() {
                           {bloque ? 'Bloqué' : 'Actif'}
                         </span>
                       </td>
-                      <td className="p-4">
+                      <td className="p-4 tbl-actions" data-label="Actions">
                         <div className="flex items-center justify-center">
                           <button
                             onClick={() => handleStatut(v)}
                             disabled={statutMutation.isPending}
-                            className={`px-3 py-1 rounded text-xs font-medium disabled:opacity-50 ${
+                            className={`px-3 py-2 sm:py-1 rounded text-xs font-medium disabled:opacity-50 ${
                               bloque
                                 ? 'bg-green-50 text-green-700 hover:bg-green-100'
                                 : 'bg-red-50 text-red-600 hover:bg-red-100'
@@ -227,7 +233,7 @@ export default function VendeursPage() {
                 })}
                 {vendeurs.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="p-8 text-center text-gray-400">
+                    <td colSpan={5} className="p-8 text-center text-gray-400 tbl-empty">
                       Aucun vendeur trouvé
                     </td>
                   </tr>
@@ -237,32 +243,21 @@ export default function VendeursPage() {
           </div>
         )}
 
-        {pagination?.totalPages > 1 && (
-          <div className="flex justify-center p-4 gap-2">
-            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((p) => (
-              <button
-                key={p}
-                onClick={() => setPage(p)}
-                className={`w-8 h-8 rounded text-sm ${
-                  page === p ? 'bg-yellow-500 text-white' : 'hover:bg-gray-100'
-                }`}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
-        )}
+        <Pagination page={page} totalPages={pagination?.totalPages ?? 1} onChange={setPage} />
       </div>
 
       {/* Modal Créer vendeur — aucun champ mot de passe : il est généré par le
           backend et transmis au vendeur par email. */}
       {showModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          className="modal-overlay"
           onClick={() => setShowModal(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Nouveau vendeur"
         >
           <div
-            className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl"
+            className="modal-box max-w-md p-5 sm:p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-lg font-bold mb-1">Nouveau vendeur</h2>
@@ -271,7 +266,7 @@ export default function VendeursPage() {
               envoyé par email ; le vendeur devra le changer à sa première connexion.
             </p>
             <form onSubmit={handleCreer} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-sm font-medium text-gray-700">Prénom *</label>
                   <input
@@ -326,18 +321,18 @@ export default function VendeursPage() {
                   className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
                 />
               </div>
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
+                  className="px-4 py-2.5 sm:py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
                   disabled={creerMutation.isPending}
-                  className="px-4 py-2 text-sm bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 disabled:opacity-60"
+                  className="px-4 py-2.5 sm:py-2 text-sm bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 disabled:opacity-60"
                 >
                   {creerMutation.isPending ? 'Création…' : 'Créer'}
                 </button>

@@ -64,10 +64,10 @@ export default function DashboardPage() {
   const totalStatuts = commandesParStatut.reduce((s, c) => s + Number(c.count || 0), 0);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-gray-900">Vue d'ensemble</h1>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-lg sm:text-xl font-bold text-gray-900">Vue d'ensemble</h1>
           <p className="text-sm text-gray-500 mt-0.5">Activité de la boutique en temps réel.</p>
         </div>
         <button
@@ -81,10 +81,12 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Chiffre d'affaires, mis en avant ─────────────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="md:col-span-1 rounded-xl p-5 bg-gradient-to-br from-gray-900 to-gray-700 text-white">
+      {/* Téléphone : le chiffre d'affaires en pleine largeur, les deux
+          compteurs côte à côte dessous ; 3 colonnes dès la tablette. */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+        <div className="col-span-2 md:col-span-1 rounded-xl p-5 bg-gradient-to-br from-gray-900 to-gray-700 text-white">
           <p className="text-xs text-white/70">Chiffre d'affaires du mois</p>
-          <p className="text-3xl font-bold mt-1">{fcfa(kpi.caMois)}</p>
+          <p className="text-2xl sm:text-3xl font-bold mt-1 break-words">{fcfa(kpi.caMois)}</p>
           <p className="text-xs text-white/60 mt-2">
             Aujourd'hui {fcfa(kpi.caJour)} · 7 jours {fcfa(kpi.caSemaine)}
           </p>
@@ -104,7 +106,7 @@ export default function DashboardPage() {
         />
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <Tuile
           icone="package"
           libelle="Produits actifs"
@@ -132,21 +134,24 @@ export default function DashboardPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* ── Revenus par mois ──────────────────────────────────────────── */}
         <Bloc className="lg:col-span-2 p-5">
           <Titre>Revenus par mois ({new Date().getFullYear()})</Titre>
           {revenus.length === 0 ? (
             <Vide texte="Aucun revenu enregistré cette année." />
           ) : (
-            <div className="flex items-end gap-1.5 h-44 mt-4">
+            <div className="flex items-end gap-1 sm:gap-1.5 h-44 mt-4">
               {revenus.map((r, i) => {
                 const valeur = Number(r.revenus) || 0;
                 return (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-1.5 group">
-                    <div className="w-full flex-1 flex items-end">
+                  <div key={i} className="flex-1 min-w-0 h-full flex flex-col items-center gap-1.5 group">
+                    {/* La barre est positionnée dans un bloc de hauteur
+                        définie : une hauteur en % sur un enfant flex ne se
+                        résolvait pas et toutes les barres restaient plates. */}
+                    <div className="w-full flex-1 min-h-0 relative">
                       <div
-                        className="w-full bg-yellow-400 group-hover:bg-yellow-500 rounded-t transition-colors"
+                        className="absolute bottom-0 inset-x-0 bg-yellow-400 group-hover:bg-yellow-500 rounded-t transition-colors"
                         style={{
                           height: `${Math.round((valeur / maxRevenu) * 100)}%`,
                           minHeight: valeur > 0 ? '4px' : '2px',
@@ -154,7 +159,7 @@ export default function DashboardPage() {
                         title={`${MOIS[i]} : ${fcfa(valeur)}`}
                       />
                     </div>
-                    <span className="text-[10px] text-gray-400">{MOIS[i]}</span>
+                    <span className="text-[10px] text-gray-400 truncate max-w-full">{MOIS[i]}</span>
                   </div>
                 );
               })}
@@ -194,7 +199,7 @@ export default function DashboardPage() {
         </Bloc>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* ── Meilleures ventes ─────────────────────────────────────────── */}
         <Bloc className="p-5">
           <Titre>Meilleures ventes</Titre>
@@ -261,8 +266,8 @@ export default function DashboardPage() {
         {commandesRecentes.length === 0 ? (
           <Vide texte="Aucune commande récente." />
         ) : (
-          <div className="overflow-x-auto mt-4">
-            <table className="w-full text-sm">
+          <div className="tbl-wrap mt-4">
+            <table className="w-full text-sm tbl-cards">
               <thead>
                 <tr className="text-left text-xs text-gray-400 uppercase">
                   <th className="pb-2 font-medium">Référence</th>
@@ -275,12 +280,12 @@ export default function DashboardPage() {
               <tbody>
                 {commandesRecentes.map((c) => (
                   <tr key={c.id} className="border-t border-gray-50">
-                    <td className="py-2.5 font-mono text-xs text-gray-600">{c.reference}</td>
-                    <td className="py-2.5 text-gray-800">
+                    <td className="py-2.5 font-mono text-xs text-gray-600 tbl-primary">{c.reference}</td>
+                    <td className="py-2.5 text-gray-800" data-label="Client">
                       {[c.user?.prenom, c.user?.nom].filter(Boolean).join(' ') || '—'}
                     </td>
-                    <td className="py-2.5 font-medium text-gray-900">{fcfa(c.montantTotal)}</td>
-                    <td className="py-2.5">
+                    <td className="py-2.5 font-medium text-gray-900 whitespace-nowrap" data-label="Montant">{fcfa(c.montantTotal)}</td>
+                    <td className="py-2.5" data-label="Statut">
                       <span
                         className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
                           COULEUR_STATUT[c.statut] ?? 'bg-gray-100 text-gray-600'
@@ -289,7 +294,7 @@ export default function DashboardPage() {
                         {String(c.statut).replace(/_/g, ' ')}
                       </span>
                     </td>
-                    <td className="py-2.5 text-gray-400 whitespace-nowrap">
+                    <td className="py-2.5 text-gray-400 whitespace-nowrap" data-label="Date">
                       {c.createdAt ? new Date(c.createdAt).toLocaleDateString('fr-FR') : '—'}
                     </td>
                   </tr>

@@ -252,8 +252,9 @@ export default function DemandeDetailModal({ demande, onFermer, onTraitee }: Pro
               <Champ label="Stock" valeur={stock} onChange={setStock} type="number" />
             </div>
 
-            {/* Rangement — obligatoire avant mise en ligne. */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Rangement — obligatoire avant mise en ligne. Les libellés de
+                rayons sont longs : une colonne sur téléphone. */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Rayon *</label>
                 <select

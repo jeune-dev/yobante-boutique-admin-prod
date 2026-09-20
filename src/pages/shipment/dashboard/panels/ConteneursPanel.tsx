@@ -47,8 +47,8 @@ export default function ConteneursPanel() {
       </div>
 
       <div className="db-card">
-        <div className="db-table-wrap">
-          <table>
+        <div className="db-table-wrap tbl-wrap">
+          <table className="tbl-cards">
             <thead>
               <tr>
                 <th>Numéro</th>
@@ -61,8 +61,8 @@ export default function ConteneursPanel() {
             <tbody>
               {conteneurs.map((c) => (
                 <tr key={c.id}>
-                  <td className="db-td-bold">{c.numero}</td>
-                  <td>
+                  <td className="tbl-primary db-td-bold">{c.numero}</td>
+                  <td data-label="Statut">
                     <select
                       value={c.statut}
                       onChange={(e) => changerStatut(c.id, e.target.value)}
@@ -73,9 +73,9 @@ export default function ConteneursPanel() {
                       ))}
                     </select>
                   </td>
-                  <td>{c.date_depart || '—'}</td>
-                  <td>{c.date_arrivee || '—'}</td>
-                  <td>
+                  <td data-label="Date de départ">{c.date_depart || '—'}</td>
+                  <td data-label="Date d'arrivée prévue">{c.date_arrivee || '—'}</td>
+                  <td data-label="Info" className="tbl-actions">
                     <span style={{ fontSize: '0.82rem', color: '#888' }}>
                       {c.statut === 'ouvert' ? 'Accepte des colis' : c.statut === 'ferme' ? 'Fermé' : c.statut === 'en_transit' ? 'En route' : 'Arrivé'}
                     </span>

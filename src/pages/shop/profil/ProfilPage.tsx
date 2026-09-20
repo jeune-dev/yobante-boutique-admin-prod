@@ -40,14 +40,14 @@ function Identite({ utilisateur }: { utilisateur: any }) {
   const initiales = `${utilisateur.prenom?.[0] ?? ''}${utilisateur.nom?.[0] ?? ''}`.toUpperCase();
   return (
     <section className="bg-white rounded-xl border border-gray-100 p-5 flex items-center gap-4">
-      <div className="w-14 h-14 rounded-xl bg-yellow-50 text-yellow-700 flex items-center justify-center font-bold text-lg">
+      <div className="w-14 h-14 shrink-0 rounded-xl bg-yellow-50 text-yellow-700 flex items-center justify-center font-bold text-lg">
         {initiales || <Icon name="user" size={22} />}
       </div>
-      <div>
+      <div className="min-w-0">
         <div className="font-semibold text-gray-900">
           {[utilisateur.prenom, utilisateur.nom].filter(Boolean).join(' ') || 'Administrateur'}
         </div>
-        <div className="text-sm text-gray-500">{utilisateur.email}</div>
+        <div className="text-sm text-gray-500 break-all">{utilisateur.email}</div>
         {utilisateur.role && (
           <span className="inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded bg-gray-100 text-gray-600">
             {utilisateur.role}
@@ -81,7 +81,7 @@ function Informations({
   return (
     <section className="bg-white rounded-xl border border-gray-100 p-5">
       <h2 className="font-semibold text-gray-900 mb-4">Informations</h2>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Champ label="Prénom" valeur={prenom} onChange={setPrenom} />
         <Champ label="Nom" valeur={nom} onChange={setNom} />
         <Champ label="Téléphone" valeur={telephone} onChange={setTelephone} />

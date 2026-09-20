@@ -47,8 +47,8 @@ export default function AdminsPanel() {
       </div>
 
       <div className="db-card">
-        <div className="db-table-wrap">
-          <table>
+        <div className="db-table-wrap tbl-wrap">
+          <table className="tbl-cards">
             <thead>
               <tr>
                 <th>Admin</th>
@@ -61,18 +61,18 @@ export default function AdminsPanel() {
             </thead>
             <tbody>
               {admins.length === 0 ? (
-                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>Aucun administrateur</td></tr>
+                <tr><td className="tbl-empty" colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>Aucun administrateur</td></tr>
               ) : (
                 admins.map((a) => (
                   <tr key={a.id}>
-                    <td className="db-td-bold">{a.prenom} {a.nom}</td>
-                    <td>{a.email}</td>
-                    <td>{a.telephone || '—'}</td>
-                    <td>{a.role}</td>
-                    <td>
+                    <td className="tbl-primary db-td-bold">{a.prenom} {a.nom}</td>
+                    <td data-label="Email">{a.email}</td>
+                    <td data-label="Téléphone">{a.telephone || '—'}</td>
+                    <td data-label="Rôle">{a.role}</td>
+                    <td data-label="Statut">
                       <span style={{ background: a.statut === 'actif' ? '#d1fae5' : '#fee2e2', color: a.statut === 'actif' ? '#065f46' : '#991b1b', padding: '3px 12px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 600 }}>{a.statut}</span>
                     </td>
-                    <td>
+                    <td data-label="Actions" className="tbl-actions">
                       <div className="db-actions">
                         <button className="db-btn-ghost" onClick={() => toggleStatut(a.id)}>{a.statut === 'actif' ? 'Désactiver' : 'Activer'}</button>
                         <button className="db-btn-danger" onClick={() => setConfirmDelete(a)}>Supprimer</button>

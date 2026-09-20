@@ -68,8 +68,8 @@ export default function ClientsPanel() {
       </div>
 
       <div className="db-card">
-        <div className="db-table-wrap">
-          <table>
+        <div className="db-table-wrap tbl-wrap">
+          <table className="tbl-cards">
             <thead>
               <tr>
                 <th>Client</th>
@@ -83,22 +83,22 @@ export default function ClientsPanel() {
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>Aucun client trouvé</td></tr>
+                <tr><td className="tbl-empty" colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>Aucun client trouvé</td></tr>
               ) : (
                 filtered.map((c) => (
                   <tr key={c.id}>
-                    <td>
+                    <td className="tbl-primary">
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #1a56db, #3b7df5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '0.75rem', flexShrink: 0 }}>{initiales(c)}</div>
                         <span className="db-td-bold">{c.prenom} {c.nom}</span>
                       </div>
                     </td>
-                    <td>{c.email}</td>
-                    <td>{c.telephone}</td>
-                    <td>{c.adresse}</td>
-                    <td><span style={{ background: '#e0e7ff', color: '#3730a3', padding: '2px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 600 }}>{c.nbColis} colis</span></td>
-                    <td><span style={{ ...STATUT_COLORS[c.statut], padding: '3px 12px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 600 }}>{c.statut}</span></td>
-                    <td>
+                    <td data-label="Email">{c.email}</td>
+                    <td data-label="Téléphone">{c.telephone}</td>
+                    <td data-label="Adresse">{c.adresse}</td>
+                    <td data-label="Colis"><span style={{ background: '#e0e7ff', color: '#3730a3', padding: '2px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 600 }}>{c.nbColis} colis</span></td>
+                    <td data-label="Statut"><span style={{ ...STATUT_COLORS[c.statut], padding: '3px 12px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 600 }}>{c.statut}</span></td>
+                    <td data-label="Actions" className="tbl-actions">
                       <div className="db-actions">
                         <button className="db-btn-ghost" onClick={() => setSelected(c)}>Voir</button>
                         <button className="db-btn-ghost" style={{ color: c.statut === 'actif' ? '#991b1b' : '#065f46', borderColor: c.statut === 'actif' ? '#991b1b' : '#065f46' }} onClick={() => toggleStatut(c.id)}>

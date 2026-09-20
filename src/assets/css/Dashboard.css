@@ -1883,3 +1883,88 @@ tbody tr:hover td { background: var(--gray); }
   border-color: #eab308;
   color: #fff;
 }
+
+/* ════ RESPONSIVE ════
+   Écrans larges : barre latérale fixe, repliable en bandeau d'icônes.
+   ≤ 900 px : la barre devient un tiroir hors écran, ouvert par le bouton
+   de la barre du haut ; le contenu occupe toute la largeur. */
+.db-sb-burger,
+.db-sb-overlay {
+  display: none;
+}
+
+/* Le champ de recherche ne doit jamais imposer sa largeur à un écran étroit. */
+.db-search-input {
+  max-width: 100%;
+}
+
+@media (max-width: 1100px) {
+  .db-content { padding: 1.2rem; }
+}
+
+@media (max-width: 900px) {
+  .db-sb,
+  .db-sb.closed {
+    width: min(var(--sb-open), 85vw);
+    transform: translateX(-100%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: none;
+  }
+  .db-sb.mobile-open {
+    transform: translateX(0);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.28);
+  }
+  /* Le tiroir est toujours déplié : le repli n'a de sens qu'en colonne fixe. */
+  .db-sb.closed .db-sb-brand,
+  .db-sb.closed .db-nav-label,
+  .db-sb.closed .db-nav-section,
+  .db-sb.closed .db-nav-badge,
+  .db-sb.closed .db-admin-info,
+  .db-sb.closed .db-logout-btn {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .db-sb .db-sb-toggle,
+  .db-sb.closed .db-nav-item:hover::after,
+  .db-sb-mini-toggle {
+    display: none;
+  }
+  .db-sb-overlay.open {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 199;
+    background: rgba(17, 24, 39, 0.5);
+  }
+  .db-main,
+  .db-main.wide {
+    margin-left: 0;
+  }
+  .db-sb-burger {
+    display: inline-flex;
+    flex-shrink: 0;
+  }
+  .db-topbar {
+    padding: 0.7rem 1rem;
+    gap: 0.7rem;
+  }
+  .db-topbar > div { min-width: 0; }
+  .db-page-title,
+  .db-page-sub {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .db-content { padding: 1rem; }
+  .db-card-body { padding: 1rem; }
+  .db-search-wrap { flex: 1 1 200px; }
+  .db-search-input { width: 100%; }
+  .db-btn { white-space: nowrap; }
+}
+
+@media (max-width: 480px) {
+  .db-stats-grid { grid-template-columns: 1fr; gap: 0.7rem; }
+  .db-content { padding: 0.9rem; }
+  .db-modal-overlay { padding: 0.75rem; }
+  .db-modal { border-radius: 14px; }
+}

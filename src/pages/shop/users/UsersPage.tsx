@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useUsers, useToggleUserActive } from '@/domains/shop/hooks/useUsers';
 import { ShopUser } from '@/domains/shop/api/users.api';
 import { showSuccess } from '@/shared/utils/alert';
+import Pagination from '@/shared/components/tables/Pagination';
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -32,7 +33,7 @@ export default function UsersPage() {
   };
 
   return (
-    <div style={{ padding: '1.6rem' }}>
+    <div>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.2rem', flexWrap: 'wrap', gap: '0.6rem' }}>
         <div>
@@ -45,17 +46,17 @@ export default function UsersPage() {
 
       {/* Filtres */}
       <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
-        <form onSubmit={(e) => { e.preventDefault(); setSearch(searchInput); setPage(1); }} style={{ display: 'flex', gap: '0.4rem' }}>
-          <div className="db-search-wrap">
+        <form onSubmit={(e) => { e.preventDefault(); setSearch(searchInput); setPage(1); }} className="flex gap-1.5 w-full sm:w-auto">
+          <div className="db-search-wrap flex-1 sm:flex-none">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
               <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
-            <input className="db-search-input" placeholder="Nom, email…" value={searchInput} onChange={e => setSearchInput(e.target.value)} />
+            <input className="db-search-input w-full" placeholder="Nom, email…" aria-label="Rechercher un client" value={searchInput} onChange={e => setSearchInput(e.target.value)} />
           </div>
           <button type="submit" className="db-btn primary" style={{ padding: '0.42rem 0.9rem', fontSize: '0.85rem' }}>OK</button>
         </form>
 
-        <div style={{ display: 'flex', gap: '0.4rem' }}>
+        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
           {[{ label: 'Tous', val: undefined }, { label: 'Actifs', val: true }, { label: 'Bloqués', val: false }].map(f => (
             <button key={String(f.val)} className={`db-chip${activeFilter === f.val ? ' active' : ''}`}
               onClick={() => { setActiveFilter(f.val as any); setPage(1); }}>
@@ -74,8 +75,8 @@ export default function UsersPage() {
         ) : users.length === 0 ? (
           <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text3)' }}>Aucun client trouvé.</div>
         ) : (
-          <div className="db-table-wrap">
-            <table>
+          <div className="db-table-wrap tbl-wrap">
+            <table className="tbl-cards">
               <thead>
                 <tr>
                   <th>Client</th>
@@ -90,7 +91,7 @@ export default function UsersPage() {
               <tbody>
                 {users.map((u: ShopUser) => (
                   <tr key={u.id}>
-                    <td>
+                    <td className="tbl-primary">
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <div style={{
                           width: 34, height: 34, borderRadius: '50%', background: '#1341a3',
@@ -104,29 +105,30 @@ export default function UsersPage() {
                         </div>
                       </div>
                     </td>
-                    <td style={{ fontSize: '0.84rem', color: 'var(--text2)' }}>{u.email}</td>
-                    <td style={{ fontSize: '0.84rem', color: 'var(--text3)' }}>{u.telephone ?? '—'}</td>
-                    <td style={{ fontSize: '0.82rem', color: 'var(--text3)', whiteSpace: 'nowrap' }}>
+                    <td className="wrap-anywhere" style={{ fontSize: '0.84rem', color: 'var(--text2)' }} data-label="Email">{u.email}</td>
+                    <td style={{ fontSize: '0.84rem', color: 'var(--text3)' }} data-label="Téléphone">{u.telephone ?? '—'}</td>
+                    <td style={{ fontSize: '0.82rem', color: 'var(--text3)', whiteSpace: 'nowrap' }} data-label="Inscrit le">
                       {fmtDate(u.createdAt)}
                     </td>
-                    <td>
+                    <td data-label="Vérifié">
                       <span className={`badge ${u.isVerified ? 'bg' : 'bx'}`}>
                         {u.isVerified ? 'Vérifié' : 'Non vérifié'}
                       </span>
                     </td>
-                    <td>
+                    <td data-label="Statut">
                       <button
                         onClick={() => handleToggle(u)}
                         disabled={toggleMut.isPending}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                         title={u.isActive ? 'Bloquer ce compte' : 'Activer ce compte'}
+                        aria-label={u.isActive ? 'Bloquer ce compte' : 'Activer ce compte'}
                       >
                         <span className={`badge ${u.isActive ? 'bg' : 'br'}`}>
                           {u.isActive ? 'Actif' : 'Bloqué'}
                         </span>
                       </button>
                     </td>
-                    <td>
+                    <td className="tbl-actions" data-label="Actions">
                       <div className="db-actions">
                         <button
                           className={u.isActive ? 'db-btn-danger' : 'db-btn-ghost'}
@@ -144,14 +146,8 @@ export default function UsersPage() {
           </div>
         )}
 
-        {totalPages > 1 && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '1rem', borderTop: '1px solid var(--border)' }}>
-            <button className="db-btn-ghost" disabled={page === 1} onClick={() => setPage(p => p - 1)}>← Précédent</button>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text3)' }}>Page {page} / {totalPages}</span>
-            <button className="db-btn-ghost" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Suivant →</button>
-          </div>
-        )}
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} />
       </div>
     </div>
   );
-};
+}

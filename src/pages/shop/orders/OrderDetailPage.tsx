@@ -68,16 +68,17 @@ export default function OrderDetailPage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-6">
         <button
           onClick={() => navigate('/boutique/commandes')}
-          className="text-gray-500 hover:text-gray-700"
+          aria-label="Retour aux commandes"
+          className="btn-icon -ml-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 min-w-0">
           Commande {commande.reference}
         </h1>
         <span
@@ -89,7 +90,7 @@ export default function OrderDetailPage() {
         </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <div className="bg-white rounded-xl border border-gray-100 p-4">
           <p className="text-xs font-semibold text-gray-400 uppercase mb-2">Client</p>
           <p className="font-semibold">
@@ -112,26 +113,28 @@ export default function OrderDetailPage() {
         <div className="p-4 border-b border-gray-100">
           <h2 className="font-semibold text-gray-900">Articles</h2>
         </div>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-100 text-left">
-              <th className="p-4 font-medium text-gray-500">Produit</th>
-              <th className="p-4 font-medium text-gray-500">Qté</th>
-              <th className="p-4 font-medium text-gray-500">Prix unit.</th>
-              <th className="p-4 font-medium text-gray-500">Sous-total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item: any) => (
-              <tr key={item.id} className="border-b border-gray-50">
-                <td className="p-4">{item.produit?.nom || item.Produit?.nom || `Produit #${item.produitId}`}</td>
-                <td className="p-4">{item.quantite}</td>
-                <td className="p-4">{item.prixUnitaire?.toLocaleString('fr-FR')} FCFA</td>
-                <td className="p-4 font-medium">{item.sousTotal?.toLocaleString('fr-FR')} FCFA</td>
+        <div className="tbl-wrap">
+          <table className="w-full text-sm tbl-cards">
+            <thead>
+              <tr className="border-b border-gray-100 text-left">
+                <th className="p-4 font-medium text-gray-500">Produit</th>
+                <th className="p-4 font-medium text-gray-500">Qté</th>
+                <th className="p-4 font-medium text-gray-500">Prix unit.</th>
+                <th className="p-4 font-medium text-gray-500">Sous-total</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {items.map((item: any) => (
+                <tr key={item.id} className="border-b border-gray-50">
+                  <td className="p-4 tbl-primary">{item.produit?.nom || item.Produit?.nom || `Produit #${item.produitId}`}</td>
+                  <td className="p-4" data-label="Qté">{item.quantite}</td>
+                  <td className="p-4 whitespace-nowrap" data-label="Prix unit.">{item.prixUnitaire?.toLocaleString('fr-FR')} FCFA</td>
+                  <td className="p-4 font-medium whitespace-nowrap" data-label="Sous-total">{item.sousTotal?.toLocaleString('fr-FR')} FCFA</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         <div className="flex justify-end p-4 border-t border-gray-100">
           <span className="font-bold text-lg">
             Total : {commande.montantTotal?.toLocaleString('fr-FR')} FCFA
@@ -147,18 +150,18 @@ export default function OrderDetailPage() {
       )}
 
       {commande.statut === 'en_attente' && (
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <button
             onClick={() => validerMutation.mutate()}
             disabled={validerMutation.isPending}
-            className="px-4 py-2 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600 disabled:opacity-60"
+            className="px-4 py-2.5 sm:py-2 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600 disabled:opacity-60"
           >
             Valider la commande
           </button>
           <button
             onClick={() => setShowRejectModal(true)}
             disabled={rejeterMutation.isPending}
-            className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 disabled:opacity-60"
+            className="px-4 py-2.5 sm:py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 disabled:opacity-60"
           >
             Rejeter
           </button>
@@ -167,9 +170,9 @@ export default function OrderDetailPage() {
 
       {/* Modal de rejet */}
       {showRejectModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg max-w-md w-full mx-4">
-            <div className="p-6">
+        <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Rejeter la commande">
+          <div className="modal-box max-w-md">
+            <div className="p-5 sm:p-6">
               <h2 className="text-lg font-bold text-gray-900 mb-4">
                 Rejeter la commande
               </h2>

@@ -149,7 +149,7 @@ export default function SousSectionPage() {
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
             {LIBELLES[bloc.section] ?? bloc.section}
           </p>
-          <h1 className="text-xl font-bold text-gray-900 mt-1">{bloc.titre ?? 'Sans titre'}</h1>
+          <h1 className="text-lg sm:text-xl font-bold text-gray-900 mt-1">{bloc.titre ?? 'Sans titre'}</h1>
           {bloc.sousTitre && <p className="text-sm text-gray-500 mt-0.5">{bloc.sousTitre}</p>}
           <p className="text-sm text-gray-500 mt-3">
             {promotions.length === 0
@@ -163,7 +163,7 @@ export default function SousSectionPage() {
             setPromoEnEdition(null);
             setModalOuvert(true);
           }}
-          className="self-start inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg bg-yellow-500 text-white hover:bg-yellow-600 shrink-0"
+          className="w-full sm:w-auto sm:self-start inline-flex items-center justify-center gap-1.5 px-4 py-2.5 sm:py-2 text-sm font-semibold rounded-lg bg-yellow-500 text-white hover:bg-yellow-600 shrink-0"
         >
           <Icon name="plus" size={16} /> Ajouter un produit
         </button>
@@ -185,13 +185,14 @@ export default function SousSectionPage() {
             Aucun produit rattaché à cette sous-section.
           </p>
         ) : (
-          <table className="w-full text-sm">
+          <div className="tbl-wrap">
+          <table className="w-full text-sm tbl-cards">
             <thead>
               <tr className="text-left text-xs text-gray-400 uppercase border-b border-gray-50">
                 <th className="py-2.5 px-5 font-medium w-20">Ordre</th>
                 <th className="py-2.5 pr-4 font-medium">Produit</th>
                 <th className="py-2.5 pr-4 font-medium">Prix promo</th>
-                <th className="py-2.5 pr-4 font-medium">Remise</th>
+                <th className="py-2.5 pr-4 font-medium hidden xl:table-cell">Remise</th>
                 <th className="py-2.5 pr-4 font-medium">Période</th>
                 <th className="py-2.5 pr-4 font-medium">État</th>
                 <th className="py-2.5 pr-5 font-medium text-right">Actions</th>
@@ -202,13 +203,14 @@ export default function SousSectionPage() {
                 const etat = etatVisibilite(promo);
                 return (
                   <tr key={promo.id} className="border-b border-gray-50 last:border-0">
-                    <td className="py-3 px-5">
+                    <td className="py-3 px-5" data-label="Ordre">
                       <div className="flex items-center gap-0.5">
                         <button
                           onClick={() => deplacer(i, -1)}
                           disabled={i === 0 || reordonner.isPending}
                           title="Monter"
-                          className="p-1 rounded text-gray-400 hover:bg-gray-50 hover:text-gray-700 disabled:opacity-30"
+                          aria-label="Monter"
+                          className="btn-icon text-gray-400 hover:bg-gray-50 hover:text-gray-700 disabled:opacity-30"
                         >
                           <Icon name="arrow-up" size={14} />
                         </button>
@@ -216,14 +218,15 @@ export default function SousSectionPage() {
                           onClick={() => deplacer(i, 1)}
                           disabled={i === promotions.length - 1 || reordonner.isPending}
                           title="Descendre"
-                          className="p-1 rounded text-gray-400 hover:bg-gray-50 hover:text-gray-700 disabled:opacity-30"
+                          aria-label="Descendre"
+                          className="btn-icon text-gray-400 hover:bg-gray-50 hover:text-gray-700 disabled:opacity-30"
                         >
                           <Icon name="arrow-down" size={14} />
                         </button>
                       </div>
                     </td>
-                    <td className="py-3 pr-4">
-                      <div className="flex items-center gap-2.5">
+                    <td className="py-3 pr-4 tbl-primary">
+                      <div className="flex items-center gap-2.5 min-w-0">
                         {promo.produit?.images?.[0] && (
                           <img
                             src={promo.produit.images[0]}
@@ -231,13 +234,13 @@ export default function SousSectionPage() {
                             className="w-9 h-9 rounded-md object-cover shrink-0"
                           />
                         )}
-                        <span className="text-gray-900 truncate">
+                        <span className="text-gray-900 line-clamp-2 min-w-0">
                           {promo.produit?.nom ?? '—'}
                         </span>
                       </div>
                     </td>
-                    <td className="py-3 pr-4 text-gray-700">{fcfa(promo.prixPromo)}</td>
-                    <td className="py-3 pr-4">
+                    <td className="py-3 pr-4 text-gray-700 whitespace-nowrap" data-label="Prix promo">{fcfa(promo.prixPromo)}</td>
+                    <td className="py-3 pr-4 hidden xl:table-cell" data-label="Remise">
                       {promo.pourcentageReduction ? (
                         <span className="font-semibold text-yellow-700">
                           −{Math.round(Number(promo.pourcentageReduction))} %
@@ -246,15 +249,15 @@ export default function SousSectionPage() {
                         '—'
                       )}
                     </td>
-                    <td className="py-3 pr-4 text-xs text-gray-500">
+                    <td className="py-3 pr-4 text-xs text-gray-500" data-label="Période">
                       {formatPeriode(promo.dateDebut, promo.dateFin)}
                     </td>
-                    <td className="py-3 pr-4">
+                    <td className="py-3 pr-4" data-label="État">
                       <span className={`text-xs font-semibold px-2 py-0.5 rounded ${etat.classe}`}>
                         {etat.libelle}
                       </span>
                     </td>
-                    <td className="py-3 pr-5 text-right whitespace-nowrap">
+                    <td className="py-3 pr-5 text-right whitespace-nowrap tbl-actions" data-label="Actions">
                       <BoutonIcone
                         nom="pencil"
                         titre="Modifier"
@@ -280,6 +283,7 @@ export default function SousSectionPage() {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 
@@ -315,7 +319,8 @@ function BoutonIcone({
       type="button"
       title={titre}
       onClick={onClick}
-      className={`p-1.5 rounded-lg hover:bg-gray-50 ${
+      aria-label={titre}
+      className={`btn-icon hover:bg-gray-50 ${
         danger ? 'text-red-500 hover:text-red-600' : 'text-gray-400 hover:text-gray-700'
       }`}
     >

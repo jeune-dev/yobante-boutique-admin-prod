@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useReviews, useToggleApprove, useDeleteReview } from '@/domains/shop/hooks/useReviews';
 import { Review } from '@/domains/shop/api/reviews.api';
 import { showSuccess, showConfirm } from '@/shared/utils/alert';
+import Pagination from '@/shared/components/tables/Pagination';
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -53,9 +54,9 @@ export default function ReviewsPage() {
   };
 
   return (
-    <div style={{ padding: '1.6rem' }}>
+    <div>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.2rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.2rem', flexWrap: 'wrap', gap: '0.6rem' }}>
         <div>
           <div style={{ fontSize: '1.08rem', fontWeight: 700, color: 'var(--black)' }}>Avis clients</div>
           <div style={{ fontSize: '0.78rem', color: 'var(--text3)', marginTop: 2 }}>
@@ -65,7 +66,7 @@ export default function ReviewsPage() {
       </div>
 
       {/* Filtres */}
-      <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '1rem' }}>
+      <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
         {[{ label: 'Tous', val: undefined }, { label: 'Approuvés', val: true }, { label: 'En attente', val: false }].map(f => (
           <button key={String(f.val)} className={`db-chip${approvedFilter === f.val ? ' active' : ''}`}
             onClick={() => { setApprovedFilter(f.val as any); setPage(1); }}>
@@ -83,8 +84,8 @@ export default function ReviewsPage() {
         ) : reviews.length === 0 ? (
           <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text3)' }}>Aucun avis trouvé.</div>
         ) : (
-          <div className="db-table-wrap">
-            <table>
+          <div className="db-table-wrap tbl-wrap">
+            <table className="tbl-cards">
               <thead>
                 <tr>
                   <th>Client</th>
@@ -99,36 +100,39 @@ export default function ReviewsPage() {
               <tbody>
                 {reviews.map((r: Review) => (
                   <tr key={r.id}>
-                    <td>
+                    <td className="tbl-primary">
                       <div style={{ fontWeight: 600, fontSize: '0.87rem' }}>
                         {r.user?.nom} {r.user?.prenom}
                       </div>
                     </td>
-                    <td style={{ fontSize: '0.84rem', color: 'var(--text2)' }}>
+                    <td style={{ fontSize: '0.84rem', color: 'var(--text2)' }} data-label="Produit">
                       {r.produit?.nom ?? '—'}
                     </td>
-                    <td><Stars note={r.note} /></td>
-                    <td style={{ maxWidth: 260 }}>
+                    <td data-label="Note"><Stars note={r.note} /></td>
+                    <td style={{ maxWidth: 260 }} data-label="Commentaire">
                       {r.commentaire ? (
-                        <div style={{ fontSize: '0.83rem', color: 'var(--text2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 240 }}>
+                        // Deux lignes max en tableau (voir .tbl-commentaire) ;
+                        // en carte (mobile) le texte complet est affiché.
+                        <div className="tbl-commentaire" title={r.commentaire} style={{ fontSize: '0.83rem', color: 'var(--text2)' }}>
                           {r.commentaire}
                         </div>
                       ) : (
                         <span style={{ color: 'var(--text3)', fontSize: '0.8rem' }}>—</span>
                       )}
                     </td>
-                    <td style={{ fontSize: '0.82rem', color: 'var(--text3)', whiteSpace: 'nowrap' }}>
+                    <td style={{ fontSize: '0.82rem', color: 'var(--text3)', whiteSpace: 'nowrap' }} data-label="Date">
                       {fmtDate(r.createdAt)}
                     </td>
-                    <td>
+                    <td data-label="Statut">
                       <button onClick={() => handleToggle(r)} disabled={approveMut.isPending}
+                        aria-label={r.isApproved ? 'Désapprouver' : 'Approuver'}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                         <span className={`badge ${r.isApproved ? 'bg' : 'bgo'}`}>
                           {r.isApproved ? 'Approuvé' : 'En attente'}
                         </span>
                       </button>
                     </td>
-                    <td>
+                    <td className="tbl-actions" data-label="Actions">
                       <div className="db-actions">
                         <button className={r.isApproved ? 'db-btn-ghost' : 'db-btn-ghost'}
                           onClick={() => handleToggle(r)} disabled={approveMut.isPending}>
@@ -146,14 +150,8 @@ export default function ReviewsPage() {
           </div>
         )}
 
-        {totalPages > 1 && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '1rem', borderTop: '1px solid var(--border)' }}>
-            <button className="db-btn-ghost" disabled={page === 1} onClick={() => setPage(p => p - 1)}>← Précédent</button>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text3)' }}>Page {page} / {totalPages}</span>
-            <button className="db-btn-ghost" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Suivant →</button>
-          </div>
-        )}
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} />
       </div>
     </div>
   );
-};
+}

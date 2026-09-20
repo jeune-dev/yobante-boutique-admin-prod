@@ -78,16 +78,16 @@ export default function SousRayonProduitsPage() {
 
   return (
     <div>
-      <div className="flex items-start gap-3 mb-6">
+      <div className="flex flex-wrap items-start gap-3 mb-6">
         <button
           onClick={() => navigate('/boutique/rayons')}
-          className="p-1.5 -ml-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 mt-0.5"
+          className="btn-icon -ml-2 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
           aria-label="Retour"
         >
           <Icon name="chevron-left" size={20} />
         </button>
-        <div className="min-w-0 flex-1">
-          <h1 className="text-2xl font-bold text-gray-900 truncate">
+        <div className="min-w-0 flex-1 basis-40">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
             {sousRayon?.nom ?? 'Sous-rayon'}
           </h1>
           <p className="text-sm text-gray-500 mt-1">
@@ -107,7 +107,7 @@ export default function SousRayonProduitsPage() {
         <button
           onClick={() => setAjoutOuvert(true)}
           disabled={!rayon}
-          className="inline-flex items-center gap-1.5 text-sm font-medium px-3.5 py-2 rounded-lg bg-yellow-500 text-white hover:bg-yellow-600 disabled:opacity-50 shrink-0"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 text-sm font-medium px-3.5 py-2.5 sm:py-2 rounded-lg bg-yellow-500 text-white hover:bg-yellow-600 disabled:opacity-50 shrink-0"
         >
           <Icon name="plus" size={15} /> Ajouter un produit
         </button>
@@ -128,7 +128,8 @@ export default function SousRayonProduitsPage() {
             </button>
           </div>
         ) : (
-          <table className="w-full text-sm">
+          <div className="tbl-wrap">
+          <table className="w-full text-sm tbl-cards">
             <thead>
               <tr className="border-b border-gray-100 text-left">
                 <th className="p-4 font-medium text-gray-500">Produit</th>
@@ -141,8 +142,8 @@ export default function SousRayonProduitsPage() {
             <tbody>
               {produits.map((p) => (
                 <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50">
-                  <td className="p-4">
-                    <div className="flex items-center gap-3">
+                  <td className="p-4 tbl-primary">
+                    <div className="flex items-center gap-3 min-w-0">
                       {p.images?.[0] ? (
                         <img
                           src={p.images[0]}
@@ -152,12 +153,12 @@ export default function SousRayonProduitsPage() {
                       ) : (
                         <span className="w-10 h-10 rounded-lg bg-gray-100 shrink-0" />
                       )}
-                      <span className="font-medium text-gray-900 truncate">{p.nom}</span>
+                      <span className="font-medium text-gray-900 line-clamp-2 min-w-0">{p.nom}</span>
                     </div>
                   </td>
-                  <td className="p-4">{formaterPrix(p.prix)} FCFA</td>
-                  <td className="p-4 text-gray-600">{p.stock ?? 0}</td>
-                  <td className="p-4">
+                  <td className="p-4 whitespace-nowrap" data-label="Prix">{formaterPrix(p.prix)} FCFA</td>
+                  <td className="p-4 text-gray-600" data-label="Stock">{p.stock ?? 0}</td>
+                  <td className="p-4" data-label="État">
                     <span
                       className={`text-xs font-semibold px-2 py-0.5 rounded ${
                         p.isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'
@@ -166,11 +167,12 @@ export default function SousRayonProduitsPage() {
                       {p.isActive ? 'Visible' : 'Masqué'}
                     </span>
                   </td>
-                  <td className="p-4 text-right whitespace-nowrap">
+                  <td className="p-4 text-right whitespace-nowrap tbl-actions" data-label="Actions">
                     <Link
                       to={`/boutique/produits/${p.id}/modifier`}
                       title="Modifier la fiche"
-                      className="inline-flex p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                      aria-label="Modifier la fiche"
+                      className="btn-icon text-gray-400 hover:bg-gray-100 hover:text-gray-700"
                     >
                       <Icon name="pencil" size={16} />
                     </Link>
@@ -178,7 +180,8 @@ export default function SousRayonProduitsPage() {
                       onClick={() => retirer.mutate(p.id)}
                       disabled={retirer.isPending}
                       title="Retirer du sous-rayon"
-                      className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                      aria-label="Retirer du sous-rayon"
+                      className="btn-icon text-gray-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
                     >
                       <Icon name="x" size={16} />
                     </button>
@@ -187,6 +190,7 @@ export default function SousRayonProduitsPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 
