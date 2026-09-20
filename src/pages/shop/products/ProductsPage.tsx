@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
 import { showSuccess, showError, showConfirm } from '@/shared/utils/alert';
 import Pagination from '@/shared/components/tables/Pagination';
+import ErreurChargement from '@/shared/components/feedback/ErreurChargement';
 
 const api = {
   getProduits: (p: any) =>
@@ -55,7 +56,7 @@ export default function ProductsPage() {
     if (id) setFilterRayonId(id);
   }, [searchParams]);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['admin-produits', search, page, filterRayonId],
     queryFn: () => api.getProduits({ search, page, limit: 20, rayonId: filterRayonId || undefined }),
   });
@@ -134,6 +135,8 @@ export default function ProductsPage() {
 
         {isLoading ? (
           <div className="p-8 text-center text-gray-400">Chargement…</div>
+        ) : isError ? (
+          <ErreurChargement erreur={error} onReessayer={() => refetch()} />
         ) : (
           <div className="tbl-wrap">
             <table className="w-full text-sm tbl-cards">

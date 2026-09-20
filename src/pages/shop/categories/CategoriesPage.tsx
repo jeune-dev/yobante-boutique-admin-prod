@@ -1,1 +1,0 @@
-﻿// CategoriesPage.tsx — Gestion catégories

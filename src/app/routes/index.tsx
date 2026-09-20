@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createBrowserRouter, Navigate, isRouteErrorResponse, useRouteError } from 'react-router-dom';
 import { PrivateRoute } from './PrivateRoute';
 import ShopLayout from '@/layouts/ShopLayout';
 import ShipmentLayout from '@/layouts/ShipmentLayout';
@@ -25,23 +25,47 @@ import PaymentsPage from '@/pages/shop/payments/PaymentsPage';
 import SettingsPage from '@/pages/shop/settings/SettingsPage';
 import { ShipmentDashboard } from '@/pages/shipment/dashboard/DashboardPage';
 
-const NotFound = () => (
-  <div className="flex items-center justify-center min-h-screen">
-    <div className="text-center">
-      <h1 className="text-4xl font-bold text-gray-900 mb-2">404</h1>
-      <p className="text-gray-600 mb-4">Page non trouvée</p>
-      <a href="/" className="text-blue-600 hover:text-blue-700">
-        Retour à l'accueil
-      </a>
+/**
+ * Écran d'erreur du routeur : page inconnue (404) OU composant qui plante.
+ * Avant, toute exception de rendu s'affichait comme « 404 Page non trouvée »,
+ * ce qui masquait le vrai problème ; le détail technique n'est jamais montré.
+ */
+const ErreurRoute = () => {
+  const erreur = useRouteError();
+  const introuvable = isRouteErrorResponse(erreur) && erreur.status === 404;
+  return (
+    <div className="flex items-center justify-center min-h-screen p-6">
+      <div className="text-center max-w-md">
+        <h1 className="text-4xl font-bold text-gray-900 mb-2">{introuvable ? '404' : 'Oups'}</h1>
+        <p className="text-gray-600 mb-4">
+          {introuvable
+            ? 'Page non trouvée'
+            : "Une erreur inattendue s'est produite. Rechargez la page ; si le problème persiste, contactez le support."}
+        </p>
+        <div className="flex flex-wrap justify-center gap-3">
+          {!introuvable && (
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 text-sm font-semibold rounded-lg bg-gray-900 text-white hover:bg-gray-800"
+            >
+              Recharger
+            </button>
+          )}
+          <a href="/" className="px-4 py-2 text-sm font-semibold rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50">
+            Retour à l'accueil
+          </a>
+        </div>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export const router = createBrowserRouter(
   [
     {
       path: '/',
-      errorElement: <NotFound />,
+      errorElement: <ErreurRoute />,
       children: [
         { index: true, element: <Navigate to="/login" replace /> },
         { path: 'login', element: <LoginPage /> },

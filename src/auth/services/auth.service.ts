@@ -114,11 +114,20 @@ export const authService = {
     };
   },
 
-  logout: async (): Promise<void> => {
+  /**
+   * Révocation côté serveur, appelée APRÈS la purge locale (voir useAuth) :
+   * la session doit disparaître de l'écran immédiatement, sans attendre un
+   * backend lent ou injoignable. Le refresh token est passé en paramètre car
+   * le stockage local est déjà vidé ; il est envoyé explicitement parce que
+   * le dashboard n'est pas sur l'origine du backend (cookie HttpOnly absent).
+   */
+  logout: async (refreshToken: string | null): Promise<void> => {
     try {
       await Promise.allSettled([
-        shopClient.post('/auth/logout', {}),
-        shipmentClient.post('/auth/logout', {}),
+        refreshToken
+          ? shopClient.post('/auth/logout', { refreshToken }, { timeout: 5_000 })
+          : Promise.resolve(),
+        shipmentClient.post('/auth/logout', {}, { timeout: 5_000 }),
       ]);
     } catch {
       // Ignore errors on logout

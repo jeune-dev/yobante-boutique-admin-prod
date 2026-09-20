@@ -7,6 +7,7 @@ import Icon from '@/shared/components/dashboard/Icon';
 import SousSectionModal from './components/SousSectionModal';
 import PromotionModal from './components/PromotionModal';
 import BanniereModal from './components/BanniereModal';
+import ErreurChargement from '@/shared/components/feedback/ErreurChargement';
 
 /**
  * Gestion de la page d'accueil de l'application client.
@@ -56,7 +57,9 @@ export default function AccueilPage() {
 
   const rafraichir = (cle: string) => qc.invalidateQueries({ queryKey: ['accueil', cle] });
 
-  const mutation = (fn: (id: string) => Promise<any>, cle: string, message: string) =>
+  // Hook local (préfixe `use`) : appelé un nombre fixe de fois, dans le même
+  // ordre, à chaque rendu — les règles des hooks sont respectées.
+  const useMutationAccueil = (fn: (id: string) => Promise<any>, cle: string, message: string) =>
     useMutation({
       mutationFn: fn,
       // Le message affiché est celui renvoyé par le backend (`data._message`) ;
@@ -68,12 +71,12 @@ export default function AccueilPage() {
       onError: (e: any) => showError(e),
     });
 
-  const supprBanniere = mutation(api.supprimerBanniere, 'bannieres', 'Bannière supprimée');
-  const bascBanniere = mutation(api.basculerBanniere, 'bannieres', 'Bannière mise à jour');
-  const supprBloc = mutation(api.supprimerBloc, 'blocs', 'Sous-section supprimée');
-  const bascBloc = mutation(api.basculerBloc, 'blocs', 'Sous-section mise à jour');
-  const supprPromo = mutation(api.supprimerPromotion, 'promotions', 'Promotion retirée');
-  const bascPromo = mutation(api.basculerPromotion, 'promotions', 'Promotion mise à jour');
+  const supprBanniere = useMutationAccueil(api.supprimerBanniere, 'bannieres', 'Bannière supprimée');
+  const bascBanniere = useMutationAccueil(api.basculerBanniere, 'bannieres', 'Bannière mise à jour');
+  const supprBloc = useMutationAccueil(api.supprimerBloc, 'blocs', 'Sous-section supprimée');
+  const bascBloc = useMutationAccueil(api.basculerBloc, 'blocs', 'Sous-section mise à jour');
+  const supprPromo = useMutationAccueil(api.supprimerPromotion, 'promotions', 'Promotion retirée');
+  const bascPromo = useMutationAccueil(api.basculerPromotion, 'promotions', 'Promotion mise à jour');
 
   const blocsParSection = useMemo(() => {
     const parSection = blocs.data?.parSection;
@@ -127,6 +130,8 @@ export default function AccueilPage() {
 
         {bannieres.isLoading ? (
           <Chargement />
+        ) : bannieres.isError ? (
+          <ErreurChargement erreur={bannieres.error} onReessayer={() => bannieres.refetch()} className="py-4" />
         ) : listeBannieres.length === 0 ? (
           <Vide texte="Aucune bannière. L'accueil affichera l'image par défaut." />
         ) : (
@@ -185,6 +190,8 @@ export default function AccueilPage() {
           </h3>
           {blocs.isLoading ? (
             <Chargement />
+          ) : blocs.isError ? (
+            <ErreurChargement erreur={blocs.error} onReessayer={() => blocs.refetch()} className="py-4" />
           ) : (blocsParSection[section.cle] ?? []).length === 0 ? (
             <Vide texte="Aucune sous-section." />
           ) : (
@@ -215,6 +222,8 @@ export default function AccueilPage() {
           </h3>
           {promotions.isLoading ? (
             <Chargement />
+          ) : promotions.isError ? (
+            <ErreurChargement erreur={promotions.error} onReessayer={() => promotions.refetch()} className="py-4" />
           ) : (promosParSection[section.cle] ?? []).length === 0 ? (
             <Vide texte="Aucun produit rattaché à cette section." />
           ) : (

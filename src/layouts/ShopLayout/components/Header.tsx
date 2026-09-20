@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/auth/store/auth.store';
+import { useAuth } from '@/auth/hooks/useAuth';
 import Icon from '@/shared/components/dashboard/Icon';
 
 /** Libellés des sections, pour situer l'utilisateur dans le dashboard. */
@@ -25,7 +26,9 @@ interface Props {
 
 export default function ShopHeader({ onOuvrirMenu }: Props) {
   const user = useAuthStore((s) => s.user);
-  const logout = useAuthStore((s) => s.logout);
+  // `useAuth().logout` révoque le refresh token côté serveur avant de vider
+  // la session locale ; le `logout` du store seul ne faisait que le second.
+  const { logout } = useAuth();
   const { pathname } = useLocation();
 
   // /boutique/<section>/... → on ne garde que la section pour le titre.

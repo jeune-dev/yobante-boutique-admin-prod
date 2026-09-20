@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
 import { showSuccess, showError } from '@/shared/utils/alert';
 import Pagination from '@/shared/components/tables/Pagination';
+import ErreurChargement from '@/shared/components/feedback/ErreurChargement';
 
 const api = {
   getCommandes: (p: any) =>
@@ -33,7 +34,7 @@ export default function OrdersPage() {
   const [showRejectModal, setShowRejectModal] = useState<string | null>(null);
   const [rejectMotif, setRejectMotif] = useState('');
 
-  const { data } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['commandes', search, statut, page],
     queryFn: () => api.getCommandes({ search, statut, page, limit: 20 }),
   });
@@ -119,6 +120,11 @@ export default function OrdersPage() {
             <option value="annulee">Annulée</option>
           </select>
         </div>
+        {isLoading ? (
+          <div className="p-8 text-center text-gray-400">Chargement…</div>
+        ) : isError ? (
+          <ErreurChargement erreur={error} onReessayer={() => refetch()} />
+        ) : (
         <div className="tbl-wrap">
           <table className="w-full text-sm tbl-cards">
             <thead>
@@ -206,6 +212,7 @@ export default function OrdersPage() {
             </tbody>
           </table>
         </div>
+        )}
         <Pagination page={page} totalPages={pagination?.totalPages ?? 1} onChange={setPage} />
       </div>
 

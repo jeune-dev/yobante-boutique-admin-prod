@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import shopClient from '@/infrastructure/http/shop.client';
 import { showSuccess, showError } from '@/shared/utils/alert';
 import Pagination from '@/shared/components/tables/Pagination';
+import ErreurChargement from '@/shared/components/feedback/ErreurChargement';
 
 const api = {
   getRayons: (params?: any) => shopClient.get('/admin/rayons', { params }),
@@ -33,7 +34,7 @@ export default function RayonsPage() {
   const qc = useQueryClient();
   const navigate = useNavigate();
 
-  const { data: rayonsData, isLoading } = useQuery({
+  const { data: rayonsData, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['rayons', search, page],
     queryFn: () => api.getRayons({ search, page, limit: 20 }),
   });
@@ -171,6 +172,8 @@ export default function RayonsPage() {
           </div>
           {isLoading ? (
             <div className="p-8 text-center text-gray-400">Chargement…</div>
+          ) : isError ? (
+            <ErreurChargement erreur={error} onReessayer={() => refetch()} />
           ) : (
             <div className="tbl-wrap">
             <table className="w-full text-sm tbl-cards">
@@ -409,9 +412,12 @@ export default function RayonsPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2.5 sm:py-2 text-sm bg-yellow-500 text-white rounded-lg hover:bg-yellow-600"
+                  disabled={creerMutation.isPending || modifierMutation.isPending}
+                  className="px-4 py-2.5 sm:py-2 text-sm bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 disabled:opacity-60"
                 >
-                  {editItem ? 'Modifier' : 'Créer'}
+                  {creerMutation.isPending || modifierMutation.isPending
+                    ? 'Enregistrement…'
+                    : editItem ? 'Modifier' : 'Créer'}
                 </button>
               </div>
             </form>
@@ -471,9 +477,12 @@ export default function RayonsPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2.5 sm:py-2 text-sm bg-yellow-500 text-white rounded-lg hover:bg-yellow-600"
+                  disabled={creerSrMutation.isPending || modifierSrMutation.isPending}
+                  className="px-4 py-2.5 sm:py-2 text-sm bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 disabled:opacity-60"
                 >
-                  {editSr ? 'Modifier' : 'Créer'}
+                  {creerSrMutation.isPending || modifierSrMutation.isPending
+                    ? 'Enregistrement…'
+                    : editSr ? 'Modifier' : 'Créer'}
                 </button>
               </div>
             </form>

@@ -1,6 +1,7 @@
 ﻿import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { tokenManager } from '@/infrastructure/auth/tokenManager';
+import { queryClient } from '@/config/queryClient';
 
 export interface User {
   id: string;
@@ -45,6 +46,10 @@ export const useAuthStore = create<AuthStore>()(
 
       logout: () => {
         tokenManager.clearAll();
+        // Aucune donnée protégée ne doit survivre à la session : le cache des
+        // requêtes est vidé, sinon un autre compte connecté ensuite sur le
+        // même navigateur verrait brièvement les données du précédent.
+        queryClient.clear();
         set({
           user: null,
           isAuthenticated: false,

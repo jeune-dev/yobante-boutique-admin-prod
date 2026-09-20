@@ -39,7 +39,7 @@ export const ShipmentDashboard = () => {
   // haut, refermé au choix d'une section, au clic sur le voile ou avec Échap.
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, selectApp, isShopAvailable } = useAuth();
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -112,16 +112,20 @@ export const ShipmentDashboard = () => {
           )}
         </nav>
 
+        {/* Bascule vers l'espace Boutique quand l'administrateur y a aussi
+            accès ; la route /select-app n'existe pas. */}
+        {isShopAvailable && (
         <div style={{ padding: '0 0.75rem', marginBottom: '0.5rem' }}>
           <button
-            onClick={() => navigate('/select-app')}
+            onClick={() => selectApp('shop')}
             className="db-btn secondary"
             style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}
           >
             <Icon name="chevron-right" size={14} style={{ transform: 'rotate(180deg)' }} />
-            Changer d'espace
+            Aller à la boutique
           </button>
         </div>
+        )}
 
         <div className="db-sb-foot">
           <div className="db-admin-pill">

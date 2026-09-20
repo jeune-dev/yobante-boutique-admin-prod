@@ -1,1 +1,0 @@
-﻿// SettingsPage.tsx — Paramètres colis

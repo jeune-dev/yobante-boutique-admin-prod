@@ -4,6 +4,7 @@ import shopClient from '@/infrastructure/http/shop.client';
 import Icon from '@/shared/components/dashboard/Icon';
 import DemandeDetailModal from './DemandeDetailModal';
 import Pagination from '@/shared/components/tables/Pagination';
+import ErreurChargement from '@/shared/components/feedback/ErreurChargement';
 
 /** Les demandes en cours d'instruction restent visibles jusqu'à publication. */
 const STATUTS = [
@@ -26,7 +27,7 @@ export default function DemandesPage() {
   const [page, setPage] = useState(1);
   const [demandeOuverte, setDemandeOuverte] = useState<any>(null);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['demandes', statut, search, page],
     queryFn: () => api.getDemandes({ statutValidation: statut, search, page, limit: 20 }),
   });
@@ -86,6 +87,8 @@ export default function DemandesPage() {
 
         {isLoading ? (
           <div className="p-8 text-center text-gray-400">Chargement…</div>
+        ) : isError ? (
+          <ErreurChargement erreur={error} onReessayer={() => refetch()} />
         ) : produits.length === 0 ? (
           <div className="p-10 text-center text-gray-400">
             Aucune demande dans cette catégorie.

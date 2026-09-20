@@ -1,1 +1,0 @@
-﻿// PaymentsPage.tsx — Paiements colis

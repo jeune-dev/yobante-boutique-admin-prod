@@ -61,6 +61,11 @@ const texteAffiche = (message: unknown, defaut: string): string => {
   return messageBackend(message) ?? defaut;
 };
 
+// ⚠️ XSS : `title`/`html` de SweetAlert2 sont interprétés comme du HTML.
+// Les messages du backend reprennent des saisies (nom de produit, de
+// vendeur…) : ils sont toujours affichés via `titleText` / `text`, qui
+// les traitent comme du texte brut.
+
 // ── Succès ────────────────────────────────────────────────────
 /** Toast de succès. `message` peut être le résultat du mutation
  *  (le message du backend est alors lu via `_message`) ou un texte. */
@@ -68,7 +73,7 @@ export const showSuccess = (message?: unknown, defaut = 'Opération réussie') =
   Swal.fire({
     ...BASE,
     icon: 'success',
-    title: texteAffiche(message, defaut),
+    titleText: texteAffiche(message, defaut),
     toast: true,
     position: 'top-end',
     showConfirmButton: false,
@@ -83,7 +88,7 @@ export const showError = (erreur?: unknown, defaut = 'Une erreur est survenue') 
   Swal.fire({
     ...BASE,
     icon: 'error',
-    title: texteErreur(erreur, defaut),
+    titleText: texteErreur(erreur, defaut),
     toast: true,
     position: 'top-end',
     showConfirmButton: false,
@@ -96,7 +101,7 @@ export const showInfo = (message?: unknown, defaut = 'Information') =>
   Swal.fire({
     ...BASE,
     icon: 'info',
-    title: texteAffiche(message, defaut),
+    titleText: texteAffiche(message, defaut),
     toast: true,
     position: 'top-end',
     showConfirmButton: false,
@@ -108,7 +113,7 @@ export const showWarning = (message?: unknown, defaut = 'Attention') =>
   Swal.fire({
     ...BASE,
     icon: 'warning',
-    title: texteAffiche(message, defaut),
+    titleText: texteAffiche(message, defaut),
     toast: true,
     position: 'top-end',
     showConfirmButton: false,

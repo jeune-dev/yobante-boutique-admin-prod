@@ -132,7 +132,7 @@ export default function PaymentsPage() {
                       <td className="db-td-bold" data-label="Montant" style={{ whiteSpace: 'nowrap' }}>{fmtFcfa(Number(p.montant))}</td>
                       {/* Date et heure peuvent passer sur deux lignes : sur un
                           petit portable, la colonne forçait un défilement. */}
-                      <td style={{ fontSize: '0.82rem', color: 'var(--text3)', minWidth: 96 }} data-label="Date">
+                      <td style={{ fontSize: '0.82rem', color: 'var(--text3)', minWidth: 88 }} data-label="Date">
                         {p.payeAt ? fmtDate(p.payeAt) : p.createdAt ? fmtDate(p.createdAt) : '—'}
                       </td>
                       <td data-label="Statut"><span className={`badge ${s?.cls}`}>{s?.label ?? p.statut}</span></td>

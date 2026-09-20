@@ -1,14 +1,33 @@
 ﻿import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import { ENV } from '@/config/env';
 import { tokenManager } from '@/infrastructure/auth/tokenManager';
+import { useAuthStore } from '@/auth/store/auth.store';
 
 const shopClient = axios.create({
   baseURL: ENV.VITE_SHOP_API_URL,
   withCredentials: true,
+  // Sans délai, une requête vers un serveur injoignable restait en attente
+  // indéfiniment et l'interface figée sur « Chargement… ».
+  timeout: 30_000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+/** Message lisible quand le backend n'en fournit pas (panne, réseau, quota). */
+const messageParDefaut = (error: AxiosError): string => {
+  if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+    return 'Le serveur met trop de temps à répondre. Réessayez dans un instant.';
+  }
+  if (!error.response) {
+    return 'Impossible de joindre le serveur. Vérifiez votre connexion internet.';
+  }
+  const statut = error.response.status;
+  if (statut === 429) return 'Trop de requêtes. Patientez quelques instants avant de réessayer.';
+  if (statut === 404) return 'Ressource introuvable.';
+  if (statut >= 500) return 'Le serveur a rencontré une erreur. Réessayez plus tard.';
+  return 'Une erreur est survenue';
+};
 
 // Request interceptor: Add auth token
 shopClient.interceptors.request.use(
@@ -79,16 +98,25 @@ shopClient.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return shopClient(originalRequest);
       } catch (refreshError) {
-        // Refresh failed - logout
-        tokenManager.clearAll();
-        window.location.href = '/login';
-        return Promise.reject(refreshError);
+        // Refresh impossible : la session est terminée. On purge TOUT (jetons,
+        // utilisateur mémorisé, cache des requêtes) avant de renvoyer vers la
+        // connexion — vider les seuls jetons laissait `isAuthenticated` à vrai
+        // et l'ancien profil affiché.
+        useAuthStore.getState().logout();
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
+        return Promise.reject({
+          status: 401,
+          message: 'Votre session a expiré. Veuillez vous reconnecter.',
+          data: null,
+        });
       }
     }
 
-    // Return error with normalized message
-    const message =
-      (error.response?.data as any)?.message || error.message || 'An error occurred';
+    // Erreur normalisée : le message du backend d'abord, sinon un texte
+    // compréhensible selon la panne (jamais le message technique d'axios).
+    const message = (error.response?.data as any)?.message || messageParDefaut(error);
     return Promise.reject({
       status: error.response?.status,
       message,

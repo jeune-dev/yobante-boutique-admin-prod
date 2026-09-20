@@ -5,6 +5,7 @@ import { showSuccess, showError } from '@/shared/utils/alert';
 import shopClient from '@/infrastructure/http/shop.client';
 import Icon from '@/shared/components/dashboard/Icon';
 import PromotionModal from './components/PromotionModal';
+import ErreurChargement from '@/shared/components/feedback/ErreurChargement';
 
 /**
  * Composition d'une sous-section de l'accueil client.
@@ -180,6 +181,8 @@ export default function SousSectionPage() {
 
         {promosQuery.isLoading ? (
           <p className="p-8 text-sm text-gray-400 text-center">Chargement…</p>
+        ) : promosQuery.isError ? (
+          <ErreurChargement erreur={promosQuery.error} onReessayer={() => promosQuery.refetch()} />
         ) : promotions.length === 0 ? (
           <p className="p-10 text-sm text-gray-400 text-center">
             Aucun produit rattaché à cette sous-section.
