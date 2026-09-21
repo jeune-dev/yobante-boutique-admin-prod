@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import AdminBackButton from '@/shared/components/AdminBackButton';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
 import { showSuccess, showError, showConfirm } from '@/shared/utils/alert';
@@ -11,6 +12,7 @@ export default function ProductCreatePage() {
   const [nom, setNom] = useState('');
   const [description, setDescription] = useState('');
   const [prix, setPrix] = useState('');
+  const [prixAchat, setPrixAchat] = useState('');
   const [venduAuPoids, setVenduAuPoids] = useState(false);
   const [stock, setStock] = useState('0');
   const [poids, setPoids] = useState('');
@@ -68,6 +70,7 @@ export default function ProductCreatePage() {
     fd.append('nom', nom);
     fd.append('description', description);
     fd.append('prix', prix);
+    if (prixAchat) fd.append('prixAchat', prixAchat);
     fd.append('venduAuPoids', String(venduAuPoids));
     fd.append('stock', stock);
     fd.append('rayonId', rayonId);
@@ -83,14 +86,7 @@ export default function ProductCreatePage() {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="flex items-center gap-4 mb-6">
-        <button
-          onClick={() => navigate('/boutique/produits')}
-          className="text-gray-500 hover:text-gray-700"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
+        <AdminBackButton />
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900 min-w-0">Nouveau produit</h1>
       </div>
 

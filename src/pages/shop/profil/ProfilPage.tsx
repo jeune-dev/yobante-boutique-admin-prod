@@ -3,6 +3,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { showSuccess, showError } from '@/shared/utils/alert';
 import shopClient from '@/infrastructure/http/shop.client';
 import Icon from '@/shared/components/dashboard/Icon';
+import AdminBackButton from '@/shared/components/AdminBackButton';
 
 const api = {
   profil: () => shopClient.get('/profile'),
@@ -19,6 +20,7 @@ export default function ProfilPage() {
   return (
     <div className="max-w-2xl space-y-6">
       <header>
+        <AdminBackButton className="mb-4" />
         <h1 className="text-xl font-bold text-gray-900">Mon profil</h1>
         <p className="text-sm text-gray-500 mt-1">Vos informations et votre mot de passe.</p>
       </header>

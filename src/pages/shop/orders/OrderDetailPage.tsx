@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import AdminBackButton from '@/shared/components/AdminBackButton';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
 import { showSuccess, showError } from '@/shared/utils/alert';

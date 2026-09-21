@@ -6,6 +6,7 @@ import shopClient from '@/infrastructure/http/shop.client';
 import Icon from '@/shared/components/dashboard/Icon';
 import PromotionModal from './components/PromotionModal';
 import ErreurChargement from '@/shared/components/feedback/ErreurChargement';
+import AdminBackButton from '@/shared/components/AdminBackButton';
 
 /**
  * Composition d'une sous-section de l'accueil client.

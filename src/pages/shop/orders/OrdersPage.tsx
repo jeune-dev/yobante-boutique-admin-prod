@@ -72,7 +72,16 @@ export default function OrdersPage() {
 
   return (
     <div>
-      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">Commandes</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Commandes</h1>
+        <button
+          onClick={() => navigate('/boutique/commandes/nouveau')}
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg bg-yellow-500 text-white hover:bg-yellow-600"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+          Nouvelle commande
+        </button>
+      </div>
 
       {/* KPI Cards : 2 par ligne sur téléphone, 4 dès la tablette. */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">

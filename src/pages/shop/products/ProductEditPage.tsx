@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import AdminBackButton from '@/shared/components/AdminBackButton';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
 import { showSuccess, showError, showConfirm } from '@/shared/utils/alert';
@@ -113,14 +114,7 @@ export default function ProductEditPage() {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="flex items-center gap-4 mb-6">
-        <button
-          onClick={() => navigate('/boutique/produits')}
-          className="text-gray-500 hover:text-gray-700"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
+        <AdminBackButton />
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900 min-w-0">Modifier le produit</h1>
       </div>
 
