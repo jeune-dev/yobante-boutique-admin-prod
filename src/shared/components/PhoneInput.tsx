@@ -4,7 +4,7 @@ import 'react-international-phone/style.css';
 
 interface PhoneInputProps {
   value: string;
-  onChange: (phone: string, meta: { country: any; nationalNumber: string }) => void;
+  onChange: (phone: string, meta: { country: any; inputValue: string }) => void;
   label?: string;
 }
 

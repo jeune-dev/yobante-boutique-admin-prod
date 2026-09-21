@@ -407,7 +407,7 @@ export default function VendeursPage() {
                       ...f,
                       telephone: phone,
                       phoneCountryCode: meta.country.iso2.toUpperCase(),
-                      phoneNationalNumber: meta.nationalNumber
+                      phoneNationalNumber: meta.inputValue
                     }));
                   }}
                 />
@@ -503,7 +503,7 @@ export default function VendeursPage() {
                       ...f,
                       telephone: phone,
                       phoneCountryCode: meta.country.iso2.toUpperCase(),
-                      phoneNationalNumber: meta.nationalNumber
+                      phoneNationalNumber: meta.inputValue
                     }));
                   }}
                 />
