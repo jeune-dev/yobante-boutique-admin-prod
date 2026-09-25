@@ -21,7 +21,9 @@ export const PrivateRoute = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
-  const { enCours, refusee } = useVerificationSession();
+  const mustChangePassword = useAuthStore((state) => state.mustChangePassword);
+  const setMustChangePassword = useAuthStore((state) => state.setMustChangePassword);
+  const { enCours, refusee, motDePasseAChanger } = useVerificationSession();
 
   const roleInterdit =
     isAuthenticated && ROLES_SANS_ACCES.includes(user?.role?.toUpperCase() ?? '');
@@ -33,8 +35,17 @@ export const PrivateRoute = () => {
     showError(MESSAGE_ACCES_RESERVE);
   }, [sessionInterdite, logout]);
 
+  useEffect(() => {
+    if (motDePasseAChanger) setMustChangePassword(true);
+  }, [motDePasseAChanger, setMustChangePassword]);
+
   if (!isAuthenticated || sessionInterdite) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Mot de passe temporaire : aucune page du dashboard avant son remplacement.
+  if (mustChangePassword || motDePasseAChanger) {
+    return <Navigate to="/changer-mot-de-passe" replace />;
   }
 
   if (enCours) {

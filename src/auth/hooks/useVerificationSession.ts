@@ -1,6 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
-import { estAdminBoutique, MESSAGE_ACCES_RESERVE } from '@/auth/services/auth.service';
+import {
+  estAdminBoutique,
+  estMotDePasseAChanger,
+  MESSAGE_ACCES_RESERVE,
+} from '@/auth/services/auth.service';
 import { useAuthStore } from '@/auth/store/auth.store';
 
 interface SessionAdmin {
@@ -19,10 +23,13 @@ interface SessionAdmin {
 export const useVerificationSession = () => {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isShopAvailable = useAuthStore((s) => s.isShopAvailable);
+  const mustChangePassword = useAuthStore((s) => s.mustChangePassword);
 
   // Seule la session boutique est vérifiée ici : le back colis est un autre
   // service, avec son propre contrôle sur ses endpoints.
-  const aVerifier = isAuthenticated && isShopAvailable;
+  // Tant que le mot de passe temporaire n'est pas remplacé, le backend répond
+  // 403 : ce n'est pas un refus de session, la garde renvoie vers le changement.
+  const aVerifier = isAuthenticated && isShopAvailable && !mustChangePassword;
 
   const query = useQuery({
     queryKey: ['session', 'admin'],
@@ -43,12 +50,16 @@ export const useVerificationSession = () => {
   // Seul un refus explicite du serveur invalide la session : une panne réseau
   // ne doit pas déconnecter l'administrateur.
   const statut = (query.error as { status?: number } | null)?.status;
-  const refusee = aVerifier && query.isError && (statut === 401 || statut === 403);
+  const motDePasseAChanger = aVerifier && query.isError && estMotDePasseAChanger(query.error);
+  const refusee =
+    aVerifier && query.isError && !motDePasseAChanger && (statut === 401 || statut === 403);
 
   return {
     /** Vrai tant que le serveur n'a pas confirmé la session (premier chargement). */
     enCours: aVerifier && query.isPending,
     /** Le serveur a refusé la session : l'appelant doit la fermer. */
     refusee,
+    /** Le serveur exige le remplacement du mot de passe temporaire. */
+    motDePasseAChanger,
   };
 };

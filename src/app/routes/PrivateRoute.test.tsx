@@ -19,6 +19,7 @@ const rendre = (chemin = '/boutique/dashboard') => {
       <MemoryRouter initialEntries={[chemin]}>
         <Routes>
           <Route path="/login" element={<div>PAGE LOGIN</div>} />
+          <Route path="/changer-mot-de-passe" element={<div>PAGE CHANGEMENT MDP</div>} />
           <Route element={<PrivateRoute />}>
             <Route path="/boutique/dashboard" element={<div>DASHBOARD PROTÉGÉ</div>} />
           </Route>
@@ -99,5 +100,27 @@ describe('PrivateRoute', () => {
     shopGet.mockResolvedValue({ user: { id: '1', role: 'VENDEUR' } });
     rendre();
     expect(await screen.findByText('PAGE LOGIN')).toBeInTheDocument();
+  });
+
+  it('mot de passe temporaire connu à la connexion → page de changement, aucun appel API', async () => {
+    session('ADMIN');
+    useAuthStore.setState({ mustChangePassword: true });
+    rendre();
+    expect(await screen.findByText('PAGE CHANGEMENT MDP')).toBeInTheDocument();
+    expect(shopGet).not.toHaveBeenCalled();
+    expect(useAuthStore.getState().isAuthenticated).toBe(true);
+  });
+
+  it('serveur → 403 MOT_DE_PASSE_A_CHANGER : redirigé vers le changement, session conservée', async () => {
+    session('ADMIN');
+    shopGet.mockRejectedValue({
+      status: 403,
+      message: 'Vous devez changer votre mot de passe temporaire avant de continuer.',
+      data: { code: 'MOT_DE_PASSE_A_CHANGER', mustChangePassword: true },
+    });
+    rendre();
+    expect(await screen.findByText('PAGE CHANGEMENT MDP')).toBeInTheDocument();
+    expect(useAuthStore.getState().isAuthenticated).toBe(true);
+    expect(useAuthStore.getState().mustChangePassword).toBe(true);
   });
 });

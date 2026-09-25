@@ -31,6 +31,17 @@ export const useLogin = (onBothAvailable?: () => void) => {
       setAuthenticated(true);
       setTokenAvailability(result.shop.success, result.shipment.success);
 
+      // Première connexion (ou identifiants renvoyés) : le mot de passe
+      // temporaire doit être remplacé avant toute autre action.
+      const aChanger = Boolean(result.shop.success && result.shop.data?.mustChangePassword);
+      useAuthStore.getState().setMustChangePassword(aChanger);
+      if (aChanger) {
+        useAuthStore.getState().setSelectedApp('shop');
+        navigate('/changer-mot-de-passe');
+        setLoading(false);
+        return;
+      }
+
       if (result.shop.success && result.shipment.success) {
         // Les 2 backs ont répondu → ouvrir le modal de choix
         useAuthStore.getState().setSelectedApp(null);

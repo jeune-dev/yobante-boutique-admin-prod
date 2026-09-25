@@ -12,6 +12,7 @@ const NAV = [
   { label: 'Commandes', icon: 'shopping-cart', path: '/boutique/commandes' },
   { label: 'Clients', icon: 'users', path: '/boutique/clients' },
   { label: 'Vendeurs', icon: 'store', path: '/boutique/vendeurs' },
+  { label: 'Administrateurs', icon: 'shield', path: '/boutique/administrateurs' },
   { label: 'Demandes', icon: 'clipboard-list', path: '/boutique/demandes' },
   { label: 'Avis', icon: 'star', path: '/boutique/avis' },
   { label: 'Paiements', icon: 'credit-card', path: '/boutique/paiements' },

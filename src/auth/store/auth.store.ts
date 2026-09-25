@@ -18,12 +18,18 @@ interface AuthStore {
   isShopAvailable: boolean;
   isShipmentAvailable: boolean;
   isLoading: boolean;
+  /**
+   * Compte créé avec un mot de passe temporaire (ou identifiants renvoyés) :
+   * le backend refuse toute route admin tant qu'il n'a pas été remplacé.
+   */
+  mustChangePassword: boolean;
 
   setUser: (user: User | null) => void;
   setAuthenticated: (value: boolean) => void;
   setSelectedApp: (app: 'shop' | 'shipment' | null) => void;
   setTokenAvailability: (shop: boolean, shipment: boolean) => void;
   setLoading: (loading: boolean) => void;
+  setMustChangePassword: (value: boolean) => void;
   logout: () => void;
 }
 
@@ -36,6 +42,7 @@ export const useAuthStore = create<AuthStore>()(
       isShopAvailable: false,
       isShipmentAvailable: false,
       isLoading: false,
+      mustChangePassword: false,
 
       setUser: (user) => set({ user }),
       setAuthenticated: (value) => set({ isAuthenticated: value }),
@@ -43,6 +50,7 @@ export const useAuthStore = create<AuthStore>()(
       setTokenAvailability: (shop, shipment) =>
         set({ isShopAvailable: shop, isShipmentAvailable: shipment }),
       setLoading: (loading) => set({ isLoading: loading }),
+      setMustChangePassword: (value) => set({ mustChangePassword: value }),
 
       logout: () => {
         tokenManager.clearAll();
@@ -56,6 +64,7 @@ export const useAuthStore = create<AuthStore>()(
           selectedApp: null,
           isShopAvailable: false,
           isShipmentAvailable: false,
+          mustChangePassword: false,
         });
       },
     }),
@@ -67,6 +76,7 @@ export const useAuthStore = create<AuthStore>()(
         user: state.user,
         isShopAvailable: state.isShopAvailable,
         isShipmentAvailable: state.isShipmentAvailable,
+        mustChangePassword: state.mustChangePassword,
       }),
     }
   )

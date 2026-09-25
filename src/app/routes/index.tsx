@@ -19,6 +19,8 @@ import OrderDetailPage from '@/pages/shop/orders/OrderDetailPage';
 import UsersPage from '@/pages/shop/users/UsersPage';
 import UserDetailPage from '@/pages/shop/users/UserDetailPage';
 import VendeursPage from '@/pages/shop/vendeurs/VendeursPage';
+import AdministrateursPage from '@/pages/shop/administrateurs/AdministrateursPage';
+import { ChangerMotDePassePage } from '@/pages/auth/ChangerMotDePassePage';
 import DemandesPage from '@/pages/shop/demandes/DemandesPage';
 import ReviewsPage from '@/pages/shop/reviews/ReviewsPage';
 import PaymentsPage from '@/pages/shop/payments/PaymentsPage';
@@ -69,6 +71,9 @@ export const router = createBrowserRouter(
       children: [
         { index: true, element: <Navigate to="/login" replace /> },
         { path: 'login', element: <LoginPage /> },
+        // Hors de PrivateRoute : celle-ci y renvoie tant que le mot de passe
+        // temporaire n'a pas été remplacé. La page vérifie elle-même la session.
+        { path: 'changer-mot-de-passe', element: <ChangerMotDePassePage /> },
         { path: 'suppression-compte', element: <SuppressionComptePage /> },
         { path: 'politique-confidentialite', element: <PolitiqueConfidentialitePage /> },
         {
@@ -93,6 +98,7 @@ export const router = createBrowserRouter(
                 { path: 'clients', element: <UsersPage /> },
                 { path: 'clients/:id', element: <UserDetailPage /> },
                 { path: 'vendeurs', element: <VendeursPage /> },
+                { path: 'administrateurs', element: <AdministrateursPage /> },
                 { path: 'demandes', element: <DemandesPage /> },
                 { path: 'avis', element: <ReviewsPage /> },
                 { path: 'paiements', element: <PaymentsPage /> },

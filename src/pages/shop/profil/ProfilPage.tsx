@@ -9,7 +9,7 @@ const api = {
   profil: () => shopClient.get('/profile'),
   modifier: (data: Record<string, any>) => shopClient.put('/profile', data),
   changerMotDePasse: (data: Record<string, any>) =>
-    shopClient.post('/auth/change-password', data),
+    shopClient.put('/auth/change-password', data),
 };
 
 /** Compte de l'administrateur connecté : informations et mot de passe. */

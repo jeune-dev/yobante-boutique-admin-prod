@@ -19,6 +19,8 @@ export interface AuthResponse {
   accessToken: string;
   refreshToken?: string;
   user: AuthUser;
+  /** Mot de passe temporaire à remplacer avant d'accéder au dashboard. */
+  mustChangePassword?: boolean;
 }
 
 // Le backend boutique répond { success, message, data: { token, refreshToken,
@@ -29,10 +31,12 @@ interface ShopLoginBody {
   token?: string;
   refreshToken?: string;
   user?: AuthUser;
+  mustChangePassword?: boolean;
   data?: {
     token?: string;
     refreshToken?: string;
     user?: AuthUser;
+    mustChangePassword?: boolean;
   };
 }
 
@@ -43,6 +47,7 @@ const normalizeShopAuth = (body: ShopLoginBody): AuthResponse => {
     accessToken: contenu.token ?? '',
     refreshToken: contenu.refreshToken,
     user: contenu.user as AuthUser,
+    mustChangePassword: Boolean(contenu.mustChangePassword),
   };
 };
 
@@ -56,6 +61,18 @@ export interface LoginResult {
 export const ROLE_ADMIN = 'ADMIN';
 
 export const MESSAGE_ACCES_RESERVE = 'Accès réservé aux administrateurs Yobante.';
+
+/** Repère renvoyé par le backend (403) tant que le mot de passe temporaire est actif. */
+export const CODE_MOT_DE_PASSE_A_CHANGER = 'MOT_DE_PASSE_A_CHANGER';
+
+/** Vrai si l'erreur normalisée du client HTTP signale un mot de passe à changer. */
+export const estMotDePasseAChanger = (erreur: unknown) => {
+  const e = erreur as { status?: number; data?: { code?: string; mustChangePassword?: boolean } };
+  return (
+    e?.status === 403 &&
+    (e.data?.code === CODE_MOT_DE_PASSE_A_CHANGER || e.data?.mustChangePassword === true)
+  );
+};
 
 /**
  * Un compte boutique qui n'est pas ADMIN (vendeur, client) n'a rien à faire
