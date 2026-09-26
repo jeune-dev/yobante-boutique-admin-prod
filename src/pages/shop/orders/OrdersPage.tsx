@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
 import { showSuccess, showError } from '@/shared/utils/alert';
 import Pagination from '@/shared/components/tables/Pagination';
 import ErreurChargement from '@/shared/components/feedback/ErreurChargement';
+import { etatRetour } from '@/shared/hooks/useRetour';
+import { lirePage, useParametresUrl } from '@/shared/hooks/useParametresUrl';
 
 const api = {
   getCommandes: (p: any) =>
@@ -27,10 +29,14 @@ const STATUT_COLORS: Record<string, string> = {
 
 export default function OrdersPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const qc = useQueryClient();
-  const [search, setSearch] = useState('');
-  const [statut, setStatut] = useState('');
-  const [page, setPage] = useState(1);
+  // Recherche, statut et page vivent dans l'URL : le retour depuis le détail
+  // d'une commande restitue la liste telle qu'on l'avait laissée.
+  const [filtres, setFiltres] = useParametresUrl({ q: '', statut: '', page: '1' });
+  const search = filtres.q;
+  const statut = filtres.statut;
+  const page = lirePage(filtres.page);
   const [showRejectModal, setShowRejectModal] = useState<string | null>(null);
   const [rejectMotif, setRejectMotif] = useState('');
 
@@ -72,14 +78,15 @@ export default function OrdersPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Commandes</h1>
         <button
-          onClick={() => navigate('/boutique/commandes/nouveau')}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg bg-yellow-500 text-white hover:bg-yellow-600"
+          type="button"
+          onClick={() => navigate('/boutique/commandes/nouveau', { state: etatRetour(location) })}
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg bg-yellow-500 text-white hover:bg-yellow-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-          Nouvelle commande
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+          Créer une commande
         </button>
       </div>
 
@@ -89,7 +96,12 @@ export default function OrdersPage() {
           { label: 'Total', value: kpi?.total, color: 'bg-gray-50' },
           { label: 'En attente', value: kpi?.enAttente, color: 'bg-yellow-50' },
           { label: 'Validées', value: kpi?.validees, color: 'bg-green-50' },
-          { label: 'Annulées', value: kpi?.annulees, color: 'bg-red-50' },
+          // Un rejet admin passe la commande en « rejetee » (et non plus « annulee »).
+          {
+            label: 'Annulées / rejetées',
+            value: kpi ? (kpi.annulees ?? 0) + (kpi.rejetees ?? 0) : undefined,
+            color: 'bg-red-50',
+          },
         ].map((k) => (
           <div key={k.label} className={`${k.color} rounded-xl p-4 border border-gray-100`}>
             <p className="text-sm text-gray-500">{k.label}</p>
@@ -103,8 +115,7 @@ export default function OrdersPage() {
           <input
             value={search}
             onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
+              setFiltres({ q: e.target.value, page: '1' });
             }}
             placeholder="Rechercher…"
             aria-label="Rechercher une commande"
@@ -113,8 +124,7 @@ export default function OrdersPage() {
           <select
             value={statut}
             onChange={(e) => {
-              setStatut(e.target.value);
-              setPage(1);
+              setFiltres({ statut: e.target.value, page: '1' });
             }}
             aria-label="Filtrer par statut"
             className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-auto bg-white focus:outline-none focus:ring-2 focus:ring-yellow-300"
@@ -173,7 +183,7 @@ export default function OrdersPage() {
                   <td className="p-4 tbl-actions" data-label="Actions">
                     <div className="flex items-center justify-center gap-1">
                       <button
-                        onClick={() => navigate(`/boutique/commandes/${c.id}`)}
+                        onClick={() => navigate(`/boutique/commandes/${c.id}`, { state: etatRetour(location) })}
                         title="Voir"
                         aria-label="Voir la commande"
                         className="btn-icon hover:bg-gray-100 text-gray-500"
@@ -222,7 +232,7 @@ export default function OrdersPage() {
           </table>
         </div>
         )}
-        <Pagination page={page} totalPages={pagination?.totalPages ?? 1} onChange={setPage} />
+        <Pagination page={page} totalPages={pagination?.totalPages ?? 1} onChange={(p) => setFiltres({ page: String(p) })} />
       </div>
 
       {/* Modal de rejet */}
@@ -240,6 +250,8 @@ export default function OrdersPage() {
                 value={rejectMotif}
                 onChange={(e) => setRejectMotif(e.target.value)}
                 placeholder="Motif du rejet (ex: Stock insuffisant, Produit indisponible)…"
+                aria-label="Motif du rejet"
+                maxLength={500}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none"
                 rows={4}
               />

@@ -125,14 +125,7 @@ export default function SousSectionPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link
-          to="/boutique/accueil"
-          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900"
-        >
-          <Icon name="arrow-left" size={15} /> Page d'accueil
-        </Link>
-      </div>
+      <AdminBackButton parent="/boutique/accueil" />
 
       {/* ── En-tête : la sous-section telle que le client la verra ───────── */}
       <div className="bg-white rounded-xl border border-gray-100 p-5 flex flex-col sm:flex-row gap-5">

@@ -1,8 +1,18 @@
 import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useUsers, useToggleUserActive } from '@/domains/shop/hooks/useUsers';
 import { ShopUser } from '@/domains/shop/api/users.api';
 import { showSuccess } from '@/shared/utils/alert';
 import Pagination from '@/shared/components/tables/Pagination';
+import { etatRetour } from '@/shared/hooks/useRetour';
+import { lirePage, useParametresUrl } from '@/shared/hooks/useParametresUrl';
+
+/** Filtre de statut ↔ valeur conservée dans l'URL. */
+const FILTRES_STATUT = [
+  { label: 'Tous', val: undefined, url: '' },
+  { label: 'Actifs', val: true, url: 'actifs' },
+  { label: 'Bloqués', val: false, url: 'bloques' },
+];
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -13,10 +23,14 @@ function initiales(u: ShopUser) {
 }
 
 export default function UsersPage() {
-  const [searchInput, setSearchInput] = useState('');
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
-  const [activeFilter, setActiveFilter] = useState<boolean | undefined>();
+  const location = useLocation();
+  // Recherche validée, statut et page vivent dans l'URL : le retour depuis la
+  // fiche d'un client restitue la liste telle qu'on l'avait laissée.
+  const [filtres, setFiltres] = useParametresUrl({ q: '', statut: '', page: '1' });
+  const search = filtres.q;
+  const page = lirePage(filtres.page);
+  const activeFilter = FILTRES_STATUT.find((f) => f.url === filtres.statut)?.val;
+  const [searchInput, setSearchInput] = useState(search);
 
   const { data, isLoading, isError } = useUsers({ page, limit: 15, search, isActive: activeFilter });
   const toggleMut = useToggleUserActive();
@@ -46,7 +60,7 @@ export default function UsersPage() {
 
       {/* Filtres */}
       <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
-        <form onSubmit={(e) => { e.preventDefault(); setSearch(searchInput); setPage(1); }} className="flex gap-1.5 w-full sm:w-auto">
+        <form onSubmit={(e) => { e.preventDefault(); setFiltres({ q: searchInput.trim(), page: '1' }); }} className="flex gap-1.5 w-full sm:w-auto">
           <div className="db-search-wrap flex-1 sm:flex-none">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
               <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -57,9 +71,9 @@ export default function UsersPage() {
         </form>
 
         <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-          {[{ label: 'Tous', val: undefined }, { label: 'Actifs', val: true }, { label: 'Bloqués', val: false }].map(f => (
-            <button key={String(f.val)} className={`db-chip${activeFilter === f.val ? ' active' : ''}`}
-              onClick={() => { setActiveFilter(f.val as any); setPage(1); }}>
+          {FILTRES_STATUT.map(f => (
+            <button key={f.url || 'tous'} className={`db-chip${activeFilter === f.val ? ' active' : ''}`}
+              onClick={() => setFiltres({ statut: f.url, page: '1' })}>
               {f.label}
             </button>
           ))}
@@ -130,6 +144,14 @@ export default function UsersPage() {
                     </td>
                     <td className="tbl-actions" data-label="Actions">
                       <div className="db-actions">
+                        <Link
+                          to={`/boutique/clients/${u.id}`}
+                          state={etatRetour(location)}
+                          className="db-btn-ghost inline-flex items-center"
+                          aria-label={`Voir la fiche de ${u.prenom} ${u.nom}`}
+                        >
+                          Voir
+                        </Link>
                         <button
                           className={u.isActive ? 'db-btn-danger' : 'db-btn-ghost'}
                           onClick={() => handleToggle(u)}
@@ -146,7 +168,7 @@ export default function UsersPage() {
           </div>
         )}
 
-        <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+        <Pagination page={page} totalPages={totalPages} onChange={(p) => setFiltres({ page: String(p) })} />
       </div>
     </div>
   );

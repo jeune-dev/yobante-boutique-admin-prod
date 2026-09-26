@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
 import { showSuccess, showError } from '@/shared/utils/alert';
@@ -8,6 +8,7 @@ import SousSectionModal from './components/SousSectionModal';
 import PromotionModal from './components/PromotionModal';
 import BanniereModal from './components/BanniereModal';
 import ErreurChargement from '@/shared/components/feedback/ErreurChargement';
+import { etatRetour } from '@/shared/hooks/useRetour';
 
 /**
  * Gestion de la page d'accueil de l'application client.
@@ -397,6 +398,7 @@ function Vignette({
   onBasculer: () => void;
   onSupprimer: () => void;
 }) {
+  const location = useLocation();
   const apercu = (
     <div className="aspect-[16/9] bg-gray-50 flex items-center justify-center">
       {image ? (
@@ -410,7 +412,7 @@ function Vignette({
   return (
     <div className="border border-gray-100 rounded-lg overflow-hidden hover:border-gray-200 transition-colors">
       {lien ? (
-        <Link to={lien} title="Composer cette sous-section" className="block group">
+        <Link to={lien} state={etatRetour(location)} title="Composer cette sous-section" className="block group">
           <div className="relative">
             {apercu}
             <div className="absolute inset-0 bg-gray-900/0 group-hover:bg-gray-900/30 transition-colors flex items-center justify-center">

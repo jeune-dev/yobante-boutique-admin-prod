@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import AdminBackButton from '@/shared/components/AdminBackButton';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
@@ -25,7 +25,6 @@ const STATUT_COLORS: Record<string, string> = {
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const qc = useQueryClient();
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectMotif, setRejectMotif] = useState('');
@@ -58,27 +57,29 @@ export default function OrderDetailPage() {
   });
 
   if (isLoading) {
-    return <div className="p-8 text-center text-gray-400">Chargement…</div>;
+    return (
+      <div className="max-w-3xl mx-auto">
+        <AdminBackButton parent="/boutique/commandes" className="mb-3" />
+        <div className="p-8 text-center text-gray-400">Chargement…</div>
+      </div>
+    );
   }
 
   if (!commande) {
-    return <div className="p-8 text-center text-red-400">Commande introuvable</div>;
+    return (
+      <div className="max-w-3xl mx-auto">
+        <AdminBackButton parent="/boutique/commandes" className="mb-3" />
+        <div className="p-8 text-center text-red-400">Commande introuvable</div>
+      </div>
+    );
   }
 
   const items = commande.items || commande.CommandeItems || [];
 
   return (
     <div className="max-w-3xl mx-auto">
+      <AdminBackButton parent="/boutique/commandes" className="mb-3" />
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-6">
-        <button
-          onClick={() => navigate('/boutique/commandes')}
-          aria-label="Retour aux commandes"
-          className="btn-icon -ml-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900 min-w-0">
           Commande {commande.reference}
         </h1>
@@ -105,7 +106,9 @@ export default function OrderDetailPage() {
           <p className="font-semibold">{commande.adresse?.ville || '—'}</p>
           <p className="text-sm text-gray-500">{commande.adresse?.rue || ''}</p>
           <p className="text-sm text-gray-500 mt-1">
-            Paiement : {commande.methodePaiement}
+            {/* Le backend renvoie le paiement comme association (`paiement.methode`). */}
+            Paiement : {commande.paiement?.methode ?? commande.methodePaiement ?? '—'}
+            {commande.paiement?.statut ? ` (${commande.paiement.statut})` : ''}
           </p>
         </div>
       </div>
@@ -184,6 +187,8 @@ export default function OrderDetailPage() {
                 value={rejectMotif}
                 onChange={(e) => setRejectMotif(e.target.value)}
                 placeholder="Motif du rejet (ex: Stock insuffisant, Produit indisponible)…"
+                aria-label="Motif du rejet"
+                maxLength={500}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none"
                 rows={4}
               />

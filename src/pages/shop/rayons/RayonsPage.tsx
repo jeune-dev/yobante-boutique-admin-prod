@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import shopClient from '@/infrastructure/http/shop.client';
 import { showSuccess, showError } from '@/shared/utils/alert';
 import Pagination from '@/shared/components/tables/Pagination';
 import ErreurChargement from '@/shared/components/feedback/ErreurChargement';
+import { etatRetour } from '@/shared/hooks/useRetour';
+import { lirePage, useParametresUrl } from '@/shared/hooks/useParametresUrl';
 
 const api = {
   getRayons: (params?: any) => shopClient.get('/admin/rayons', { params }),
@@ -21,18 +23,22 @@ const api = {
 };
 
 export default function RayonsPage() {
-  const [tab, setTab] = useState<'rayons' | 'sous-rayons'>('rayons');
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
+  // Onglet, recherche, page et rayon choisi vivent dans l'URL : le retour
+  // depuis un sous-rayon rouvre l'onglet Sous-rayons sur le bon rayon.
+  const [etatUrl, setEtatUrl] = useParametresUrl({ onglet: 'rayons', q: '', page: '1', rayon: '' });
+  const tab = etatUrl.onglet === 'sous-rayons' ? 'sous-rayons' : 'rayons';
+  const search = etatUrl.q;
+  const page = lirePage(etatUrl.page);
+  const selectedRayon = etatUrl.rayon;
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState<any>(null);
   const [form, setForm] = useState({ nom: '', description: '', image: '' });
-  const [selectedRayon, setSelectedRayon] = useState<string>('');
   const [showSrModal, setShowSrModal] = useState(false);
   const [editSr, setEditSr] = useState<any>(null);
   const [srForm, setSrForm] = useState({ nom: '', description: '' });
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const { data: rayonsData, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['rayons', search, page],
@@ -131,7 +137,7 @@ export default function RayonsPage() {
       {/* Tabs */}
       <div className="flex gap-2 mb-6">
         <button
-          onClick={() => setTab('rayons')}
+          onClick={() => setEtatUrl({ onglet: 'rayons' })}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             tab === 'rayons'
               ? 'bg-yellow-500 text-white'
@@ -141,7 +147,7 @@ export default function RayonsPage() {
           Rayons
         </button>
         <button
-          onClick={() => setTab('sous-rayons')}
+          onClick={() => setEtatUrl({ onglet: 'sous-rayons' })}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             tab === 'sous-rayons'
               ? 'bg-yellow-500 text-white'
@@ -158,7 +164,7 @@ export default function RayonsPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border-b border-gray-100">
             <input
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => setEtatUrl({ q: e.target.value, page: '1' })}
               placeholder="Rechercher un rayon…"
               aria-label="Rechercher un rayon"
               className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-yellow-300"
@@ -202,7 +208,7 @@ export default function RayonsPage() {
                     <td className="p-4 text-center tbl-actions" data-label="Actions">
                       <div className="flex justify-center gap-1">
                         <button
-                          onClick={() => navigate(`/boutique/produits?rayonId=${r.id}`)}
+                          onClick={() => navigate(`/boutique/produits?rayonId=${r.id}`, { state: etatRetour(location) })}
                           title="Voir les produits"
                           aria-label="Voir les produits"
                           className="btn-icon hover:bg-blue-50 text-gray-500 hover:text-blue-600"
@@ -246,7 +252,7 @@ export default function RayonsPage() {
             </table>
             </div>
           )}
-          <Pagination page={page} totalPages={pagination?.totalPages ?? 1} onChange={setPage} />
+          <Pagination page={page} totalPages={pagination?.totalPages ?? 1} onChange={(p) => setEtatUrl({ page: String(p) })} />
         </div>
       )}
 
@@ -256,7 +262,7 @@ export default function RayonsPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border-b border-gray-100">
             <select
               value={selectedRayon}
-              onChange={(e) => setSelectedRayon(e.target.value)}
+              onChange={(e) => setEtatUrl({ rayon: e.target.value })}
               aria-label="Choisir un rayon"
               className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-auto sm:max-w-xs bg-white focus:outline-none focus:ring-2 focus:ring-yellow-300"
             >
@@ -295,7 +301,7 @@ export default function RayonsPage() {
                   <tr
                     key={sr.id}
                     // La ligne entière mène aux produits rangés dans ce sous-rayon.
-                    onClick={() => navigate(`/boutique/rayons/sous-rayon/${sr.id}`)}
+                    onClick={() => navigate(`/boutique/rayons/sous-rayon/${sr.id}`, { state: etatRetour(location) })}
                     className="border-b border-gray-50 hover:bg-gray-50 cursor-pointer"
                   >
                     <td className="p-4 tbl-primary">

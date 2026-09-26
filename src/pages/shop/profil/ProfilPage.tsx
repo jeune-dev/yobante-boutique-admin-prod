@@ -20,7 +20,8 @@ export default function ProfilPage() {
   return (
     <div className="max-w-2xl space-y-6">
       <header>
-        <AdminBackButton className="mb-4" />
+        {/* Ouvert depuis l'entête : retour à la page quittée ; sinon tableau de bord. */}
+        <AdminBackButton parent="/boutique/dashboard" className="mb-3" />
         <h1 className="text-xl font-bold text-gray-900">Mon profil</h1>
         <p className="text-sm text-gray-500 mt-1">Vos informations et votre mot de passe.</p>
       </header>

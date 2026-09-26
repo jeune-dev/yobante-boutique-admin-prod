@@ -1,13 +1,16 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import AdminBackButton from '@/shared/components/AdminBackButton';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useRetour } from '@/shared/hooks/useRetour';
+import { useConfirmationSortie } from '@/shared/hooks/useConfirmationSortie';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
 import { showSuccess, showError, showConfirm } from '@/shared/utils/alert';
 
 export default function ProductEditPage() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const retour = useRetour('/boutique/produits');
+  const qc = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [nom, setNom] = useState('');
@@ -21,9 +24,11 @@ export default function ProductEditPage() {
   const [etat, setEtat] = useState<'neuf' | 'reconditionne'>('neuf');
   const [rayonId, setRayonId] = useState('');
   const [sousRayonId, setSousRayonId] = useState('');
-  const [loaded, setLoaded] = useState(false);
+  const [nbImages, setNbImages] = useState(0);
+  // Valeurs chargées depuis l'API : référence pour détecter une modification.
+  const [initial, setInitial] = useState<string | null>(null);
 
-  const { data: produit } = useQuery({
+  const { data: produit, isError } = useQuery({
     queryKey: ['produit', id],
     queryFn: () =>
       shopClient.get(`/admin/produits/${id}`).then((r: any) => r.produit ?? r),
@@ -31,23 +36,43 @@ export default function ProductEditPage() {
   });
 
   useEffect(() => {
-    if (produit && !loaded) {
-      setNom(produit.nom || '');
-      setDescription(produit.description || '');
-      setPrix(String(produit.prix || ''));
-      setVenduAuPoids(Boolean(produit.venduAuPoids));
-      setStock(String(produit.stock || '0'));
-      setPoids(String(produit.poids || ''));
-      setReference(produit.reference || '');
-      // Le backend stocke toujours un état (défaut « neuf ») : la case n'est
-      // pré-cochée que si un état explicite (reconditionné) a été renseigné.
-      setAvecEtat(produit.etat === 'reconditionne');
-      setEtat(produit.etat === 'reconditionne' ? 'reconditionne' : 'neuf');
-      setRayonId(produit.rayonId || produit.rayon?.id || '');
-      setSousRayonId(produit.sousRayonId || produit.sousRayon?.id || '');
-      setLoaded(true);
+    if (produit && initial === null) {
+      const valeurs = {
+        nom: produit.nom || '',
+        description: produit.description || '',
+        prix: String(produit.prix || ''),
+        venduAuPoids: Boolean(produit.venduAuPoids),
+        stock: String(produit.stock || '0'),
+        poids: String(produit.poids || ''),
+        reference: produit.reference || '',
+        // Le backend stocke toujours un état (défaut « neuf ») : la case n'est
+        // pré-cochée que si un état explicite (reconditionné) a été renseigné.
+        avecEtat: produit.etat === 'reconditionne',
+        etat: (produit.etat === 'reconditionne' ? 'reconditionne' : 'neuf') as 'neuf' | 'reconditionne',
+        rayonId: produit.rayonId || produit.rayon?.id || '',
+        sousRayonId: produit.sousRayonId || produit.sousRayon?.id || '',
+      };
+      setNom(valeurs.nom);
+      setDescription(valeurs.description);
+      setPrix(valeurs.prix);
+      setVenduAuPoids(valeurs.venduAuPoids);
+      setStock(valeurs.stock);
+      setPoids(valeurs.poids);
+      setReference(valeurs.reference);
+      setAvecEtat(valeurs.avecEtat);
+      setEtat(valeurs.etat);
+      setRayonId(valeurs.rayonId);
+      setSousRayonId(valeurs.sousRayonId);
+      setInitial(JSON.stringify(valeurs));
     }
-  }, [produit, loaded]);
+  }, [produit, initial]);
+
+  const modifie =
+    initial !== null &&
+    (nbImages > 0 ||
+      JSON.stringify({ nom, description, prix, venduAuPoids, stock, poids, reference, avecEtat, etat, rayonId, sousRayonId }) !==
+        initial);
+  const { autoriserSortie } = useConfirmationSortie(modifie);
 
   const { data: rayonsData } = useQuery({
     queryKey: ['rayons-select'],
@@ -73,7 +98,11 @@ export default function ProductEditPage() {
     mutationFn: (fd: FormData) => shopClient.put(`/admin/produits/${id}`, fd),
     onSuccess: (data) => {
       showSuccess(data);
-      navigate('/boutique/produits');
+      qc.invalidateQueries({ queryKey: ['admin-produits'] });
+      qc.invalidateQueries({ queryKey: ['produit', id] });
+      qc.invalidateQueries({ queryKey: ['sous-rayon'] });
+      autoriserSortie();
+      retour();
     },
     onError: (e: any) => showError(e),
   });
@@ -108,15 +137,18 @@ export default function ProductEditPage() {
   };
 
   if (!produit && id) {
-    return <div className="p-8 text-center text-gray-400">Chargement…</div>;
+    return (
+      <div className="max-w-2xl mx-auto">
+        <AdminBackButton parent="/boutique/produits" className="mb-3" />
+        <div className="p-8 text-center text-gray-400">{isError ? 'Produit introuvable' : 'Chargement…'}</div>
+      </div>
+    );
   }
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="flex items-center gap-4 mb-6">
-        <AdminBackButton />
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 min-w-0">Modifier le produit</h1>
-      </div>
+      <AdminBackButton parent="/boutique/produits" className="mb-3" />
+      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">Modifier le produit</h1>
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-6">
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -265,6 +297,7 @@ export default function ProductEditPage() {
               type="file"
               accept="image/*"
               multiple
+              onChange={(e) => setNbImages(e.target.files?.length ?? 0)}
               className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
             />
           </div>
@@ -272,7 +305,7 @@ export default function ProductEditPage() {
           <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
             <button
               type="button"
-              onClick={() => navigate('/boutique/produits')}
+              onClick={retour}
               className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
             >
               Annuler

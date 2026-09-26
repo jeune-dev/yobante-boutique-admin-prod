@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { showSuccess, showError } from '@/shared/utils/alert';
 import shopClient from '@/infrastructure/http/shop.client';
 import Icon from '@/shared/components/dashboard/Icon';
 import Modal, { BoutonSecondaire } from '@/pages/shop/accueil/components/Modal';
 import ErreurChargement from '@/shared/components/feedback/ErreurChargement';
+import AdminBackButton from '@/shared/components/AdminBackButton';
+import { etatRetour } from '@/shared/hooks/useRetour';
 
 const api = {
   sousRayon: (id: string) => shopClient.get(`/admin/rayons/sous-rayons/${id}`),
@@ -27,7 +29,7 @@ const formaterPrix = (v: any) => Number(v ?? 0).toLocaleString('fr-FR');
  */
 export default function SousRayonProduitsPage() {
   const { id = '' } = useParams();
-  const navigate = useNavigate();
+  const location = useLocation();
   const qc = useQueryClient();
   const [ajoutOuvert, setAjoutOuvert] = useState(false);
 
@@ -51,6 +53,11 @@ export default function SousRayonProduitsPage() {
   });
 
   const produits: any[] = (produitsQuery.data as any)?.produits ?? [];
+
+  // Page parente : l'onglet Sous-rayons de la page Rayons, sur le rayon concerné.
+  const pageRayon = rayon
+    ? `/boutique/rayons?onglet=sous-rayons&rayon=${encodeURIComponent(rayon.id)}`
+    : '/boutique/rayons';
 
   const rafraichir = () => {
     qc.invalidateQueries({ queryKey: ['sous-rayon', id, 'produits'] });
@@ -79,14 +86,8 @@ export default function SousRayonProduitsPage() {
 
   return (
     <div>
+      <AdminBackButton parent={pageRayon} className="mb-3" />
       <div className="flex flex-wrap items-start gap-3 mb-6">
-        <button
-          onClick={() => navigate('/boutique/rayons')}
-          className="btn-icon -ml-2 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
-          aria-label="Retour"
-        >
-          <Icon name="chevron-left" size={20} />
-        </button>
         <div className="min-w-0 flex-1 basis-40">
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
             {sousRayon?.nom ?? 'Sous-rayon'}
@@ -95,7 +96,7 @@ export default function SousRayonProduitsPage() {
             {rayon ? (
               <>
                 Rayon{' '}
-                <Link to="/boutique/rayons" className="text-yellow-700 hover:underline">
+                <Link to={pageRayon} className="text-yellow-700 hover:underline">
                   {rayon.nom}
                 </Link>{' '}
                 ·{' '}
@@ -173,6 +174,7 @@ export default function SousRayonProduitsPage() {
                   <td className="p-4 text-right whitespace-nowrap tbl-actions" data-label="Actions">
                     <Link
                       to={`/boutique/produits/${p.id}/modifier`}
+                      state={etatRetour(location)}
                       title="Modifier la fiche"
                       aria-label="Modifier la fiche"
                       className="btn-icon text-gray-400 hover:bg-gray-100 hover:text-gray-700"

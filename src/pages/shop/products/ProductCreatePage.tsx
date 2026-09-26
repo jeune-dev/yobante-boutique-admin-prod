@@ -1,12 +1,14 @@
 import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import AdminBackButton from '@/shared/components/AdminBackButton';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useRetour } from '@/shared/hooks/useRetour';
+import { useConfirmationSortie } from '@/shared/hooks/useConfirmationSortie';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
 import { showSuccess, showError, showConfirm } from '@/shared/utils/alert';
 
 export default function ProductCreatePage() {
-  const navigate = useNavigate();
+  const retour = useRetour('/boutique/produits');
+  const qc = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [nom, setNom] = useState('');
@@ -21,6 +23,17 @@ export default function ProductCreatePage() {
   const [etat, setEtat] = useState<'neuf' | 'reconditionne'>('neuf');
   const [rayonId, setRayonId] = useState('');
   const [sousRayonId, setSousRayonId] = useState('');
+  const [nbImages, setNbImages] = useState(0);
+
+  // Formulaire vierge = rien à protéger ; la moindre saisie demande confirmation
+  // avant de quitter la page.
+  const modifie =
+    !!(nom || description || prix || poids || reference || rayonId || sousRayonId) ||
+    venduAuPoids ||
+    avecEtat ||
+    stock !== '0' ||
+    nbImages > 0;
+  const { autoriserSortie } = useConfirmationSortie(modifie);
 
   const { data: rayonsData } = useQuery({
     queryKey: ['rayons-select'],
@@ -46,7 +59,9 @@ export default function ProductCreatePage() {
     mutationFn: (fd: FormData) => shopClient.post('/admin/produits', fd),
     onSuccess: (data) => {
       showSuccess(data);
-      navigate('/boutique/produits');
+      qc.invalidateQueries({ queryKey: ['admin-produits'] });
+      autoriserSortie();
+      retour();
     },
     // Le backend refuse notamment un sous-rayon étranger au rayon choisi :
     // afficher son message vaut mieux qu'un « Erreur » opaque.
@@ -85,10 +100,8 @@ export default function ProductCreatePage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="flex items-center gap-4 mb-6">
-        <AdminBackButton />
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 min-w-0">Nouveau produit</h1>
-      </div>
+      <AdminBackButton parent="/boutique/produits" className="mb-3" />
+      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">Nouveau produit</h1>
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-6">
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -254,6 +267,7 @@ export default function ProductCreatePage() {
               type="file"
               accept="image/*"
               multiple
+              onChange={(e) => setNbImages(e.target.files?.length ?? 0)}
               className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
             />
           </div>
@@ -261,7 +275,7 @@ export default function ProductCreatePage() {
           <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
             <button
               type="button"
-              onClick={() => navigate('/boutique/produits')}
+              onClick={retour}
               className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
             >
               Annuler

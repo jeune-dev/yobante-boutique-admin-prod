@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
+import { etatRetour } from '@/shared/hooks/useRetour';
 import { useAuthStore } from '@/auth/store/auth.store';
 import { useAuth } from '@/auth/hooks/useAuth';
 import Icon from '@/shared/components/dashboard/Icon';
@@ -12,6 +13,7 @@ const TITRES: Record<string, string> = {
   commandes: 'Commandes',
   clients: 'Clients',
   vendeurs: 'Vendeurs',
+  administrateurs: 'Administrateurs',
   demandes: 'Demandes de publication',
   avis: 'Avis',
   paiements: 'Paiements',
@@ -29,7 +31,8 @@ export default function ShopHeader({ onOuvrirMenu }: Props) {
   // `useAuth().logout` révoque le refresh token côté serveur avant de vider
   // la session locale ; le `logout` du store seul ne faisait que le second.
   const { logout } = useAuth();
-  const { pathname } = useLocation();
+  const location = useLocation();
+  const { pathname } = location;
 
   // /boutique/<section>/... → on ne garde que la section pour le titre.
   const section = pathname.split('/')[2] ?? 'dashboard';
@@ -57,6 +60,8 @@ export default function ShopHeader({ onOuvrirMenu }: Props) {
       <div className="flex items-center gap-1 sm:gap-3 shrink-0">
         <Link
           to="/boutique/profil"
+          // Le bouton Retour du profil ramène à la page quittée.
+          state={pathname === '/boutique/profil' ? location.state : etatRetour(location)}
           className="flex items-center gap-2.5 p-1.5 sm:pl-2 sm:pr-3 rounded-lg hover:bg-gray-50 transition-colors"
           title="Mon profil"
           aria-label="Mon profil"

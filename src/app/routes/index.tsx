@@ -15,6 +15,7 @@ import ProductsPage from '@/pages/shop/products/ProductsPage';
 import ProductCreatePage from '@/pages/shop/products/ProductCreatePage';
 import ProductEditPage from '@/pages/shop/products/ProductEditPage';
 import OrdersPage from '@/pages/shop/orders/OrdersPage';
+import OrderCreatePage from '@/pages/shop/orders/OrderCreatePage';
 import OrderDetailPage from '@/pages/shop/orders/OrderDetailPage';
 import UsersPage from '@/pages/shop/users/UsersPage';
 import UserDetailPage from '@/pages/shop/users/UserDetailPage';
@@ -94,6 +95,7 @@ export const router = createBrowserRouter(
                 { path: 'produits/nouveau', element: <ProductCreatePage /> },
                 { path: 'produits/:id/modifier', element: <ProductEditPage /> },
                 { path: 'commandes', element: <OrdersPage /> },
+                { path: 'commandes/nouveau', element: <OrderCreatePage /> },
                 { path: 'commandes/:id', element: <OrderDetailPage /> },
                 { path: 'clients', element: <UsersPage /> },
                 { path: 'clients/:id', element: <UserDetailPage /> },

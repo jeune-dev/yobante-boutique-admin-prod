@@ -1,10 +1,14 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
 import { showSuccess, showError, showConfirm } from '@/shared/utils/alert';
 import Pagination from '@/shared/components/tables/Pagination';
 import ErreurChargement from '@/shared/components/feedback/ErreurChargement';
+import AdminBackButton from '@/shared/components/AdminBackButton';
+import Icon from '@/shared/components/dashboard/Icon';
+import { etatRetour } from '@/shared/hooks/useRetour';
+import { lirePage, useParametresUrl } from '@/shared/hooks/useParametresUrl';
 
 const api = {
   getProduits: (p: any) =>
@@ -41,20 +45,18 @@ function Tooltip({ label, children }: { label: string; children: React.ReactNode
 
 export default function ProductsPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const location = useLocation();
   const qc = useQueryClient();
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
-  const [filterRayonId, setFilterRayonId] = useState(searchParams.get('rayonId') || '');
+  // Recherche, page et rayon (lien « Voir les produits » de la page Rayons)
+  // vivent dans l'URL : ils survivent à l'aller-retour vers la modification.
+  const [filtres, setFiltres] = useParametresUrl({ q: '', page: '1', rayonId: '' });
+  const search = filtres.q;
+  const page = lirePage(filtres.page);
+  const filterRayonId = filtres.rayonId;
   const [promoModal, setPromoModal] = useState<{ produit: any; section: Section } | null>(null);
   const [pct, setPct] = useState('');
   const [dateDebut, setDateDebut] = useState('');
   const [dateFin, setDateFin] = useState('');
-
-  useEffect(() => {
-    const id = searchParams.get('rayonId');
-    if (id) setFilterRayonId(id);
-  }, [searchParams]);
 
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['admin-produits', search, page, filterRayonId],
@@ -81,6 +83,9 @@ export default function ProductsPage() {
 
   const produits = data?.produits || [];
   const pagination = data?.pagination;
+  const nomRayonFiltre: string | undefined = produits.find(
+    (p: { rayon?: { nom?: string } }) => p.rayon?.nom
+  )?.rayon?.nom;
   const prixActuel = promoModal?.produit?.prix || 0;
   const prixPromo = pct
     ? parseFloat((prixActuel * (1 - parseFloat(pct) / 100)).toFixed(2))
@@ -109,10 +114,12 @@ export default function ProductsPage() {
 
   return (
     <div>
+      {/* Liste filtrée depuis la page Rayons : retour possible vers celle-ci. */}
+      {filterRayonId && <AdminBackButton parent="/boutique/rayons" className="mb-3" />}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Produits</h1>
         <button
-          onClick={() => navigate('/boutique/produits/nouveau')}
+          onClick={() => navigate('/boutique/produits/nouveau', { state: etatRetour(location) })}
           className="w-full sm:w-auto bg-yellow-500 text-white px-4 py-2.5 sm:py-2 rounded-lg text-sm font-medium hover:bg-yellow-600"
         >
           + Nouveau produit
@@ -120,17 +127,28 @@ export default function ProductsPage() {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-        <div className="p-4 border-b border-gray-100">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 border-b border-gray-100">
           <input
             value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
+            onChange={(e) => setFiltres({ q: e.target.value, page: '1' })}
             placeholder="Rechercher un produit…"
             aria-label="Rechercher un produit"
             className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-72 focus:outline-none focus:ring-2 focus:ring-yellow-300"
           />
+          {filterRayonId && (
+            <span className="inline-flex items-center gap-1 self-start sm:self-auto pl-3 pr-1 py-1 rounded-full bg-yellow-50 text-yellow-800 text-xs font-medium">
+              Rayon : {nomRayonFiltre ?? 'sélectionné'}
+              <button
+                type="button"
+                onClick={() => setFiltres({ rayonId: '', page: '1' })}
+                aria-label="Retirer le filtre rayon"
+                title="Retirer le filtre rayon"
+                className="p-1 rounded-full hover:bg-yellow-100"
+              >
+                <Icon name="x" size={12} />
+              </button>
+            </span>
+          )}
         </div>
 
         {isLoading ? (
@@ -206,7 +224,7 @@ export default function ProductsPage() {
                       <div className="flex items-center justify-center gap-1">
                         <Tooltip label="Modifier">
                           <button
-                            onClick={() => navigate(`/boutique/produits/${p.id}/modifier`)}
+                            onClick={() => navigate(`/boutique/produits/${p.id}/modifier`, { state: etatRetour(location) })}
                             aria-label="Modifier"
                             className="btn-icon hover:bg-yellow-50 text-gray-500 hover:text-yellow-600"
                           >
@@ -284,7 +302,7 @@ export default function ProductsPage() {
           </div>
         )}
 
-        <Pagination page={page} totalPages={pagination?.totalPages ?? 1} onChange={setPage} />
+        <Pagination page={page} totalPages={pagination?.totalPages ?? 1} onChange={(p) => setFiltres({ page: String(p) })} />
       </div>
 
       {/* Modal Promotion */}
