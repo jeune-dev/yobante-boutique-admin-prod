@@ -13,8 +13,8 @@
 npm install
 
 # 2. Environment configuration is already in .env.local:
-# VITE_SHOP_API_URL=https://api.yobanterek.com/api/v1
-# VITE_SHIPMENT_API_URL=https://api.yobanterek.com/api/v1
+# VITE_SHOP_API_URL=https://api.yobante-boutique.com/api/v1
+# VITE_SHIPMENT_API_URL=https://api.yobante-boutique.com/api/v1
 ```
 
 ## Development Server
@@ -208,7 +208,7 @@ npm run preview      # Preview production build locally
 
 ## Déploiement Production (VPS Contabo)
 
-L'app est servie à la racine de **`https://admin.yobanterek.com`** par nginx, sur un VPS Contabo.
+L'app est servie à la racine de **`https://admin.yobante-boutique.com`** par nginx, sur un VPS Contabo.
 Le build statique est envoyé par GitHub Actions (même principe que le projet `sign-admin`).
 
 ### Architecture
@@ -221,7 +221,7 @@ GitHub Actions (.github/workflows/deploy.yml)
       ↓
 SCP de dist/* → /var/www/yobante-admin  (sur le VPS)
       ↓
-nginx sert admin.yobanterek.com (fallback SPA → /index.html)
+nginx sert admin.yobante-boutique.com (fallback SPA → /index.html)
 ```
 
 ### Secrets GitHub à configurer
@@ -233,8 +233,8 @@ Dans le repo **`jeune-dev/yobante-boutique-admin-prod`** → *Settings → Secre
 | `VPS_HOST` | IP ou hostname du VPS Contabo (ex: `185.xxx.xxx.xxx`) |
 | `VPS_USER` | Utilisateur SSH (ex: `root`) |
 | `VPS_SSH_KEY` | Clé SSH privée complète (au format `-----BEGIN OPENSSH PRIVATE KEY-----…`) |
-| `VITE_SHOP_API_URL` | `https://api.yobanterek.com/api/v1` |
-| `VITE_SHIPMENT_API_URL` | `https://api.yobanterek.com/api/v1` |
+| `VITE_SHOP_API_URL` | `https://api.yobante-boutique.com/api/v1` |
+| `VITE_SHIPMENT_API_URL` | `https://api.yobante-boutique.com/api/v1` |
 | `VITE_APP_NAME` | `Yobante Admin` |
 | `VITE_APP_VERSION` | `1.0.0` |
 
@@ -247,14 +247,14 @@ Dans le repo **`jeune-dev/yobante-boutique-admin-prod`** → *Settings → Secre
 # 1. Dossier cible du déploiement
 mkdir -p /var/www/yobante-admin
 
-# 2. Copier deploy/nginx-admin.yobanterek.com.conf depuis ce repo
+# 2. Copier deploy/nginx-admin.yobante-boutique.com.conf depuis ce repo
 #    (ou utiliser scp depuis la machine locale)
-sudo cp nginx-admin.yobanterek.com.conf /etc/nginx/sites-available/yobante-admin
+sudo cp nginx-admin.yobante-boutique.com.conf /etc/nginx/sites-available/yobante-admin
 sudo ln -s /etc/nginx/sites-available/yobante-admin /etc/nginx/sites-enabled/
 sudo nginx -t && sudo systemctl reload nginx
 
 # 3. HTTPS (Let's Encrypt)
-sudo certbot --nginx -d admin.yobanterek.com
+sudo certbot --nginx -d admin.yobante-boutique.com
 
 # 4. DNS : pointez un enregistrement A (admin) vers l'IP du VPS
 ```
@@ -266,7 +266,7 @@ sudo certbot --nginx -d admin.yobanterek.com
 
 Chaque push sur `main` déclenche le workflow qui termine par :
 ```bash
-curl -f -I https://admin.yobanterek.com   # doit répondre 200
+curl -f -I https://admin.yobante-boutique.com   # doit répondre 200
 ```
 Suivez l'exécution dans *Actions* du repo GitHub.
 
@@ -304,8 +304,8 @@ npm run type-check  # Check TypeScript types
 
 **Default Ports:**
 - Frontend: `http://localhost:5173`
-- Shop API: `https://api.yobanterek.com/api/v1`
-- Shipment API: `https://api.yobanterek.com/api/v1`
+- Shop API: `https://api.yobante-boutique.com/api/v1`
+- Shipment API: `https://api.yobante-boutique.com/api/v1`
 
 **Store Paths:**
 - Auth store: `useAuthStore()`

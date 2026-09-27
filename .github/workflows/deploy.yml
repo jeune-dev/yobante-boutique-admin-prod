@@ -40,7 +40,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           source: "dist/*"
-          target: "/var/www/yobante-admin"
+          target: "/var/www/yobante-admin-boutique"
           strip_components: 1
           overwrite: true
 
@@ -51,4 +51,4 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            curl -f -I https://admin.yobanterek.com || exit 1
+            curl -f -I https://admin.yobante-boutique.com || exit 1

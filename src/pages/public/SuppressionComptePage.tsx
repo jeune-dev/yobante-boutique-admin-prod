@@ -132,7 +132,7 @@ export default function SuppressionComptePage() {
           </>
         )}
 
-        <div className="sc-footer">Yobante Boutique — admin.yobanterek.com</div>
+        <div className="sc-footer">Yobante Boutique — admin.yobante-boutique.com</div>
       </div>
     </div>
   );
