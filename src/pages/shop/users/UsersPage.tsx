@@ -96,6 +96,7 @@ export default function UsersPage() {
                   <th>Client</th>
                   <th>Email</th>
                   <th>Téléphone</th>
+                  <th>Commandes</th>
                   <th>Inscrit le</th>
                   <th>Vérifié</th>
                   <th>Statut</th>
@@ -121,6 +122,27 @@ export default function UsersPage() {
                     </td>
                     <td className="wrap-anywhere" style={{ fontSize: '0.84rem', color: 'var(--text2)' }} data-label="Email">{u.email}</td>
                     <td style={{ fontSize: '0.84rem', color: 'var(--text3)' }} data-label="Téléphone">{u.telephone ?? '—'}</td>
+                    {/* Volume d'activité : toutes les commandes passées, avec
+                        en second les seules livrées (donc encaissées). */}
+                    <td style={{ fontSize: '0.84rem', whiteSpace: 'nowrap' }} data-label="Commandes">
+                      <span style={{ fontWeight: 600, color: 'var(--black)' }}>
+                        {u.activite?.nbCommandes ?? 0}
+                      </span>
+                      {!!u.activite?.nbCommandes && (
+                        <span style={{ color: 'var(--text3)', fontSize: '0.76rem' }}>
+                          {' '}
+                          · {u.activite.nbCommandesLivrees} livrée
+                          {u.activite.nbCommandesLivrees > 1 ? 's' : ''}
+                        </span>
+                      )}
+                      {!!u.activite?.montantDepense && (
+                        <span
+                          style={{ display: 'block', color: 'var(--text3)', fontSize: '0.76rem' }}
+                        >
+                          {Number(u.activite.montantDepense).toLocaleString('fr-FR')} FCFA
+                        </span>
+                      )}
+                    </td>
                     <td style={{ fontSize: '0.82rem', color: 'var(--text3)', whiteSpace: 'nowrap' }} data-label="Inscrit le">
                       {fmtDate(u.createdAt)}
                     </td>

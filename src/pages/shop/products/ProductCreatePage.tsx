@@ -163,6 +163,54 @@ export default function ProductCreatePage() {
             </div>
           </div>
 
+          {/* Le prix d'achat n'est jamais exposé au client : le backend
+              l'exclut par défaut de toutes ses lectures publiques. Il sert à
+              calculer la marge brute dans la liste des produits. */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-gray-700">
+                {venduAuPoids ? "Prix d'achat au kg (FCFA)" : "Prix d'achat (FCFA)"}
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={prixAchat}
+                onChange={(e) => setPrixAchat(e.target.value)}
+                placeholder="Optionnel"
+                className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              />
+              <p className="mt-1 text-xs text-gray-400">
+                Réservé à l'administration. Sans lui, la marge reste incalculable.
+              </p>
+            </div>
+            {/* Marge annoncée en direct : une erreur de saisie (prix d'achat
+                supérieur au prix de vente) se voit immédiatement. */}
+            {!!prix && !!prixAchat && (
+              <div className="sm:self-end">
+                <div
+                  className={`rounded-lg border p-3 text-sm ${
+                    Number(prixAchat) >= Number(prix)
+                      ? 'border-red-200 bg-red-50 text-red-700'
+                      : 'border-green-200 bg-green-50 text-green-700'
+                  }`}
+                >
+                  {Number(prixAchat) >= Number(prix) ? (
+                    <>Le prix d'achat atteint ou dépasse le prix de vente : marge nulle ou négative.</>
+                  ) : (
+                    <>
+                      Marge unitaire{' '}
+                      <strong>
+                        {(Number(prix) - Number(prixAchat)).toLocaleString('fr-FR')} FCFA
+                      </strong>{' '}
+                      ({Math.round(((Number(prix) - Number(prixAchat)) / Number(prix)) * 100)} %)
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Le rangement du produit se fait uniquement par rayon puis
               sous-rayon : la catégorie a été retirée du formulaire, et le
               backend ne l'attend plus. */}

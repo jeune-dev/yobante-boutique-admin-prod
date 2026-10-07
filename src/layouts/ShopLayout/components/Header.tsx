@@ -1,32 +1,20 @@
+import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { etatRetour } from '@/shared/hooks/useRetour';
 import { useAuthStore } from '@/auth/store/auth.store';
 import { useAuth } from '@/auth/hooks/useAuth';
 import Icon from '@/shared/components/dashboard/Icon';
+import { PICTO } from '@/assets/images/logos';
+import ShopNavbar from './Navbar';
+import MenuMobile from './MenuMobile';
+import { libelleDuChemin } from '../navigation';
 
-/** Libellés des sections, pour situer l'utilisateur dans le dashboard. */
-const TITRES: Record<string, string> = {
-  dashboard: 'Tableau de bord',
-  accueil: "Page d'accueil",
-  rayons: 'Rayons',
-  produits: 'Produits',
-  commandes: 'Commandes',
-  clients: 'Clients',
-  vendeurs: 'Vendeurs',
-  administrateurs: 'Administrateurs',
-  demandes: 'Demandes de publication',
-  avis: 'Avis',
-  paiements: 'Paiements',
+/** Libellés des sections qui ne figurent pas dans la navigation. */
+const TITRES_HORS_NAV: Record<string, string> = {
   profil: 'Mon profil',
-  parametres: 'Paramètres',
 };
 
-interface Props {
-  /** Ouvre le tiroir de navigation (écran étroit). */
-  onOuvrirMenu: () => void;
-}
-
-export default function ShopHeader({ onOuvrirMenu }: Props) {
+export default function ShopHeader() {
   const user = useAuthStore((s) => s.user);
   // `useAuth().logout` révoque le refresh token côté serveur avant de vider
   // la session locale ; le `logout` du store seul ne faisait que le second.
@@ -34,54 +22,122 @@ export default function ShopHeader({ onOuvrirMenu }: Props) {
   const location = useLocation();
   const { pathname } = location;
 
-  // /boutique/<section>/... → on ne garde que la section pour le titre.
-  const section = pathname.split('/')[2] ?? 'dashboard';
-  const titre = TITRES[section] ?? 'Boutique';
+  // Menu de compte : profil et déconnexion n'encombrent plus la navigation
+  // principale, qui ne porte que les sections de travail.
+  const [menuOuvert, setMenuOuvert] = useState(false);
+  const zoneMenu = useRef<HTMLDivElement>(null);
+
+  // Le menu se referme en changeant de page, sinon il resterait ouvert
+  // par-dessus l'écran suivant.
+  useEffect(() => setMenuOuvert(false), [pathname]);
+
+  useEffect(() => {
+    if (!menuOuvert) return;
+    const auClic = (e: MouseEvent) => {
+      if (!zoneMenu.current?.contains(e.target as Node)) setMenuOuvert(false);
+    };
+    const auClavier = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOuvert(false);
+    };
+    document.addEventListener('mousedown', auClic);
+    document.addEventListener('keydown', auClavier);
+    return () => {
+      document.removeEventListener('mousedown', auClic);
+      document.removeEventListener('keydown', auClavier);
+    };
+  }, [menuOuvert]);
+
+  // Sur grand écran, l'onglet actif nomme déjà la page : le titre ferait
+  // doublon et n'apparaît que pour les pages absentes de la navigation (le
+  // profil). Sur mobile, la barre horizontale laisse place au tiroir : plus
+  // rien n'indiquerait où l'on se trouve, le titre s'affiche donc toujours.
+  const section = pathname.split('/')[2] ?? '';
+  const libelleNav = libelleDuChemin(pathname);
+  const titre = libelleNav ?? TITRES_HORS_NAV[section] ?? 'Boutique';
 
   const initiales = `${user?.prenom?.[0] ?? ''}${user?.nom?.[0] ?? ''}`.toUpperCase();
 
   return (
-    <header className="h-16 shrink-0 bg-white border-b border-gray-100 flex items-center gap-2 sm:gap-3 px-3 sm:px-6">
-      <button
-        type="button"
-        onClick={onOuvrirMenu}
-        aria-label="Ouvrir le menu"
-        aria-controls="menu-principal"
-        className="btn-icon -ml-1 text-gray-500 hover:bg-gray-50 hover:text-gray-900 lg:hidden"
-      >
-        <Icon name="menu" size={22} />
-      </button>
+    // `items-stretch` : les onglets occupent toute la hauteur, pour que leur
+    // soulignement vienne se poser sur la bordure basse de la barre.
+    <header className="h-16 xl:h-[4.5rem] shrink-0 bg-white border-b border-gray-100 flex items-stretch gap-1.5 sm:gap-3 lg:gap-4 px-2.5 sm:px-4 lg:px-5">
+      <MenuMobile />
 
-      <div className="min-w-0 flex-1">
+      <Link
+        to="/boutique/dashboard"
+        className="flex items-center shrink-0"
+        title="Yobante Boutique"
+      >
+        {/* Le logo grandit avec l'écran. Sur mobile, le hamburger a pris en
+            charge la navigation : la place libérée lui profite. */}
+        <img
+          src={PICTO}
+          alt="Yobante Boutique"
+          className="h-11 sm:h-12 lg:h-14 xl:h-16 w-auto transition-[height]"
+        />
+      </Link>
+
+      <div className={`flex items-center min-w-0 ${libelleNav ? 'md:hidden flex-1' : 'shrink-0'}`}>
         <h1 className="text-[15px] font-bold text-gray-900 truncate">{titre}</h1>
-        <p className="text-xs text-gray-400 truncate">Yobante Boutique</p>
       </div>
 
-      <div className="flex items-center gap-1 sm:gap-3 shrink-0">
-        <Link
-          to="/boutique/profil"
-          // Le bouton Retour du profil ramène à la page quittée.
-          state={pathname === '/boutique/profil' ? location.state : etatRetour(location)}
-          className="flex items-center gap-2.5 p-1.5 sm:pl-2 sm:pr-3 rounded-lg hover:bg-gray-50 transition-colors"
-          title="Mon profil"
-          aria-label="Mon profil"
+      <ShopNavbar />
+
+      <div className="relative shrink-0 flex items-center" ref={zoneMenu}>
+        <button
+          type="button"
+          onClick={() => setMenuOuvert((o) => !o)}
+          aria-haspopup="menu"
+          aria-expanded={menuOuvert}
+          className={`flex items-center gap-2 p-1.5 sm:pr-2.5 rounded-lg transition-colors ${
+            menuOuvert ? 'bg-gray-100' : 'hover:bg-gray-50'
+          }`}
         >
           <span className="w-8 h-8 rounded-lg bg-yellow-50 text-yellow-700 text-xs font-bold flex items-center justify-center shrink-0">
             {initiales || <Icon name="user" size={15} />}
           </span>
-          <span className="text-sm text-gray-700 hidden md:block max-w-[180px] truncate">
+          <span className="text-sm text-gray-700 hidden lg:block max-w-[140px] truncate">
             {user?.prenom} {user?.nom}
           </span>
-        </Link>
-
-        <button
-          onClick={logout}
-          className="btn-icon text-gray-400 hover:bg-red-50 hover:text-red-500"
-          title="Déconnexion"
-          aria-label="Déconnexion"
-        >
-          <Icon name="log-out" size={18} />
+          <Icon name="chevron-right" size={14} className="text-gray-400 rotate-90 shrink-0" />
         </button>
+
+        {menuOuvert && (
+          <div
+            role="menu"
+            className="absolute right-0 top-full mt-1 w-56 rounded-xl border border-gray-100 bg-white shadow-lg overflow-hidden z-50"
+          >
+            {/* Le nom est répété ici : sous `lg` il est masqué dans le bouton,
+                et le menu serait alors le seul endroit qui dit qui est connecté. */}
+            <div className="px-3.5 py-3 border-b border-gray-50">
+              <p className="text-sm font-semibold text-gray-900 truncate">
+                {user?.prenom} {user?.nom}
+              </p>
+              <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+            </div>
+
+            <Link
+              to="/boutique/profil"
+              role="menuitem"
+              // Le bouton Retour du profil ramène à la page quittée.
+              state={pathname === '/boutique/profil' ? location.state : etatRetour(location)}
+              className="flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+            >
+              <Icon name="user" size={16} className="text-gray-400" />
+              Mon profil
+            </Link>
+
+            <button
+              type="button"
+              role="menuitem"
+              onClick={logout}
+              className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-red-600 hover:bg-red-50 border-t border-gray-50"
+            >
+              <Icon name="log-out" size={16} />
+              Déconnexion
+            </button>
+          </div>
+        )}
       </div>
     </header>
   );

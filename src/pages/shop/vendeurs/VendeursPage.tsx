@@ -4,6 +4,7 @@ import shopClient from '@/infrastructure/http/shop.client';
 import { showSuccess, showError, showConfirm } from '@/shared/utils/alert';
 import Pagination from '@/shared/components/tables/Pagination';
 import { PhoneInput } from '@/shared/components/PhoneInput';
+import { useFiabiliteVendeurs } from '@/domains/shop/hooks/useIndicateurs';
 
 const api = {
   getVendeurs: (p: any) => shopClient.get('/admin/vendeurs', { params: p }),
@@ -72,6 +73,13 @@ export default function VendeursPage() {
     queryKey: ['vendeurs', search, page],
     queryFn: () => api.getVendeurs({ search, page, limit: 20 }),
   });
+
+  // Un seul appel pour toute la page : la fiabilité est indexée par vendeur
+  // plutôt que demandée ligne par ligne.
+  const { data: fiabiliteData } = useFiabiliteVendeurs({ limit: 200 });
+  const fiabiliteParVendeur = new Map(
+    ((fiabiliteData as any)?.vendeurs ?? []).map((f: any) => [f.id, f])
+  );
 
   const rafraichir = () => qc.invalidateQueries({ queryKey: ['vendeurs'] });
 
@@ -263,6 +271,7 @@ export default function VendeursPage() {
                   <th className="p-4 font-medium text-gray-500">Vendeur</th>
                   <th className="p-4 font-medium text-gray-500">Boutique</th>
                   <th className="p-4 font-medium text-gray-500">Contact</th>
+                  <th className="p-4 font-medium text-gray-500 hidden lg:table-cell">Fiabilité</th>
                   <th className="p-4 font-medium text-gray-500">Statut</th>
                   <th className="p-4 font-medium text-gray-500 text-center">Actions</th>
                 </tr>
@@ -291,6 +300,12 @@ export default function VendeursPage() {
                           <div>{v.email || '—'}</div>
                           <div>{v.telephone || v.telephoneBoutique || '—'}</div>
                         </div>
+                      </td>
+                      {/* Fiabilité : part des commandes du vendeur qui a mal
+                          tourné de son fait (annulations et retours marqués
+                          « responsabilité vendeur »). */}
+                      <td className="p-4 hidden lg:table-cell" data-label="Fiabilité">
+                        <CelluleFiabilite fiabilite={fiabiliteParVendeur.get(v.id)} />
                       </td>
                       <td className="p-4" data-label="Statut">
                         <span
@@ -335,7 +350,7 @@ export default function VendeursPage() {
                 })}
                 {vendeurs.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="p-8 text-center text-gray-400 tbl-empty">
+                    <td colSpan={6} className="p-8 text-center text-gray-400 tbl-empty">
                       Aucun vendeur trouvé
                     </td>
                   </tr>
@@ -545,6 +560,42 @@ export default function VendeursPage() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * Score de fiabilité d'un vendeur.
+ *
+ * Le nombre de commandes est affiché à côté du score : 0 % d'incident sur une
+ * seule vente ne dit rien, et un score seul induirait en erreur.
+ */
+function CelluleFiabilite({ fiabilite }: { fiabilite?: any }) {
+  if (!fiabilite || !fiabilite.commandesTotal) {
+    return <span className="text-xs text-gray-400">Aucune vente</span>;
+  }
+
+  const { scoreFiabilite, incidents, commandesTotal, annulationsImputables, retoursImputables } =
+    fiabilite;
+  const teinte =
+    scoreFiabilite >= 95
+      ? 'bg-green-100 text-green-700'
+      : scoreFiabilite >= 80
+        ? 'bg-orange-100 text-orange-700'
+        : 'bg-red-100 text-red-700';
+
+  return (
+    <div
+      title={`${annulationsImputables} annulation(s) et ${retoursImputables} retour(s) imputables sur ${commandesTotal} commande(s)`}
+    >
+      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${teinte}`}>
+        {scoreFiabilite}%
+      </span>
+      <span className="block text-xs text-gray-400 mt-0.5">
+        {incidents === 0
+          ? `${commandesTotal} commande(s), aucun incident`
+          : `${incidents} incident(s) / ${commandesTotal}`}
+      </span>
     </div>
   );
 }

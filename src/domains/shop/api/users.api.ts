@@ -1,4 +1,5 @@
 ﻿import shopClient from '@/infrastructure/http/shop.client';
+import type { ActiviteClient } from '@/domains/shop/types/indicateurs';
 
 export interface UserFilters {
   search?: string;
@@ -20,6 +21,8 @@ export interface ShopUser {
   isVerified?: boolean;
   // Toujours présent : les modèles sont horodatés côté backend.
   createdAt: string;
+  /** Activité commerciale, calculée par le backend pour la liste des clients. */
+  activite?: ActiviteClient;
 }
 
 export const usersApi = {

@@ -814,3 +814,186 @@
   .auth-form-side { padding: 2.5rem 2rem; }
   .selector-grid { grid-template-columns: 1fr; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   CONNEXION — carte seule
+   Le panneau de marque (`.auth-shell` + `.auth-brand`) reste utilisé par la
+   page de changement de mot de passe : rien n'est retiré, ce gabarit vient
+   à côté pour la seule page de connexion.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.auth-solo {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 1rem;
+  /* Fond blanc. Les ornements de marque restent, mais redosés : sur blanc,
+     ce qui était lisible sur bleu foncé devient soit invisible, soit criard.
+     Pas d'`overflow: hidden` ici — il écraserait le `overflow-y: auto` de
+     `.auth-fit` et rendrait la carte inatteignable sur un écran bas. Tout est
+     donc peint en fond, qui est rogné par nature et ne crée aucun débordement.
+     Couches, de l'avant vers l'arrière : anneau doré, anneau bleu, deux halos,
+     puis le blanc. */
+  background:
+    radial-gradient(circle 26rem at 92% 118%,
+      transparent 0 calc(26rem - 2px),
+      rgba(245, 197, 24, 0.55) calc(26rem - 2px) 26rem,
+      transparent 26rem),
+    radial-gradient(circle 17rem at 6% -6%,
+      transparent 0 calc(17rem - 1.5px),
+      rgba(23, 55, 155, 0.16) calc(17rem - 1.5px) 17rem,
+      transparent 17rem),
+    radial-gradient(52rem 34rem at 8% 0%, rgba(23, 55, 155, 0.07), transparent 60%),
+    radial-gradient(48rem 32rem at 100% 100%, rgba(245, 197, 24, 0.13), transparent 62%),
+    #fff;
+}
+
+/* Trame de points, estompée vers les bords. Bleu très pâle plutôt que blanc :
+   sur fond blanc, des points blancs ne se verraient pas. */
+.auth-solo::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(23, 55, 155, 0.10) 1px, transparent 1px);
+  background-size: 22px 22px;
+  -webkit-mask-image: radial-gradient(70% 65% at 50% 42%, #000 20%, transparent 72%);
+  mask-image: radial-gradient(70% 65% at 50% 42%, #000 20%, transparent 72%);
+}
+
+/* Trame de points estompée vers les bords : donne de la matière au fond sans
+   créer de motif net qui attirerait l'œil hors de la carte. `inset: 0` la
+   maintient dans les limites du conteneur, sans débordement. */
+.auth-solo::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px);
+  background-size: 22px 22px;
+  -webkit-mask-image: radial-gradient(70% 65% at 50% 42%, #000 25%, transparent 78%);
+  mask-image: radial-gradient(70% 65% at 50% 42%, #000 25%, transparent 78%);
+}
+
+/* Trame de points estompée vers les bords : donne de la matière au fond sans
+   créer de motif net qui attirerait l'œil hors de la carte. */
+.auth-solo::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px);
+  background-size: 22px 22px;
+  -webkit-mask-image: radial-gradient(70% 65% at 50% 42%, #000 25%, transparent 78%);
+  mask-image: radial-gradient(70% 65% at 50% 42%, #000 25%, transparent 78%);
+}
+
+
+.auth-card {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  border-radius: 24px;
+  padding: 2.4rem 2.1rem 2rem;
+  /* Carte blanche sur fond blanc : c'est le liseré qui dessine le bord, et
+     une ombre douce et étalée qui lui donne le relief. Les ombres sombres et
+     marquées du fond bleu saliraient le blanc. */
+  box-shadow:
+    0 0 0 1px rgba(23, 55, 155, 0.09),
+    0 18px 44px -20px rgba(15, 23, 41, 0.22),
+    0 3px 10px -5px rgba(15, 23, 41, 0.08);
+  animation: authIn 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+
+.auth-card-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 1.6rem;
+}
+
+.auth-card-logo {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: 22px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 1rem;
+  /* Le pictogramme occupe toute la tuile : `overflow` la découpe au rayon,
+     sans quoi l'agrandissement de l'image déborderait des coins arrondis. */
+  overflow: hidden;
+  background: linear-gradient(145deg, #f3f6ff, #e7ecfb);
+  box-shadow:
+    0 0 0 1px rgba(23, 55, 155, 0.10),
+    0 10px 24px -12px rgba(23, 55, 155, 0.55);
+}
+.auth-card-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  /* Le PNG source fait 3000×3000 mais la marque n'y occupe que 28,3 % × 33,9 %,
+     centrée 3,33 % trop à gauche — mesuré sur le fichier. Aucune taille donnée
+     à l'image ne peut donc la faire remplir la tuile : il faut l'agrandir et la
+     recentrer.
+
+     Le `translateX` est placé APRÈS le `scale` dans la liste : les fonctions
+     s'appliquent de droite à gauche, le décalage est donc exprimé dans les
+     coordonnées d'origine de l'image et reste valable quel que soit le facteur
+     d'agrandissement. Dans l'autre ordre, il faudrait le multiplier par ce
+     facteur — et il sous-corrigeait.
+
+     Facteur 1,6 : la marque occupe environ 54 % de la tuile. Au-delà de 2 les
+     coins arrondis finissent par mordre le pictogramme. */
+  transform: scale(1.6) translateX(3.33%);
+}
+
+.auth-card-title {
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--y-ink);
+  line-height: 1.2;
+}
+.auth-card-sub {
+  font-size: 0.875rem;
+  color: var(--y-text2);
+  margin-top: 6px;
+}
+
+/* Pied de carte, séparé par un filet plutôt que par du vide seul. */
+.auth-card-foot {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--y-line);
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--y-text3);
+  line-height: 1.5;
+}
+
+@media (max-width: 420px) {
+  .auth-card { padding: 1.9rem 1.4rem 1.6rem; border-radius: 18px; }
+  /* Seule la tuile rétrécit : l'image reste en 100 % et suit, sinon la règle
+     fixe de 34 px annulerait l'agrandissement du pictogramme. */
+  .auth-card-logo { width: 60px; height: 60px; border-radius: 17px; }
+  .auth-card-title { font-size: 1.3rem; }
+}
+
+/* L'animation d'entrée est une décoration : on la retire pour qui demande à
+   limiter les mouvements. */
+@media (prefers-reduced-motion: reduce) {
+  .auth-card { animation: none; }
+  .auth-btn:hover:not(:disabled) { transform: none; }
+}
+
+/* Dans la carte seule, le formulaire occupe toute la largeur : le plafond de
+   340px venait du gabarit en deux colonnes, où il centrait le formulaire dans
+   un panneau plus large. Ici il le laisserait décentré. */
+.auth-card .auth-form {
+  max-width: none;
+}

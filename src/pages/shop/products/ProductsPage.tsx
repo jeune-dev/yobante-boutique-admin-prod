@@ -7,6 +7,7 @@ import Pagination from '@/shared/components/tables/Pagination';
 import ErreurChargement from '@/shared/components/feedback/ErreurChargement';
 import AdminBackButton from '@/shared/components/AdminBackButton';
 import Icon from '@/shared/components/dashboard/Icon';
+import BadgeStock from '@/shared/components/dashboard/BadgeStock';
 import { etatRetour } from '@/shared/hooks/useRetour';
 import { lirePage, useParametresUrl } from '@/shared/hooks/useParametresUrl';
 
@@ -163,7 +164,17 @@ export default function ProductsPage() {
                   <th className="p-4 font-medium text-gray-500">Produit</th>
                   <th className="p-4 font-medium text-gray-500 hidden xl:table-cell">Rayon</th>
                   <th className="p-4 font-medium text-gray-500">Prix</th>
+                  {/* Colonnes d'analyse : masquées sous `lg`, où la largeur ne
+                      permet pas de les lire sans écraser le reste. */}
+                  <th className="p-4 font-medium text-gray-500 hidden lg:table-cell">Marge</th>
+                  <th className="p-4 font-medium text-gray-500 hidden lg:table-cell text-center">
+                    Vendus
+                  </th>
+                  <th className="p-4 font-medium text-gray-500 hidden xl:table-cell">CA</th>
                   <th className="p-4 font-medium text-gray-500">Stock</th>
+                  <th className="p-4 font-medium text-gray-500 hidden lg:table-cell text-center">
+                    Couverture
+                  </th>
                   <th className="p-4 font-medium text-gray-500">Statut</th>
                   <th className="p-4 font-medium text-gray-500 text-center">Actions</th>
                 </tr>
@@ -205,8 +216,93 @@ export default function ProductsPage() {
                     <td className="p-4 font-medium whitespace-nowrap" data-label="Prix">
                       {p.prix?.toLocaleString('fr-FR')} FCFA
                       {p.venduAuPoids ? ' / kg' : ''}
+                      {p.prixAchat != null && (
+                        <span className="block text-xs font-normal text-gray-400">
+                          achat {Number(p.prixAchat).toLocaleString('fr-FR')}
+                        </span>
+                      )}
                     </td>
-                    <td className="p-4 text-center" data-label="Stock">{p.stock}</td>
+                    <td
+                      className="p-4 whitespace-nowrap hidden lg:table-cell"
+                      data-label="Marge"
+                      title={
+                        p.indicateurs?.margeBrute == null
+                          ? "Renseignez le prix d'achat pour obtenir la marge"
+                          : `Marge brute cumulée sur ${p.indicateurs.quantiteVendue} vente(s)`
+                      }
+                    >
+                      {/* Prix d'achat absent : on le dit, plutôt que d'afficher
+                          un 0 qui se lirait comme une marge nulle. */}
+                      {p.indicateurs?.margeUnitaire == null ? (
+                        <span className="text-gray-300">—</span>
+                      ) : (
+                        <>
+                          <span className="font-medium text-gray-900">
+                            {Number(p.indicateurs.margeUnitaire).toLocaleString('fr-FR')}
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            {' '}
+                            ({p.indicateurs.tauxMarge}%)
+                          </span>
+                          {!!p.indicateurs.margeBrute && (
+                            <span className="block text-xs text-gray-400">
+                              brute {Number(p.indicateurs.margeBrute).toLocaleString('fr-FR')}
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </td>
+                    <td className="p-4 text-center hidden lg:table-cell" data-label="Vendus">
+                      <span className="font-medium text-gray-900">
+                        {p.indicateurs?.quantiteVendue ?? 0}
+                      </span>
+                      {!!p.indicateurs?.nombreRetours && (
+                        <span
+                          className="block text-xs text-orange-500"
+                          title={`${p.indicateurs.quantiteRetournee} article(s) retourné(s)`}
+                        >
+                          {p.indicateurs.tauxRetour}% retour
+                        </span>
+                      )}
+                    </td>
+                    <td
+                      className="p-4 whitespace-nowrap hidden xl:table-cell text-gray-700"
+                      data-label="CA"
+                    >
+                      {Number(p.indicateurs?.chiffreAffaires ?? 0).toLocaleString('fr-FR')}
+                    </td>
+                    <td className="p-4 text-center" data-label="Stock">
+                      {p.indicateurs?.niveauStock ? (
+                        <BadgeStock niveau={p.indicateurs.niveauStock} stock={p.stock} compact />
+                      ) : (
+                        p.stock
+                      )}
+                    </td>
+                    <td
+                      className="p-4 text-center hidden lg:table-cell"
+                      data-label="Couverture"
+                      title={
+                        p.indicateurs?.joursCouverture == null
+                          ? 'Aucune vente sur la fenêtre : rythme d’écoulement inconnu'
+                          : `Au rythme des ${p.indicateurs.fenetreCouvertureJours} derniers jours`
+                      }
+                    >
+                      {p.indicateurs?.joursCouverture == null ? (
+                        <span className="text-gray-300">—</span>
+                      ) : (
+                        <span
+                          className={
+                            p.indicateurs.joursCouverture <= 7
+                              ? 'font-semibold text-red-600'
+                              : p.indicateurs.joursCouverture <= 21
+                                ? 'font-medium text-orange-600'
+                                : 'text-gray-700'
+                          }
+                        >
+                          {p.indicateurs.joursCouverture} j
+                        </span>
+                      )}
+                    </td>
                     <td className="p-4 text-center" data-label="Statut">
                       <span
                         className={`px-2 py-1 rounded-full text-xs ${
@@ -292,7 +388,7 @@ export default function ProductsPage() {
                 ))}
                 {produits.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="p-8 text-center text-gray-400 tbl-empty">
+                    <td colSpan={10} className="p-8 text-center text-gray-400 tbl-empty">
                       Aucun produit trouvé
                     </td>
                   </tr>

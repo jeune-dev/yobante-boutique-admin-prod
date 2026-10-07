@@ -16,6 +16,7 @@ export default function ProductEditPage() {
   const [nom, setNom] = useState('');
   const [description, setDescription] = useState('');
   const [prix, setPrix] = useState('');
+  const [prixAchat, setPrixAchat] = useState('');
   const [venduAuPoids, setVenduAuPoids] = useState(false);
   const [stock, setStock] = useState('0');
   const [poids, setPoids] = useState('');
@@ -41,6 +42,9 @@ export default function ProductEditPage() {
         nom: produit.nom || '',
         description: produit.description || '',
         prix: String(produit.prix || ''),
+        // `?? ''` et non `|| ''` : un prix d'achat de 0 est une valeur saisie,
+        // pas une absence de valeur.
+        prixAchat: produit.prixAchat == null ? '' : String(produit.prixAchat),
         venduAuPoids: Boolean(produit.venduAuPoids),
         stock: String(produit.stock || '0'),
         poids: String(produit.poids || ''),
@@ -55,6 +59,7 @@ export default function ProductEditPage() {
       setNom(valeurs.nom);
       setDescription(valeurs.description);
       setPrix(valeurs.prix);
+      setPrixAchat(valeurs.prixAchat);
       setVenduAuPoids(valeurs.venduAuPoids);
       setStock(valeurs.stock);
       setPoids(valeurs.poids);
@@ -122,6 +127,9 @@ export default function ProductEditPage() {
     fd.append('nom', nom);
     fd.append('description', description);
     fd.append('prix', prix);
+    // Chaîne vide envoyée volontairement : elle efface un prix d'achat saisi
+    // par erreur, ce qu'omettre le champ ne permettrait pas.
+    fd.append('prixAchat', prixAchat);
     fd.append('venduAuPoids', String(venduAuPoids));
     fd.append('stock', stock);
     fd.append('etat', avecEtat ? etat : 'neuf');
@@ -206,6 +214,51 @@ export default function ProductEditPage() {
                 className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
               />
             </div>
+          </div>
+
+          {/* Prix d'achat : jamais exposé au client, sert au calcul de la marge.
+              Vider le champ efface la valeur enregistrée. */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-gray-700">
+                {venduAuPoids ? "Prix d'achat au kg (FCFA)" : "Prix d'achat (FCFA)"}
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={prixAchat}
+                onChange={(e) => setPrixAchat(e.target.value)}
+                placeholder="Optionnel"
+                className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              />
+              <p className="mt-1 text-xs text-gray-400">
+                Réservé à l'administration. Laisser vide pour effacer.
+              </p>
+            </div>
+            {!!prix && !!prixAchat && (
+              <div className="sm:self-end">
+                <div
+                  className={`rounded-lg border p-3 text-sm ${
+                    Number(prixAchat) >= Number(prix)
+                      ? 'border-red-200 bg-red-50 text-red-700'
+                      : 'border-green-200 bg-green-50 text-green-700'
+                  }`}
+                >
+                  {Number(prixAchat) >= Number(prix) ? (
+                    <>Le prix d'achat atteint ou dépasse le prix de vente : marge nulle ou négative.</>
+                  ) : (
+                    <>
+                      Marge unitaire{' '}
+                      <strong>
+                        {(Number(prix) - Number(prixAchat)).toLocaleString('fr-FR')} FCFA
+                      </strong>{' '}
+                      ({Math.round(((Number(prix) - Number(prixAchat)) / Number(prix)) * 100)} %)
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           <div>

@@ -23,9 +23,21 @@ import VendeursPage from '@/pages/shop/vendeurs/VendeursPage';
 import AdministrateursPage from '@/pages/shop/administrateurs/AdministrateursPage';
 import { ChangerMotDePassePage } from '@/pages/auth/ChangerMotDePassePage';
 import DemandesPage from '@/pages/shop/demandes/DemandesPage';
-import ReviewsPage from '@/pages/shop/reviews/ReviewsPage';
+import RetoursPage from '@/pages/shop/retours/RetoursPage';
 import PaymentsPage from '@/pages/shop/payments/PaymentsPage';
 import SettingsPage from '@/pages/shop/settings/SettingsPage';
+import AlertesPage from '@/pages/shop/alertes/AlertesPage';
+import StockPage from '@/pages/shop/stock/StockPage';
+import LivraisonPage from '@/pages/shop/logistique/LivraisonPage';
+import ReclamationsPage from '@/pages/shop/reclamations/ReclamationsPage';
+import SyntheseFinancePage from '@/pages/shop/finance/SynthesePage';
+import ComptesVendeursPage from '@/pages/shop/finance/ComptesVendeursPage';
+import ReversementsPage from '@/pages/shop/finance/ReversementsPage';
+import AnalyticsVentesPage from '@/pages/shop/analytics/VentesPage';
+import AnalyticsProduitsPage from '@/pages/shop/analytics/ProduitsPage';
+import AnalyticsClientsPage from '@/pages/shop/analytics/ClientsPage';
+import AnalyticsVendeursPage from '@/pages/shop/analytics/VendeursPage';
+import RentabilitePage from '@/pages/shop/analytics/RentabilitePage';
 import { ShipmentDashboard } from '@/pages/shipment/dashboard/DashboardPage';
 
 /**
@@ -102,9 +114,31 @@ export const router = createBrowserRouter(
                 { path: 'vendeurs', element: <VendeursPage /> },
                 { path: 'administrateurs', element: <AdministrateursPage /> },
                 { path: 'demandes', element: <DemandesPage /> },
-                { path: 'avis', element: <ReviewsPage /> },
+                { path: 'retours', element: <RetoursPage /> },
                 { path: 'paiements', element: <PaymentsPage /> },
                 { path: 'parametres', element: <SettingsPage /> },
+
+                // ── Surveillance, stock, logistique, réclamations ────────
+                { path: 'alertes', element: <AlertesPage /> },
+                // La vue (ruptures, surstock…) passe par `?vue=`, pas par le
+                // chemin : un onglet n'est pas une page différente, et le lien
+                // reste partageable.
+                { path: 'stock', element: <StockPage /> },
+                { path: 'livraison', element: <LivraisonPage /> },
+                { path: 'reclamations', element: <ReclamationsPage /> },
+
+                // ── Finance ─────────────────────────────────────────────
+                { path: 'finance', element: <SyntheseFinancePage /> },
+                { path: 'finance/commissions', element: <ComptesVendeursPage /> },
+                { path: 'finance/reversements', element: <ReversementsPage /> },
+
+                // ── Analytics ───────────────────────────────────────────
+                { path: 'analytics', element: <Navigate to="ventes" replace /> },
+                { path: 'analytics/ventes', element: <AnalyticsVentesPage /> },
+                { path: 'analytics/produits', element: <AnalyticsProduitsPage /> },
+                { path: 'analytics/clients', element: <AnalyticsClientsPage /> },
+                { path: 'analytics/vendeurs', element: <AnalyticsVendeursPage /> },
+                { path: 'analytics/rentabilite', element: <RentabilitePage /> },
               ],
             },
             {

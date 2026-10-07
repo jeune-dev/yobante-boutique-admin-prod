@@ -7,12 +7,6 @@ import Icon from '@/shared/components/dashboard/Icon';
 import '@/assets/css/Login.css';
 import { PICTO } from '@/assets/images/logos';
 
-const FEATURES = [
-  'Boutique en ligne & catalogue produits',
-  'Expédition, conteneurs & suivi colis',
-  "Pilotage de l'application mobile",
-];
-
 const APPS = [
   {
     id: 'shop' as const,
@@ -58,87 +52,88 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="auth-page auth-fit">
-      <div className="auth-shell">
-        {/* ── Panneau de marque ── */}
-        <aside className="auth-brand">
-          <div className="auth-brand-inner">
-            <div className="auth-logo-tile">
-              <img src={PICTO} alt="Yobante" />
+    <div className="auth-page auth-fit auth-solo">
+      <main className="auth-card">
+        <div className="auth-card-head">
+          <span className="auth-card-logo">
+            {/* Décoratif : le nom de la marque est déjà dans le titre. */}
+            <img src={PICTO} alt="" aria-hidden="true" />
+          </span>
+          <h1 className="auth-card-title">Yobante Administration</h1>
+          <p className="auth-card-sub">Connectez-vous à votre espace</p>
+        </div>
+
+        <form className="auth-form" onSubmit={handleSubmit} noValidate>
+          <div className="auth-field">
+            {/* `htmlFor` / `id` : sans eux, cliquer le libellé ne plaçait pas
+                le curseur dans le champ et les lecteurs d'écran annonçaient
+                un champ sans nom. */}
+            <label className="auth-label" htmlFor="login-email">
+              Email
+            </label>
+            <div className="auth-input-wrap">
+              <span className="auth-input-ic"><Icon name="mail" size={16} /></span>
+              <input
+                id="login-email"
+                className="auth-input"
+                type="email"
+                placeholder="votre@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                autoFocus
+                required
+                disabled={login.isPending}
+              />
             </div>
-            <h1>
-              Pilotez tout <span className="accent">Yobante</span> depuis un seul endroit
-            </h1>
-            <p className="auth-brand-lead">
-              La plateforme d'administration unifiée pour votre boutique, vos expéditions et votre
-              application mobile.
-            </p>
-            <ul className="auth-features">
-              {FEATURES.map((f) => (
-                <li className="auth-feature" key={f}>
-                  <span className="auth-feature-ic"><Icon name="check" size={12} /></span>
-                  {f}
-                </li>
-              ))}
-            </ul>
           </div>
-          <div className="auth-brand-foot">© {new Date().getFullYear()} Yobante · Administration</div>
-        </aside>
 
-        {/* ── Formulaire ── */}
-        <main className="auth-form-side">
-          <form className="auth-form" onSubmit={handleSubmit}>
-            <h2>Connexion</h2>
-            <p className="auth-form-sub">Accédez à votre espace d'administration</p>
-
-            <div className="auth-field">
-              <label className="auth-label">Email</label>
-              <div className="auth-input-wrap">
-                <span className="auth-input-ic"><Icon name="mail" size={16} /></span>
-                <input
-                  className="auth-input"
-                  type="email"
-                  placeholder="votre@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="email"
-                  disabled={login.isPending}
-                />
-              </div>
+          <div className="auth-field">
+            <label className="auth-label" htmlFor="login-password">
+              Mot de passe
+            </label>
+            <div className="auth-input-wrap">
+              <span className="auth-input-ic"><Icon name="lock" size={16} /></span>
+              <input
+                id="login-password"
+                className="auth-input"
+                type={showPwd ? 'text' : 'password'}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+                disabled={login.isPending}
+              />
+              <button
+                type="button"
+                className="auth-eye"
+                onClick={() => setShowPwd((v) => !v)}
+                aria-label={showPwd ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                aria-pressed={showPwd}
+              >
+                <Icon name={showPwd ? 'eye-off' : 'eye'} size={15} />
+              </button>
             </div>
+          </div>
 
-            <div className="auth-field">
-              <label className="auth-label">Mot de passe</label>
-              <div className="auth-input-wrap">
-                <span className="auth-input-ic"><Icon name="lock" size={16} /></span>
-                <input
-                  className="auth-input"
-                  type={showPwd ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="current-password"
-                  disabled={login.isPending}
-                />
-                <button
-                  type="button"
-                  className="auth-eye"
-                  onClick={() => setShowPwd((v) => !v)}
-                  aria-label={showPwd ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
-                >
-                  <Icon name={showPwd ? 'eye-off' : 'eye'} size={15} />
-                </button>
-              </div>
-            </div>
+          <button className="auth-btn" type="submit" disabled={login.isPending}>
+            {login.isPending ? (
+              <>
+                <span className="auth-spinner" />
+                Connexion…
+              </>
+            ) : (
+              'Se connecter'
+            )}
+          </button>
+        </form>
 
-            <button className="auth-btn" type="submit" disabled={login.isPending}>
-              {login.isPending ? <span className="auth-spinner" /> : 'Se connecter'}
-            </button>
-
-            <p className="auth-foot">Accès réservé aux administrateurs Yobante</p>
-          </form>
-        </main>
-      </div>
+        <p className="auth-card-foot">
+          Accès réservé aux administrateurs Yobante
+          <br />© {new Date().getFullYear()} Yobante · Administration
+        </p>
+      </main>
 
       {/* ── Modal de choix de dashboard (les 2 backs ont répondu) ── */}
       {showModal && (
