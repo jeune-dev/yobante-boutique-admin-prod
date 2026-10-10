@@ -2,7 +2,6 @@
 
 const envSchema = z.object({
   VITE_SHOP_API_URL: z.string().url('VITE_SHOP_API_URL must be a valid URL'),
-  VITE_SHIPMENT_API_URL: z.string().url('VITE_SHIPMENT_API_URL must be a valid URL'),
   VITE_APP_NAME: z.string().default('Yobante Admin'),
   VITE_APP_VERSION: z.string().optional(),
 });
@@ -18,7 +17,7 @@ const parseEnv = (): Env => {
         .map((err) => `${err.path.join('.')}: ${err.message}`)
         .join('\n');
       throw new Error(
-        `❌ Missing or invalid environment variables:\n${missingVars}\n\nCreate a .env.local file with:\nVITE_SHOP_API_URL=https://api.yobante-boutique.com/api/v1\nVITE_SHIPMENT_API_URL=https://api.yobante-boutique.com/api/v1`
+        `❌ Missing or invalid environment variables:\n${missingVars}\n\nCreate a .env.local file with:\nVITE_SHOP_API_URL=https://api.yobante-boutique.com/api/v1`
       );
     }
     throw error;

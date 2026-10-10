@@ -40,7 +40,6 @@ export const ChangerMotDePassePage = () => {
       setMustChangePassword(false);
       // La vérification de session repart de zéro avec le compte régularisé.
       queryClient.removeQueries({ queryKey: ['session', 'admin'] });
-      useAuthStore.getState().setSelectedApp('shop');
       navigate('/boutique/dashboard', { replace: true });
       showSuccess(reponse, 'Mot de passe modifié. Bienvenue !');
     },

@@ -56,6 +56,17 @@ describe('PrivateRoute', () => {
     expect(useAuthStore.getState().user).toBeNull();
   });
 
+  it.each(['SUPPORT', 'LIVREUR', 'GESTIONNAIRE', ''])(
+    'rôle « %s » hors liste blanche → session purgée (liste noire précédente le laissait passer)',
+    async (role) => {
+      session(role);
+      rendre();
+      expect(await screen.findByText('PAGE LOGIN')).toBeInTheDocument();
+      expect(useAuthStore.getState().isAuthenticated).toBe(false);
+      expect(useAuthStore.getState().user).toBeNull();
+    }
+  );
+
   it('session ADMIN confirmée par GET /admin/me → contenu affiché', async () => {
     session('ADMIN');
     shopGet.mockResolvedValue({ user: { id: '1', role: 'ADMIN' } });

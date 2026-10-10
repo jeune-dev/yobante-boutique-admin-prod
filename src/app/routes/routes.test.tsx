@@ -10,17 +10,19 @@ vi.mock('@/infrastructure/http/shop.client', () => ({ default: { get: vi.fn(), p
 
 import shopClient from '@/infrastructure/http/shop.client';
 import { useAuthStore } from '@/auth/store/auth.store';
-import { router } from './index';
+import {
+  router,
+  OrderCreatePage as RouteOrderCreatePage,
+  OrderDetailPage as RouteOrderDetailPage,
+  ProductCreatePage as RouteProductCreatePage,
+  ProductEditPage as RouteProductEditPage,
+  UserDetailPage as RouteUserDetailPage,
+  SousRayonProduitsPage as RouteSousRayonProduitsPage,
+  SousSectionPage as RouteSousSectionPage,
+} from './index';
 import { PrivateRoute } from './PrivateRoute';
 import AdminBackButton from '@/shared/components/AdminBackButton';
 import { etatRetour } from '@/shared/hooks/useRetour';
-import OrderCreatePage from '@/pages/shop/orders/OrderCreatePage';
-import OrderDetailPage from '@/pages/shop/orders/OrderDetailPage';
-import ProductCreatePage from '@/pages/shop/products/ProductCreatePage';
-import ProductEditPage from '@/pages/shop/products/ProductEditPage';
-import UserDetailPage from '@/pages/shop/users/UserDetailPage';
-import SousRayonProduitsPage from '@/pages/shop/rayons/SousRayonProduitsPage';
-import SousSectionPage from '@/pages/shop/accueil/SousSectionPage';
 
 const shopGet = shopClient.get as unknown as ReturnType<typeof vi.fn>;
 
@@ -33,18 +35,18 @@ const pageDe = (chemin: string) => {
 
 describe('Table des routes du dashboard', () => {
   it.each([
-    ['/boutique/commandes/nouveau', OrderCreatePage],
-    ['/boutique/commandes/123', OrderDetailPage],
-    ['/boutique/produits/nouveau', ProductCreatePage],
-    ['/boutique/produits/123/modifier', ProductEditPage],
-    ['/boutique/clients/123', UserDetailPage],
-    ['/boutique/rayons/sous-rayon/123', SousRayonProduitsPage],
-    ['/boutique/accueil/sous-section/123', SousSectionPage],
+    ['/boutique/commandes/nouveau', RouteOrderCreatePage],
+    ['/boutique/commandes/123', RouteOrderDetailPage],
+    ['/boutique/produits/nouveau', RouteProductCreatePage],
+    ['/boutique/produits/123/modifier', RouteProductEditPage],
+    ['/boutique/clients/123', RouteUserDetailPage],
+    ['/boutique/rayons/sous-rayon/123', RouteSousRayonProduitsPage],
+    ['/boutique/accueil/sous-section/123', RouteSousSectionPage],
   ])('%s → page attendue', (chemin, page) => {
     expect(pageDe(chemin)).toBe(page);
   });
 
-  it('toutes les pages /boutique et /colis sont derrière PrivateRoute', () => {
+  it('toutes les pages /boutique sont derrière PrivateRoute', () => {
     for (const chemin of [
       '/boutique/dashboard',
       '/boutique/commandes/nouveau',
@@ -53,7 +55,6 @@ describe('Table des routes du dashboard', () => {
       '/boutique/clients/1',
       '/boutique/rayons/sous-rayon/1',
       '/boutique/profil',
-      '/colis/dashboard',
     ]) {
       const correspondances = matchRoutes(router.routes as RouteObject[], chemin) ?? [];
       const garde = correspondances.some((c) => (c.route.element as ReactElement | undefined)?.type === PrivateRoute);

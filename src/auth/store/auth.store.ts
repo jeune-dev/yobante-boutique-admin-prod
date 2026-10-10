@@ -14,9 +14,7 @@ export interface User {
 interface AuthStore {
   user: User | null;
   isAuthenticated: boolean;
-  selectedApp: 'shop' | 'shipment' | null;
   isShopAvailable: boolean;
-  isShipmentAvailable: boolean;
   isLoading: boolean;
   /**
    * Compte créé avec un mot de passe temporaire (ou identifiants renvoyés) :
@@ -26,8 +24,7 @@ interface AuthStore {
 
   setUser: (user: User | null) => void;
   setAuthenticated: (value: boolean) => void;
-  setSelectedApp: (app: 'shop' | 'shipment' | null) => void;
-  setTokenAvailability: (shop: boolean, shipment: boolean) => void;
+  setShopAvailable: (value: boolean) => void;
   setLoading: (loading: boolean) => void;
   setMustChangePassword: (value: boolean) => void;
   logout: () => void;
@@ -38,17 +35,13 @@ export const useAuthStore = create<AuthStore>()(
     (set) => ({
       user: null,
       isAuthenticated: false,
-      selectedApp: null,
       isShopAvailable: false,
-      isShipmentAvailable: false,
       isLoading: false,
       mustChangePassword: false,
 
       setUser: (user) => set({ user }),
       setAuthenticated: (value) => set({ isAuthenticated: value }),
-      setSelectedApp: (app) => set({ selectedApp: app }),
-      setTokenAvailability: (shop, shipment) =>
-        set({ isShopAvailable: shop, isShipmentAvailable: shipment }),
+      setShopAvailable: (value) => set({ isShopAvailable: value }),
       setLoading: (loading) => set({ isLoading: loading }),
       setMustChangePassword: (value) => set({ mustChangePassword: value }),
 
@@ -61,9 +54,7 @@ export const useAuthStore = create<AuthStore>()(
         set({
           user: null,
           isAuthenticated: false,
-          selectedApp: null,
           isShopAvailable: false,
-          isShipmentAvailable: false,
           mustChangePassword: false,
         });
       },
@@ -72,10 +63,8 @@ export const useAuthStore = create<AuthStore>()(
       name: 'auth-store',
       partialize: (state) => ({
         isAuthenticated: state.isAuthenticated,
-        selectedApp: state.selectedApp,
         user: state.user,
         isShopAvailable: state.isShopAvailable,
-        isShipmentAvailable: state.isShipmentAvailable,
         mustChangePassword: state.mustChangePassword,
       }),
     }

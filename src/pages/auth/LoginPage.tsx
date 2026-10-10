@@ -1,41 +1,15 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useLogin } from '@/auth/hooks/useLogin';
-import { useAuthStore } from '@/auth/store/auth.store';
 import { showError } from '@/shared/utils/alert';
 import Icon from '@/shared/components/dashboard/Icon';
 import '@/assets/css/Login.css';
 import { PICTO } from '@/assets/images/logos';
 
-const APPS = [
-  {
-    id: 'shop' as const,
-    label: 'Yobante Boutique',
-    desc: 'Gérez votre catalogue, vos commandes et vos clients boutique.',
-    chips: ['Catalogue', 'Commandes', 'Clients'],
-    accent: '#f5c518',
-    ink: '#111',
-    path: '/boutique/dashboard',
-  },
-  {
-    id: 'shipment' as const,
-    label: 'Yobante Colis',
-    desc: 'Suivez vos expéditions, conteneurs et livraisons.',
-    chips: ['Expéditions', 'Conteneurs', 'Suivi'],
-    accent: '#17379b',
-    ink: '#fff',
-    path: '/colis/dashboard',
-  },
-];
-
 export const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPwd, setShowPwd] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const navigate = useNavigate();
-  const setSelectedApp = useAuthStore((state) => state.setSelectedApp);
-  const login = useLogin(() => setShowModal(true));
+  const login = useLogin();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,11 +18,6 @@ export const LoginPage = () => {
       return;
     }
     login.mutate({ email, password });
-  };
-
-  const handleSelectApp = (app: typeof APPS[number]) => {
-    setSelectedApp(app.id);
-    navigate(app.path);
   };
 
   return (
@@ -135,37 +104,6 @@ export const LoginPage = () => {
         </p>
       </main>
 
-      {/* ── Modal de choix de dashboard (les 2 backs ont répondu) ── */}
-      {showModal && (
-        <div className="app-modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="app-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="app-modal-head">
-              <img src={PICTO} alt="Yobante" className="app-modal-logo" />
-              <h3>Choisissez votre espace</h3>
-              <p>Vous avez accès aux deux plateformes. Laquelle voulez-vous gérer ?</p>
-            </div>
-            <div className="app-modal-grid">
-              {APPS.map((app) => (
-                <button
-                  key={app.id}
-                  className="app-modal-card"
-                  style={{ '--accent': app.accent, '--ink': app.ink } as React.CSSProperties}
-                  onClick={() => handleSelectApp(app)}
-                >
-                  <span className="app-modal-card-name">{app.label}</span>
-                  <span className="app-modal-card-desc">{app.desc}</span>
-                  <span className="app-modal-chips">
-                    {app.chips.map((c) => <span key={c} className="app-modal-chip">{c}</span>)}
-                  </span>
-                  <span className="app-modal-cta">
-                    Accéder <Icon name="arrow-right" size={14} />
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

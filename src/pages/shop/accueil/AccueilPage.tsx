@@ -6,6 +6,8 @@ import { showSuccess, showError } from '@/shared/utils/alert';
 import Icon from '@/shared/components/dashboard/Icon';
 import SousSectionModal from './components/SousSectionModal';
 import PromotionModal from './components/PromotionModal';
+import ProduitsSectionModal from './components/ProduitsSectionModal';
+import type { SectionPromotion } from '@/domains/shop/types';
 import BanniereModal from './components/BanniereModal';
 import ErreurChargement from '@/shared/components/feedback/ErreurChargement';
 import { etatRetour } from '@/shared/hooks/useRetour';
@@ -15,14 +17,22 @@ import { etatRetour } from '@/shared/hooks/useRetour';
  *
  * Reproduit la structure vue par le client :
  *  - la section principale, portée par les bannières du haut ;
- *  - trois sections promotionnelles, chacune composée de sous-sections
- *    (image + titre) et des produits en promotion qui leur sont rattachés.
+ *  - « Nos promos du moment » : des produits choisis dans le catalogue,
+ *    affichés directement dans l'application dans l'ordre fixé ici (les 6
+ *    premiers sur l'accueil, puis « Voir tout » en haut à droite de la section) — sans sous-section ;
+ *  - « À ne pas rater » et « Nos promos à venir » : des sous-sections
+ *    (image + titre) et les produits en promotion qui leur sont rattachés.
  */
 
 export const SECTIONS = [
-  { cle: 'nos_promos_du_moment', libelle: 'Nos promos du moment' },
-  { cle: 'a_ne_pas_rater', libelle: 'À ne pas rater' },
-  { cle: 'nos_promos_a_venir', libelle: 'Nos promos à venir' },
+  {
+    cle: 'nos_promos_du_moment',
+    libelle: 'Nos promos du moment',
+    sousSections: false,
+    aide: "Choisissez les produits à mettre en avant. Ils s'affichent dans l'application dans cet ordre : les 6 premiers sur l'accueil, la suite via « Voir tout », en haut à droite de la section. Sans produit, l'application montre les derniers produits du catalogue.",
+  },
+  { cle: 'a_ne_pas_rater', libelle: 'À ne pas rater', sousSections: true, aide: null },
+  { cle: 'nos_promos_a_venir', libelle: 'Nos promos à venir', sousSections: true, aide: null },
 ] as const;
 
 const api = {
@@ -38,6 +48,8 @@ const api = {
   promotions: () => shopClient.get('/admin/promotions', { params: { limit: 200 } }),
   supprimerPromotion: (id: string) => shopClient.delete(`/admin/promotions/${id}`),
   basculerPromotion: (id: string) => shopClient.patch(`/admin/promotions/${id}/toggle`),
+  reordonnerPromotions: (elements: { id: string; ordre: number }[]) =>
+    shopClient.post('/admin/promotions/reordonner', { elements }),
 };
 
 const listeDe = (donnees: any, cle: string): any[] =>
@@ -49,6 +61,7 @@ export default function AccueilPage() {
   const [sectionCible, setSectionCible] = useState<string | null>(null);
   const [promoEnEdition, setPromoEnEdition] = useState<any>(null);
   const [sectionPromo, setSectionPromo] = useState<string | null>(null);
+  const [sectionProduits, setSectionProduits] = useState<SectionPromotion | null>(null);
   const [modaleBanniere, setModaleBanniere] = useState(false);
   const [banniereEnEdition, setBanniereEnEdition] = useState<any>(null);
 
@@ -78,6 +91,19 @@ export default function AccueilPage() {
   const bascBloc = useMutationAccueil(api.basculerBloc, 'blocs', 'Sous-section mise à jour');
   const supprPromo = useMutationAccueil(api.supprimerPromotion, 'promotions', 'Promotion retirée');
   const bascPromo = useMutationAccueil(api.basculerPromotion, 'promotions', 'Promotion mise à jour');
+
+  // Déplace un produit d'un cran dans sa section et renumérote toute la liste
+  // (0, 1, 2…) : l'ordre reste propre même si d'anciens produits avaient le même rang.
+  const deplacer = useMutation({
+    mutationFn: ({ liste, index, sens }: { liste: any[]; index: number; sens: -1 | 1 }) => {
+      const copie = [...liste];
+      const [el] = copie.splice(index, 1);
+      copie.splice(index + sens, 0, el);
+      return api.reordonnerPromotions(copie.map((p, i) => ({ id: p.id, ordre: i })));
+    },
+    onSuccess: () => rafraichir('promotions'),
+    onError: (e: any) => showError(e),
+  });
 
   const blocsParSection = useMemo(() => {
     const parSection = blocs.data?.parSection;
@@ -162,8 +188,12 @@ export default function AccueilPage() {
       {SECTIONS.map((section) => (
         <section key={section.cle} className="bg-white rounded-xl border border-gray-100 p-4 sm:p-5">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <h2 className="font-semibold text-gray-900">{section.libelle}</h2>
+            <div className="min-w-0">
+              <h2 className="font-semibold text-gray-900">{section.libelle}</h2>
+              {section.aide && <p className="text-xs text-gray-500 mt-0.5">{section.aide}</p>}
+            </div>
             <div className="flex flex-wrap gap-2">
+              {section.sousSections && (
               <button
                 onClick={() => {
                   setSectionCible(section.cle);
@@ -173,6 +203,8 @@ export default function AccueilPage() {
               >
                 <Icon name="plus" size={15} /> Sous-section
               </button>
+              )}
+              {section.sousSections ? (
               <button
                 onClick={() => {
                   setSectionPromo(section.cle);
@@ -182,10 +214,20 @@ export default function AccueilPage() {
               >
                 <Icon name="plus" size={15} /> Produit en promo
               </button>
+              ) : (
+              <button
+                onClick={() => setSectionProduits(section.cle)}
+                className="inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg bg-yellow-500 text-white hover:bg-yellow-600"
+              >
+                <Icon name="plus" size={15} /> Ajouter des produits
+              </button>
+              )}
             </div>
           </div>
 
-          {/* Sous-sections */}
+          {/* Sous-sections (pas pour « Nos promos du moment ») */}
+          {section.sousSections && (
+          <>
           <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
             Sous-sections
           </h3>
@@ -216,12 +258,38 @@ export default function AccueilPage() {
               ))}
             </div>
           )}
+          </>
+          )}
 
           {/* Produits en promotion */}
           <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
-            Produits en promotion
+            {section.sousSections
+              ? 'Produits en promotion'
+              : `Produits affichés (${(promosParSection[section.cle] ?? []).length})`}
           </h3>
-          {promotions.isLoading ? (
+          {!section.sousSections ? (
+            promotions.isLoading ? (
+              <Chargement />
+            ) : promotions.isError ? (
+              <ErreurChargement erreur={promotions.error} onReessayer={() => promotions.refetch()} className="py-4" />
+            ) : (promosParSection[section.cle] ?? []).length === 0 ? (
+              <Vide texte="Aucun produit choisi : l'application affiche les derniers produits du catalogue." />
+            ) : (
+              <GrilleProduits
+                promos={promosParSection[section.cle] ?? []}
+                occupe={deplacer.isPending}
+                onDeplacer={(index, sens) =>
+                  deplacer.mutate({ liste: promosParSection[section.cle] ?? [], index, sens })
+                }
+                onModifier={(promo) => {
+                  setSectionPromo(section.cle);
+                  setPromoEnEdition(promo);
+                }}
+                onBasculer={(promo) => bascPromo.mutate(promo.id)}
+                onRetirer={(promo) => supprPromo.mutate(promo.id)}
+              />
+            )
+          ) : promotions.isLoading ? (
             <Chargement />
           ) : promotions.isError ? (
             <ErreurChargement erreur={promotions.error} onReessayer={() => promotions.refetch()} className="py-4" />
@@ -288,6 +356,21 @@ export default function AccueilPage() {
         </section>
       ))}
 
+      {sectionProduits && (
+        <ProduitsSectionModal
+          section={sectionProduits}
+          produitsPresents={(promosParSection[sectionProduits] ?? [])
+            .map((p: any) => p.produitId ?? p.produit?.id)
+            .filter(Boolean)}
+          ordreDepart={(promosParSection[sectionProduits] ?? []).reduce(
+            (max: number, p: any) => Math.max(max, (Number(p.ordre) || 0) + 1),
+            0
+          )}
+          onFermer={() => setSectionProduits(null)}
+          onEnregistre={() => rafraichir('promotions')}
+        />
+      )}
+
       {modaleBanniere && (
         <BanniereModal
           banniere={banniereEnEdition}
@@ -327,6 +410,106 @@ export default function AccueilPage() {
 }
 
 // ── Petits composants partagés ─────────────────────────────────────────
+
+const prix = (v: any) => `${Number(v ?? 0).toLocaleString('fr-FR')} FCFA`;
+
+/**
+ * Produits d'une section sans sous-section, dans l'ordre où l'application les
+ * affiche. Les 6 premiers sont ceux visibles sur l'accueil.
+ */
+function GrilleProduits({
+  promos,
+  occupe,
+  onDeplacer,
+  onModifier,
+  onBasculer,
+  onRetirer,
+}: {
+  promos: any[];
+  occupe: boolean;
+  onDeplacer: (index: number, sens: -1 | 1) => void;
+  onModifier: (promo: any) => void;
+  onBasculer: (promo: any) => void;
+  onRetirer: (promo: any) => void;
+}) {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+      {promos.map((promo, index) => {
+        const produit = promo.produit ?? {};
+        const image = produit.images?.[0] ?? null;
+        const enPromo = Number(promo.prixPromo) > 0;
+        return (
+          <div
+            key={promo.id}
+            className={`border rounded-lg overflow-hidden transition-colors ${
+              index < 6 ? 'border-yellow-200' : 'border-gray-100'
+            } ${promo.isActive ? '' : 'opacity-60'}`}
+          >
+            <div className="relative aspect-square bg-gray-50 flex items-center justify-center">
+              {image ? (
+                <img src={image} alt={produit.nom ?? ''} className="w-full h-full object-cover" />
+              ) : (
+                <Icon name="image" size={22} className="text-gray-300" />
+              )}
+              <span className="absolute top-1.5 left-1.5 text-[10px] font-bold bg-gray-900/80 text-white rounded px-1.5 py-0.5">
+                {index + 1}
+              </span>
+              {enPromo && promo.pourcentageReduction ? (
+                <span className="absolute top-1.5 right-1.5 text-[10px] font-bold bg-red-500 text-white rounded px-1.5 py-0.5">
+                  −{promo.pourcentageReduction} %
+                </span>
+              ) : null}
+            </div>
+            <div className="p-2">
+              <div className="text-sm font-medium text-gray-900 truncate" title={produit.nom}>
+                {produit.nom ?? promo.titre ?? '—'}
+              </div>
+              <div className="text-xs mt-0.5">
+                {enPromo ? (
+                  <>
+                    <span className="font-semibold text-gray-900">{prix(promo.prixPromo)}</span>{' '}
+                    <span className="text-gray-400 line-through">{prix(produit.prix)}</span>
+                  </>
+                ) : (
+                  <span className="text-gray-700">{prix(produit.prix)}</span>
+                )}
+              </div>
+              <div className="flex items-center justify-between mt-1.5">
+                <Etat actif={promo.isActive} />
+                {index === 5 && promos.length > 6 && (
+                  <span className="text-[10px] text-gray-400">suite : « Voir tout »</span>
+                )}
+              </div>
+              <div className="flex justify-between mt-1.5 -mx-1">
+                <div className="flex">
+                  <BoutonIcone
+                    nom="arrow-left"
+                    titre="Avancer"
+                    onClick={() => !occupe && index > 0 && onDeplacer(index, -1)}
+                  />
+                  <BoutonIcone
+                    nom="arrow-right"
+                    titre="Reculer"
+                    onClick={() => !occupe && index < promos.length - 1 && onDeplacer(index, 1)}
+                  />
+                </div>
+                <div className="flex">
+                  <BoutonIcone nom="pencil" titre="Prix promo (facultatif)" onClick={() => onModifier(promo)} />
+                  <BoutonIcone
+                    nom={promo.isActive ? 'eye-off' : 'eye'}
+                    titre={promo.isActive ? 'Masquer' : 'Afficher'}
+                    onClick={() => onBasculer(promo)}
+                  />
+                  <BoutonIcone nom="trash-2" titre="Retirer" danger onClick={() => onRetirer(promo)} />
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 function Chargement() {
   return <div className="py-6 text-sm text-gray-400">Chargement…</div>;

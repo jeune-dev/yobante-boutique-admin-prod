@@ -176,6 +176,15 @@ export default function OrdersPage() {
                     >
                       {c.statut}
                     </span>
+                    {/* Un vendeur a déclaré ses produits indisponibles. */}
+                    {c.refusVendeurs > 0 && (
+                      <span
+                        className="ml-1.5 px-2 py-1 rounded-full text-xs bg-red-50 text-red-700 whitespace-nowrap"
+                        title="Produits déclarés indisponibles par un vendeur — voir le détail"
+                      >
+                        Indisponible
+                      </span>
+                    )}
                   </td>
                   <td className="p-4 text-gray-500" data-label="Date">
                     {new Date(c.createdAt).toLocaleDateString('fr-FR')}

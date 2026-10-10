@@ -1,0 +1,1730 @@
+<title>Audit Yobante Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=JetBrains+Mono:wght@400;600&display=swap">
+
+<style>
+  /* ── Palette issue de l'identité réelle du dashboard ────────────────────
+     #1341a3 (bleu Yobante), #eab308 (or Yobante), #f7f9fc (fond),
+     #e0e4ea (filets) — relevés dans src/assets/css/Dashboard.css.      */
+  :root {
+    --ground: #f7f9fc;
+    --surface: #ffffff;
+    --surface-sunk: #eef1f6;
+    --ink: #111826;
+    --ink-soft: #3d4654;
+    --ink-mute: #5a6474;
+    --rule: #e0e4ea;
+    --rule-strong: #c7cedb;
+    --brand: #1341a3;
+    --brand-soft: #e7edf8;
+    --gold: #eab308;
+
+    --p0: #b42318;
+    --p0-bg: #fdeceb;
+    --p1: #c4320a;
+    --p1-bg: #fdefe8;
+    --p2: #96600a;
+    --p2-bg: #fdf4e3;
+    --p3: #5a6474;
+    --p3-bg: #eef1f6;
+
+    --ok: #067647;
+    --ok-bg: #e6f4ed;
+    --warn: #96600a;
+
+    --mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+    --sans: 'Archivo', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0d1117;
+      --surface: #151b24;
+      --surface-sunk: #1c2430;
+      --ink: #e8ecf2;
+      --ink-soft: #c2cad6;
+      --ink-mute: #8b95a5;
+      --rule: #273040;
+      --rule-strong: #3a4556;
+      --brand: #7aa5e8;
+      --brand-soft: #1a2740;
+      --gold: #f0c33c;
+
+      --p0: #ff8b7e;
+      --p0-bg: #3b1a16;
+      --p1: #ffa06b;
+      --p1-bg: #3a2016;
+      --p2: #e8c069;
+      --p2-bg: #352a14;
+      --p3: #8b95a5;
+      --p3-bg: #1c2430;
+
+      --ok: #5fd39b;
+      --ok-bg: #11301f;
+      --warn: #e8c069;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #0d1117;
+    --surface: #151b24;
+    --surface-sunk: #1c2430;
+    --ink: #e8ecf2;
+    --ink-soft: #c2cad6;
+    --ink-mute: #8b95a5;
+    --rule: #273040;
+    --rule-strong: #3a4556;
+    --brand: #7aa5e8;
+    --brand-soft: #1a2740;
+    --gold: #f0c33c;
+
+    --p0: #ff8b7e;
+    --p0-bg: #3b1a16;
+    --p1: #ffa06b;
+    --p1-bg: #3a2016;
+    --p2: #e8c069;
+    --p2-bg: #352a14;
+    --p3: #8b95a5;
+    --p3-bg: #1c2430;
+
+    --ok: #5fd39b;
+    --ok-bg: #11301f;
+    --warn: #e8c069;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 62rem;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 6rem;
+  }
+
+  /* ── En-tête ─────────────────────────────────────────────────────────── */
+  .masthead {
+    border-top: 3px solid var(--brand);
+    padding-top: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+  .eyebrow {
+    font-family: var(--sans);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--brand);
+    margin: 0 0 0.75rem;
+  }
+  h1 {
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: clamp(2rem, 5vw, 2.9rem);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    margin: 0 0 0.75rem;
+  }
+  .standfirst {
+    font-size: 1.1875rem;
+    color: var(--ink-soft);
+    max-width: 44rem;
+    margin: 0 0 1.5rem;
+  }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.5rem;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--ink-mute);
+    padding-top: 1rem;
+    border-top: 1px solid var(--rule);
+  }
+  .meta b { color: var(--ink-soft); font-weight: 600; }
+
+  /* ── Verdict ─────────────────────────────────────────────────────────── */
+  .verdict {
+    background: var(--surface);
+    border: 1px solid var(--rule-strong);
+    border-left: 4px solid var(--gold);
+    padding: 1.5rem 1.75rem;
+    margin: 0 0 3rem;
+  }
+  .verdict-label {
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin: 0 0 0.5rem;
+  }
+  .verdict-call {
+    font-family: var(--sans);
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0 0 0.75rem;
+    color: var(--ink);
+  }
+  .verdict p { margin: 0 0 0.75rem; color: var(--ink-soft); }
+  .verdict p:last-child { margin-bottom: 0; }
+
+  /* ── Sections ────────────────────────────────────────────────────────── */
+  section { margin-bottom: 3.5rem; }
+  h2 {
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+    margin: 0 0 0.35rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 2px solid var(--ink);
+  }
+  .sec-no {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--brand);
+    font-weight: 600;
+  }
+  h3 {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 1.125rem;
+    margin: 2rem 0 0.6rem;
+    color: var(--ink);
+  }
+  p { margin: 0 0 1rem; max-width: 44rem; }
+  a { color: var(--brand); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+  code {
+    font-family: var(--mono);
+    font-size: 0.855em;
+    background: var(--surface-sunk);
+    padding: 0.1em 0.35em;
+    border-radius: 2px;
+    word-break: break-word;
+  }
+  ul, ol { margin: 0 0 1rem; padding-left: 1.3rem; max-width: 44rem; }
+  li { margin-bottom: 0.4rem; }
+
+  /* ── Registre des constats ───────────────────────────────────────────── */
+  .register { border-top: 1px solid var(--rule); margin-top: 1.5rem; }
+  .finding {
+    display: grid;
+    grid-template-columns: 5.5rem 1fr;
+    gap: 0 1.25rem;
+    padding: 1.4rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  @media (max-width: 42rem) {
+    .finding { grid-template-columns: 1fr; gap: 0.6rem; }
+  }
+  .chip {
+    font-family: var(--sans);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 0.2rem 0.45rem;
+    border-radius: 2px;
+    justify-self: start;
+    align-self: start;
+    white-space: nowrap;
+  }
+  .chip.p0 { background: var(--p0-bg); color: var(--p0); }
+  .chip.p1 { background: var(--p1-bg); color: var(--p1); }
+  .chip.p2 { background: var(--p2-bg); color: var(--p2); }
+  .chip.p3 { background: var(--p3-bg); color: var(--p3); }
+
+  .finding-body h4 {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 1.0625rem;
+    margin: 0 0 0.5rem;
+    line-height: 1.35;
+    color: var(--ink);
+  }
+  .finding-body p { margin: 0 0 0.55rem; max-width: 46rem; }
+  .finding-body p:last-child { margin-bottom: 0; }
+  .where {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    color: var(--ink-mute);
+    margin: 0 0 0.6rem;
+    word-break: break-word;
+  }
+  .tag {
+    font-family: var(--sans);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.15rem 0.4rem;
+    border-radius: 2px;
+    margin-right: 0.35rem;
+  }
+  .tag.fixed { background: var(--ok-bg); color: var(--ok); }
+  .tag.open { background: var(--p2-bg); color: var(--p2); }
+  .lede { font-weight: 600; color: var(--ink); }
+
+  /* ── Tableaux ────────────────────────────────────────────────────────── */
+  .tablewrap { overflow-x: auto; margin: 1.25rem 0; border: 1px solid var(--rule); }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--sans);
+    font-size: 0.875rem;
+    background: var(--surface);
+  }
+  caption {
+    caption-side: top;
+    text-align: left;
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    padding: 0 0 0.5rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.6rem 0.85rem;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  th {
+    background: var(--surface-sunk);
+    font-weight: 600;
+    font-size: 0.78rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  td code { font-size: 0.8em; background: transparent; padding: 0; }
+  .pass { color: var(--ok); font-weight: 600; }
+  .skip { color: var(--warn); font-weight: 600; }
+
+  /* ── Bloc console ────────────────────────────────────────────────────── */
+  pre {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    line-height: 1.6;
+    background: var(--surface-sunk);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--rule-strong);
+    padding: 0.9rem 1rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+
+  details {
+    border: 1px solid var(--rule);
+    background: var(--surface);
+    padding: 0.85rem 1rem;
+    margin: 1rem 0;
+  }
+  summary {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    color: var(--ink);
+  }
+  details > *:not(summary) { margin-top: 0.85rem; }
+
+  .note {
+    border-left: 3px solid var(--brand);
+    background: var(--brand-soft);
+    padding: 0.85rem 1.1rem;
+    margin: 1.25rem 0;
+    font-size: 1rem;
+  }
+  .note p { margin: 0; max-width: none; }
+  .note p + p { margin-top: 0.6rem; }
+
+  /* ── Tableau de bord d'ouverture ─────────────────────────────────────── */
+  .scoreboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+    border: 1px solid var(--rule);
+    background: var(--surface);
+    margin: 0 0 3rem;
+  }
+  .score {
+    padding: 1rem 1.1rem;
+    border-right: 1px solid var(--rule);
+  }
+  .score:last-child { border-right: none; }
+  .score-k {
+    font-family: var(--sans);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin: 0 0 0.3rem;
+  }
+  .score-v {
+    font-family: var(--sans);
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    color: var(--ink);
+  }
+  .score-v small {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--ink-mute);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">Audit technique avant mise en production</p>
+    <h1>Yobante Admin</h1>
+    <p class="standfirst">
+      Revue de sécurité, de fiabilité et de performance du dashboard
+      d'administration et de l'API boutique qui le sert. Corrections appliquées
+      et vérifiées par exécution réelle des suites de tests.
+    </p>
+    <div class="meta">
+      <span><b>Date</b> 9 octobre 2026</span>
+      <span><b>Périmètre</b> yobante-admin + yobante-boutique-back</span>
+      <span><b>Base</b> React 19 / Vite 8 · Express 4 / Sequelize 6 / PostgreSQL</span>
+    </div>
+  </header>
+
+  <div class="scoreboard">
+    <div class="score">
+      <p class="score-k">Constats</p>
+      <p class="score-v">14</p>
+    </div>
+    <div class="score">
+      <p class="score-k">Corrigés</p>
+      <p class="score-v">11</p>
+    </div>
+    <div class="score">
+      <p class="score-k">Tests admin</p>
+      <p class="score-v">155 <small>/ 131</small></p>
+    </div>
+    <div class="score">
+      <p class="score-k">Tests API</p>
+      <p class="score-v">283 <small>/ 278</small></p>
+    </div>
+    <div class="score">
+      <p class="score-k">JS initial</p>
+      <p class="score-v">233 <small>kB / 911</small></p>
+    </div>
+  </div>
+
+  <div class="verdict">
+    <p class="verdict-label">Décision de mise en production</p>
+    <p class="verdict-call">GO sous réserve</p>
+    <p>
+      Aucune vulnérabilité critique ou élevée connue ne reste ouverte, et les
+      438 tests des deux dépôts passent après corrections. Mais deux réserves
+      bloquent un GO franc, et aucune des deux ne se lève depuis cet
+      environnement&nbsp;:
+    </p>
+    <p>
+      <b>1.</b> La correction la plus importante (en-têtes de sécurité et HTTPS
+      sur le dashboard) est une configuration nginx qui n'a pu être ni
+      validée syntaxiquement ni appliquée ici — <code>nginx</code> n'est pas
+      disponible dans cet environnement et le VPS n'est pas accessible.
+      <b>2.</b> Les tests d'intégration adossés à PostgreSQL
+      (<code>*.db.test.js</code>) sont <b>ignorés</b> faute de base locale&nbsp;:
+      17 tests de l'API n'ont pas été exécutés.
+    </p>
+    <p>
+      Les conditions précises à remplir avant déploiement sont listées en
+      <a href="#section-9">section 9</a>.
+    </p>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <section id="section-1">
+    <h2><span class="sec-no">01</span> &nbsp;État initial</h2>
+
+    <p>
+      Le dépôt <code>Yobante</code> contient quatre projets. L'audit porte sur
+      <code>yobante-admin</code> (le dashboard) et, parce que c'est là que les
+      autorisations sont réellement appliquées, sur
+      <code>yobante-boutique-back</code> (l'API qu'il consomme).
+      <code>yobante-boutique-mobile</code> (Flutter) et
+      <code>yobante-colis-backend</code> n'ont été lus que pour vérifier des
+      contrats d'API.
+    </p>
+
+    <h3>Architecture constatée</h3>
+    <ul>
+      <li>
+        <b>Dashboard</b> — SPA React 19 + TypeScript, Vite 8, Tailwind 3,
+        TanStack Query, Zustand (persisté), react-router 6. 128 fichiers
+        sources, ~40 routes. Servi en statique par nginx sur
+        <code>admin.yobante-boutique.com</code>, déployé par GitHub Actions
+        (scp du <code>dist/</code>).
+      </li>
+      <li>
+        <b>API</b> — Express 4 / Sequelize 6 / PostgreSQL, 268 fichiers.
+        Authentification JWT (access 1&nbsp;h + refresh 7&nbsp;j avec rotation
+        et stockage haché en base), bcrypt coût 12, Helmet, CORS en liste
+        blanche, <code>express-rate-limit</code>, Winston, Joi.
+      </li>
+      <li>
+        <b>Modèle d'autorisation</b> — trois rôles&nbsp;: <code>ADMIN</code>,
+        <code>VENDEUR</code>, <code>CLIENT</code>. Tout
+        <code>/api/v1/admin/*</code> est protégé <i>au point de montage</i>
+        dans <code>src/app.js</code> par la chaîne
+        <code>auth → motDePasseChange → adminMiddleware</code>. C'est une bonne
+        décision de conception&nbsp;: aucune route admin ne peut être ajoutée
+        sans garde, et l'audit n'a trouvé aucune route admin non protégée.
+      </li>
+    </ul>
+
+    <h3>Ce qui était déjà solide</h3>
+    <p>
+      Il faut le dire clairement, parce que cela a orienté l'audit vers les
+      vraies zones de risque&nbsp;: le projet n'est pas un prototype. La
+      vérification de session côté serveur existe
+      (<code>GET /admin/me</code> derrière le middleware ADMIN, re-contrôlée au
+      retour d'onglet), les refresh tokens sont hachés en base et tournés à
+      chaque rafraîchissement, le rejeu d'un jeton révoqué est détectable
+      (révocation plutôt que suppression), l'énumération de comptes est évitée
+      sur le parcours de réinitialisation, les secrets JWT sont validés au
+      démarrage (présence <i>et</i> distinction mutuelle), <code>CORS=*</code>
+      est rejeté par construction, et aucun secret n'est suivi par git dans les
+      deux dépôts. L'API portait déjà 278 tests, dont 101 dédiés au contrôle
+      d'accès admin.
+    </p>
+
+    <h3>Environnement de test</h3>
+    <div class="tablewrap">
+      <table>
+        <caption>Ce qui a pu être exécuté, et ce qui n'a pas pu l'être</caption>
+        <thead>
+          <tr><th>Contrôle</th><th>Disponible</th><th>Conséquence</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Tests unitaires / intégration (mocks)</td>
+            <td class="pass">Oui</td>
+            <td>Exécutés, résultats en section 4</td>
+          </tr>
+          <tr>
+            <td>Type-check, build de production, lint</td>
+            <td class="pass">Oui</td>
+            <td>Exécutés</td>
+          </tr>
+          <tr>
+            <td>PostgreSQL</td>
+            <td class="skip">Non</td>
+            <td>17 tests <code>*.db.test.js</code> ignorés, non validés</td>
+          </tr>
+          <tr>
+            <td><code>nginx</code></td>
+            <td class="skip">Non</td>
+            <td>Configuration corrigée mais non validée (<code>nginx -t</code>)</td>
+          </tr>
+          <tr>
+            <td>Navigateur / VPS / API déployée</td>
+            <td class="skip">Non</td>
+            <td>Pas de test d'intrusion réel, ni Core Web Vitals, ni lecteur d'écran</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <section id="section-2">
+    <h2><span class="sec-no">02</span> &nbsp;Constats</h2>
+    <p>
+      Classés par gravité. Chaque entrée donne l'emplacement, le scénario de
+      reproduction, l'impact réel et la correction appliquée.
+    </p>
+
+    <div class="register">
+
+      <!-- P0 -->
+      <article class="finding">
+        <span class="chip p0">P0</span>
+        <div class="finding-body">
+          <h4>Le dashboard était servi sans aucun en-tête de sécurité, et en HTTP</h4>
+          <p class="where">deploy/nginx-admin.yobante-boutique.com.conf</p>
+          <p>
+            <span class="tag fixed">Corrigé</span>
+            La configuration nginx du dashboard ne déclarait <b>aucun</b>
+            en-tête de sécurité — pas de CSP, pas de HSTS, pas de
+            <code>X-Frame-Options</code>, pas de <code>nosniff</code> — et
+            n'écoutait que sur le port 80, sans redirection vers HTTPS.
+          </p>
+          <p>
+            L'impact est double. D'abord, les jetons d'administration vivent
+            dans le <code>localStorage</code> (choix d'architecture, voir le
+            constat P2 correspondant)&nbsp;: sans CSP, toute exécution de
+            script tiers dans la page équivaut à une prise de contrôle complète
+            du compte administrateur. La CSP est précisément le contrôle
+            compensatoire qui manquait. Ensuite, sans redirection HTTPS ni
+            HSTS, un accès à <code>http://admin…</code> transmet identifiants
+            et jetons en clair, et reste exploitable par SSL-stripping.
+          </p>
+          <p>
+            Le contraste avec l'API est frappant et a servi de référence&nbsp;:
+            <code>yobante-boutique-back/deploy/nginx.conf</code> est, lui,
+            correctement durci (HSTS, nosniff, Referrer-Policy, TLS 1.2+,
+            redirection 301). Le durcissement n'avait simplement jamais été
+            porté sur le dashboard — la cible de plus grande valeur.
+          </p>
+          <p>
+            Correction&nbsp;: réécriture de la configuration avec bloc HTTPS,
+            redirection 301 depuis HTTP (en préservant le challenge ACME de
+            certbot), TLS aligné sur celui de l'API, et un nouveau fichier
+            <code>deploy/nginx-security-headers.conf</code> contenant CSP,
+            HSTS, <code>frame-ancestors</code>, <code>nosniff</code>,
+            Referrer-Policy et Permissions-Policy.
+          </p>
+          <div class="note">
+            <p>
+              <b>Détail qui compte.</b> Les en-têtes sont dans un fichier
+              <code>include</code>é dans <i>chaque</i> bloc
+              <code>location</code>, et non posés une fois au niveau
+              <code>server</code>. Dans nginx, un <code>add_header</code>
+              présent dans un <code>location</code> annule tous ceux hérités du
+              bloc parent&nbsp;: les locations qui posent leur propre
+              <code>Cache-Control</code> (<code>/assets/</code>,
+              <code>index.html</code>) auraient perdu la CSP sans que rien ne
+              le signale.
+            </p>
+          </div>
+        </div>
+      </article>
+
+      <!-- P1 -->
+      <article class="finding">
+        <span class="chip p1">P1</span>
+        <div class="finding-body">
+          <h4>Cinq connexions depuis une même IP verrouillaient toute l'authentification, rafraîchissement de jeton compris</h4>
+          <p class="where">src/auth/services/auth.service.ts · back: src/middlewares/rateLimit.middleware.js, src/routes/auth.routes.js</p>
+          <p>
+            <span class="tag fixed">Corrigé</span>
+            C'est le défaut le plus intéressant de l'audit, parce qu'il naît de
+            la rencontre de deux décisions correctes prises séparément.
+          </p>
+          <p>
+            Côté dashboard, chaque connexion émettait <i>deux</i> requêtes en
+            parallèle&nbsp;: <code>/auth/admin/login</code> vers la boutique, et
+            <code>/auth/login</code> vers le « backend colis ». Or
+            <code>VITE_SHIPMENT_API_URL</code> et
+            <code>VITE_SHOP_API_URL</code> pointent sur <b>la même origine</b>
+            (l'API boutique) dans <code>.env</code>, <code>.env.local</code> et
+            <code>.env.example</code>. La seconde requête partait donc sur
+            l'endpoint client de la boutique, avec un corps
+            <code>{ email, password }</code> alors que le schéma Joi exige
+            <code>identifiant</code> — et échouait en 400 <b>à chaque
+            connexion, systématiquement</b>.
+          </p>
+          <p>
+            Côté API, <code>authLimiter</code> est une <b>instance unique</b>
+            partagée par cinq routes (<code>/login</code>,
+            <code>/admin/login</code>, <code>/refresh</code>,
+            <code>/verify-reset-code</code>, <code>/reset-password</code>),
+            plafonnée à 5 requêtes/15&nbsp;min par IP, en
+            <code>skipSuccessfulRequests</code> — seuls les <i>échecs</i>
+            comptent.
+          </p>
+          <p>
+            Reproduction&nbsp;: se connecter cinq fois avec succès depuis la
+            même adresse IP publique en moins de quinze minutes. Chaque
+            connexion réussie produisait un échec « gratuit » sur
+            <code>/auth/login</code>&nbsp;; au cinquième, le compteur partagé
+            atteignait son plafond et <b>tout le périmètre auth</b> répondait
+            429 — y compris <code>/auth/refresh</code>, ce qui coupait aussi les
+            sessions déjà ouvertes. Un bureau derrière un seul NAT atteignait ce
+            seuil en usage strictement normal.
+          </p>
+          <p>
+            Correction&nbsp;: la requête colis n'est plus émise si
+            <code>VITE_SHIPMENT_API_URL</code> n'est pas une origine distincte
+            de l'API boutique (<code>colisEstUnServiceDistinct()</code>). La
+            bascule se fera d'elle-même le jour où les deux URL diffèrent, sans
+            changement de code. Le contrat a par ailleurs été corrigé pour
+            correspondre au vrai backend colis
+            (<code>{ email, mot_de_passe }</code> → <code>{ token,
+            utilisateur }</code>)&nbsp;: tel qu'écrit, l'appel ne pouvait
+            aboutir sur <i>aucun</i> des deux backends.
+          </p>
+        </div>
+      </article>
+
+      <article class="finding">
+        <span class="chip p1">P1</span>
+        <div class="finding-body">
+          <h4>L'espace « Colis » affichait des données fabriquées et confirmait des actions qui n'atteignaient jamais le serveur</h4>
+          <p class="where">src/pages/shipment/dashboard/panels/*.tsx · src/app/routes/ColisRoute.tsx</p>
+          <p>
+            <span class="tag fixed">Corrigé</span>
+            Les cinq panneaux de l'espace Colis
+            (<code>OverviewPanel</code>, <code>ColisPanel</code>,
+            <code>ConteneursPanel</code>, <code>ClientsPanel</code>,
+            <code>AdminsPanel</code>) n'effectuent <b>aucun appel API</b> —
+            vérifié&nbsp;: aucun import de client HTTP, ni
+            <code>useQuery</code>, ni <code>useMutation</code> dans tout le
+            dossier. Ils lisent des constantes <code>FAKE_COLIS</code>,
+            <code>FAKE_CLIENTS</code>, <code>FAKE_ADMINS</code>,
+            <code>FAKE_CONTENEURS</code>, <code>FAKE_DATA</code>.
+          </p>
+          <p>
+            Le problème n'est pas l'affichage de chiffres faux, c'est la classe
+            de bug la plus trompeuse qui existe dans une interface
+            d'administration&nbsp;: <b>l'interface confirme des opérations qui
+            n'ont pas eu lieu</b>. « Valider » et « Refuser » un colis,
+            « Désactiver » et « Supprimer » un client, « Créer » un
+            administrateur, changer un statut — tout ne mute qu'un
+            <code>useState</code> local. Le motif de refus est saisi dans une
+            modale, puis jeté. L'administrateur voit le statut changer, la
+            ligne disparaître, et croit l'opération faite&nbsp;; elle est perdue
+            au rechargement.
+          </p>
+          <p>
+            Reproduction&nbsp;: se connecter comme administrateur, saisir
+            <code>/colis/dashboard</code> dans la barre d'adresse, supprimer un
+            client, recharger. <code>PrivateRoute</code> ne contrôlait que
+            l'authentification et le rôle, jamais l'application concernée&nbsp;:
+            la page était donc atteignable par tout administrateur.
+          </p>
+          <p>
+            Correction&nbsp;: nouvelle garde <code>ColisRoute</code> exigeant
+            une session colis réelle (<code>isShipmentAvailable</code>), ce qui
+            rend l'espace inatteignable tant que le backend colis n'est pas
+            déployé. <b>Le code des panneaux est conservé intact</b> — c'est une
+            fonctionnalité inachevée, pas à supprimer&nbsp;: elle redeviendra
+            accessible d'elle-même le jour où une vraie session colis sera
+            possible. La condition de reprise est documentée dans
+            <code>SETUP.md</code> et dans l'en-tête de <code>ColisRoute</code>.
+          </p>
+        </div>
+      </article>
+
+      <article class="finding">
+        <span class="chip p1">P1</span>
+        <div class="finding-body">
+          <h4>Le remplacement du mot de passe temporaire ne révoquait aucune session</h4>
+          <p class="where">yobante-boutique-back/src/services/auth.service.js — changerPremierMotDePasse()</p>
+          <p>
+            <span class="tag fixed">Corrigé</span>
+            <code>changePassword()</code> révoque bien tous les refresh tokens
+            de l'utilisateur, dans une transaction.
+            <code>changerPremierMotDePasse()</code>, non&nbsp;: il se contentait
+            d'écrire le nouveau hash, hors transaction.
+          </p>
+          <p>
+            C'est pourtant le chemin où le risque est le plus élevé. Un mot de
+            passe temporaire est généré par l'administration et transmis
+            <i>hors bande</i> — e-mail, message — donc potentiellement lu par
+            un tiers. Scénario&nbsp;: le tiers se connecte avant le titulaire et
+            obtient un refresh token valide 7 jours. Le titulaire change ensuite
+            son mot de passe, en croyant reprendre le contrôle du compte. Avant
+            correction, la session du tiers survivait intégralement au
+            changement.
+          </p>
+          <p>
+            Correction&nbsp;: révocation de tous les refresh tokens actifs, dans
+            la même transaction que l'écriture du mot de passe. Couvert par
+            quatre nouveaux tests, dont un qui échoue sur le code d'avant.
+          </p>
+        </div>
+      </article>
+
+      <article class="finding">
+        <span class="chip p1">P1</span>
+        <div class="finding-body">
+          <h4>Dépendances d'exécution vulnérables, dont une voie XSS</h4>
+          <p class="where">package.json · package-lock.json</p>
+          <p>
+            <span class="tag fixed">Corrigé</span>
+            <code>npm audit</code> remontait 27 vulnérabilités. La distinction
+            qui compte est <i>exécution</i> contre <i>développement</i>&nbsp;:
+            seules 3 touchaient des dépendances livrées au navigateur.
+          </p>
+          <ul>
+            <li>
+              <code>axios</code> 1.18.1 — pollution de prototype dans
+              l'adaptateur fetch (GHSA-vh66-26gq-q6x8). → <b>1.20.0</b>
+            </li>
+            <li>
+              <code>react-router-dom</code> 6.30.4 — redirection ouverte menant
+              à du XSS (GHSA-jjmj-jmhj-qwj2, CVSS 6.9). Sur un dashboard qui
+              garde ses jetons en <code>localStorage</code>, une voie XSS est
+              une voie de compromission de compte. → <b>6.30.6</b>
+            </li>
+          </ul>
+          <p>
+            Après mise à niveau&nbsp;: <b>0 vulnérabilité haute ou critique</b>
+            sur les dépendances d'exécution. Les deux avis moyens restants sont
+            traités en section 8 (risques résiduels), analyse d'exploitabilité
+            incluse.
+          </p>
+          <p>
+            Les 2 critiques (<code>tinypool</code>,
+            <code>vitest</code>) et la majorité des hautes sont des
+            <b>dépendances de développement</b> (vitest, eslint, tailwind,
+            postcss) — absentes du bundle de production. Elles n'ont
+            volontairement pas été mises à niveau&nbsp;: le correctif passe par
+            vitest 4, un changement majeur du lanceur de tests dont le risque
+            de régression dépasse, en pleine préparation de mise en production,
+            celui d'un vecteur qui exige déjà l'exécution de code hostile en
+            local.
+          </p>
+        </div>
+      </article>
+
+      <!-- P2 -->
+      <article class="finding">
+        <span class="chip p2">P2</span>
+        <div class="finding-body">
+          <h4>Les limiteurs calibrés « par utilisateur » étaient en fait par adresse IP</h4>
+          <p class="where">yobante-boutique-back/src/app.js</p>
+          <p>
+            <span class="tag fixed">Corrigé</span>
+            <code>adminLimiter</code>, <code>authenticatedLimiter</code> et
+            <code>mutationLimiter</code> utilisent
+            <code>keyGenerator: req.user?.id || req.ip</code>, mais étaient tous
+            montés <b>avant</b> le middleware <code>auth</code>&nbsp;:
+            <code>req.user</code> n'existait pas encore, et la clé retombait
+            toujours sur l'IP.
+          </p>
+          <p>
+            Conséquence pratique&nbsp;: les 200 requêtes/15&nbsp;min des routes
+            admin étaient partagées par <i>tous</i> les administrateurs d'un
+            même bureau. Une page du dashboard émettant plusieurs requêtes,
+            deux ou trois administrateurs simultanés suffisaient à provoquer des
+            429 en usage normal.
+          </p>
+          <p>
+            Correction&nbsp;: <code>auth</code> placé avant le limiteur sur les
+            dix points de montage concernés. Les limiteurs réellement destinés à
+            des routes non authentifiées (callbacks de paiement, formulaire
+            public de suppression de compte) ont été laissés inchangés — leur
+            clé IP y est correcte.
+          </p>
+        </div>
+      </article>
+
+      <article class="finding">
+        <span class="chip p2">P2</span>
+        <div class="finding-body">
+          <h4>La désactivation d'un compte laissait jusqu'à 30 secondes d'accès complet</h4>
+          <p class="where">yobante-boutique-back/src/services/admin/user.service.js, vendeur.service.js</p>
+          <p>
+            <span class="tag fixed">Corrigé</span>
+            Le middleware d'authentification met en cache le profil
+            <code>{ role, isActive }</code> pendant 30 secondes. Le blocage d'un
+            <i>administrateur</i> purgeait bien ce cache, le blocage d'un
+            <i>vendeur</i> aussi — mais <code>desactiverUser()</code>, non. Le
+            compte conservait donc un accès complet pendant la durée du TTL.
+          </p>
+          <p>
+            C'est l'outil qu'un administrateur utilise face à un compte
+            compromis ou abusif&nbsp;: il doit couper l'accès immédiatement.
+            L'incohérence entre les trois chemins était d'autant plus nette que
+            le motif de purge existait déjà, nommé, dans deux services voisins.
+          </p>
+          <p>
+            Correction&nbsp;: purge du cache d'authentification sur activation
+            et désactivation, et révocation des refresh tokens dans une
+            transaction — également ajoutée au blocage d'un vendeur.
+            <code>AuthService.refresh</code> refusait déjà un compte inactif,
+            donc rien n'était exploitable dans l'instant&nbsp;; mais les jetons
+            restaient valides en base et <b>redevenaient utilisables à la
+            réactivation du compte</b>, y compris un jeton volé avant la
+            désactivation.
+          </p>
+        </div>
+      </article>
+
+      <article class="finding">
+        <span class="chip p2">P2</span>
+        <div class="finding-body">
+          <h4>Documentation OpenAPI exposée publiquement en production</h4>
+          <p class="where">yobante-boutique-back/src/app.js</p>
+          <p>
+            <span class="tag fixed">Corrigé</span>
+            <code>/api-docs</code> (Swagger UI) était monté sans condition, et
+            la route racine <code>/</code> en publiait l'adresse. Toute la
+            surface d'API — chemins admin, schémas de corps de requête, noms de
+            champs — était ainsi offerte à un attaquant, lui épargnant toute
+            phase de découverte.
+          </p>
+          <p>
+            Correction&nbsp;: servie hors production uniquement, avec
+            réouverture explicite possible via
+            <code>ENABLE_API_DOCS=true</code> (utile en staging) mais jamais par
+            défaut. La route racine n'annonce <code>docs</code> que lorsqu'elle
+            est effectivement servie.
+          </p>
+        </div>
+      </article>
+
+      <article class="finding">
+        <span class="chip p2">P2</span>
+        <div class="finding-body">
+          <h4>Liste noire de rôles là où une liste blanche était attendue</h4>
+          <p class="where">src/app/routes/PrivateRoute.tsx</p>
+          <p>
+            <span class="tag fixed">Corrigé</span>
+            La garde refusait explicitement <code>VENDEUR</code> et
+            <code>CLIENT</code>&nbsp;: <code>ROLES_SANS_ACCES.includes(role)</code>.
+            Tout rôle absent de cette liste — un futur <code>SUPPORT</code>,
+            <code>LIVREUR</code>, <code>GESTIONNAIRE</code>, ou une valeur vide
+            — était donc <b>accepté par défaut</b>.
+          </p>
+          <p>
+            Aucun de ces rôles n'existe aujourd'hui (le backend n'en déclare
+            que trois), donc le défaut n'était pas exploitable en l'état. Il est
+            classé P2 et non P1 à ce titre&nbsp;: c'est une faille d'omission
+            future, où l'ajout d'un rôle côté API accorde silencieusement
+            l'accès au dashboard.
+          </p>
+          <p>
+            Correction&nbsp;: inversion en liste blanche — seul
+            <code>ADMIN</code> ouvre le dashboard, via
+            <code>estAdminBoutique()</code> déjà utilisé ailleurs. Couvert par
+            quatre nouveaux cas de test.
+          </p>
+        </div>
+      </article>
+
+      <article class="finding">
+        <span class="chip p2">P2</span>
+        <div class="finding-body">
+          <h4>Un seul paquet JavaScript de 911 kB pour quarante pages</h4>
+          <p class="where">src/app/routes/index.tsx · src/layouts/*/index.tsx</p>
+          <p>
+            <span class="tag fixed">Corrigé</span>
+            Le build produisait un chunk unique de 911 kB (239 kB gzip), avec
+            l'avertissement de Vite. Ouvrir la page de connexion téléchargeait
+            l'analytique, la finance, la gestion de stock et l'espace colis.
+          </p>
+          <p>
+            Correction&nbsp;: chargement différé des 36 pages
+            (<code>React.lazy</code>), avec frontière <code>Suspense</code>
+            placée dans les layouts — la barre de navigation reste donc affichée
+            pendant le chargement d'un module, au lieu d'un écran vide. Mesures
+            avant/après en section 6.
+          </p>
+        </div>
+      </article>
+
+      <article class="finding">
+        <span class="chip p2">P2</span>
+        <div class="finding-body">
+          <h4>Le déploiement en production n'exécutait aucun test</h4>
+          <p class="where">.github/workflows/deploy.yml</p>
+          <p>
+            <span class="tag fixed">Corrigé</span>
+            Le workflow installait, écrivait le <code>.env</code>, construisait
+            et copiait <code>dist/</code> sur le VPS. Ni tests, ni type-check,
+            ni lint&nbsp;: un commit cassé partait directement en production.
+          </p>
+          <p>
+            La seule vérification post-déploiement,
+            <code>curl -f -I https://admin…</code>, ne prouve rien d'utile
+            ici&nbsp;: nginx répond 200 sur <code>index.html</code> même avec un
+            bundle défectueux, puisque l'erreur ne se manifeste qu'à l'exécution
+            dans le navigateur.
+          </p>
+          <p>
+            Correction&nbsp;: étapes <code>type-check</code> et
+            <code>test</code> ajoutées avant le build, bloquantes. Le lint n'a
+            volontairement pas été rendu bloquant — voir le constat P3.
+          </p>
+        </div>
+      </article>
+
+      <article class="finding">
+        <span class="chip p2">P2</span>
+        <div class="finding-body">
+          <h4>Jetons d'administration en localStorage</h4>
+          <p class="where">src/infrastructure/auth/tokenManager.ts</p>
+          <p>
+            <span class="tag open">Résiduel — documenté</span>
+            Les jetons d'accès et de rafraîchissement sont stockés en
+            <code>localStorage</code>, donc lisibles par tout script exécuté
+            dans la page. C'est le constat que l'audit précédent plaçait en tête
+            de ses « corrections immédiates », sans l'appliquer.
+          </p>
+          <p>
+            Il n'a pas été corrigé ici, et c'est un choix assumé plutôt qu'un
+            oubli. L'API <i>émet déjà</i> le refresh token en cookie
+            <code>HttpOnly / Secure / SameSite=strict</code> en plus du corps de
+            réponse. Mais le dashboard et l'API sont sur des origines
+            différentes (<code>admin.</code> contre <code>api.</code>), et
+            <code>SameSite=strict</code> empêche l'envoi du cookie en
+            cross-site&nbsp;: basculer entièrement sur les cookies demande de
+            revoir le placement des domaines, la politique SameSite et la
+            protection CSRF qui en découle. C'est une migration
+            d'architecture, à mener avec une fenêtre de test, pas un correctif
+            de dernière minute avant déploiement.
+          </p>
+          <p>
+            Le risque est donc traité par son contrôle compensatoire&nbsp;: la
+            CSP <code>script-src 'self'</code> introduite en P0, plus la
+            suppression de la voie XSS de react-router (P1). À planifier
+            explicitement&nbsp;; voir section 8.
+          </p>
+        </div>
+      </article>
+
+      <!-- P3 -->
+      <article class="finding">
+        <span class="chip p3">P3</span>
+        <div class="finding-body">
+          <h4>Libellés de formulaire non reliés à leurs champs</h4>
+          <p class="where">src/pages/shop/profil/ProfilPage.tsx — composant Champ</p>
+          <p>
+            <span class="tag fixed">Corrigé</span>
+            Le composant <code>Champ</code> rendait un <code>&lt;label&gt;</code>
+            sans <code>htmlFor</code> et un <code>&lt;input&gt;</code> sans
+            <code>id</code>. Un lecteur d'écran annonçait « zone de saisie »
+            sans dire laquelle, et cliquer le libellé ne donnait pas le focus —
+            échec WCAG 2.2 AA (1.3.1 et 4.1.2) sur les six champs de la page,
+            dont les trois du changement de mot de passe.
+          </p>
+          <p>
+            Correction&nbsp;: association via <code>useId()</code>, et
+            <code>autocomplete</code> explicite
+            (<code>current-password</code>, <code>new-password</code>,
+            <code>given-name</code>, <code>family-name</code>,
+            <code>tel</code>) — ce qui permet aussi aux gestionnaires de mots de
+            passe de proposer une génération. <code>LoginPage</code> faisait
+            déjà tout cela correctement&nbsp;; c'est cette page qui avait
+            dérivé.
+          </p>
+        </div>
+      </article>
+
+      <article class="finding">
+        <span class="chip p3">P3</span>
+        <div class="finding-body">
+          <h4>Documentation d'exploitation décrivant des routes inexistantes</h4>
+          <p class="where">SETUP.md · security-audit-results.md</p>
+          <p>
+            <span class="tag fixed">Corrigé</span>
+            <code>SETUP.md</code> décrivait un parcours de connexion passant par
+            <code>/select-app</code>, <code>/shop/dashboard</code> et
+            <code>/shipment/dashboard</code> — trois chemins absents du routeur
+            (les vrais sont <code>/login</code>, <code>/boutique/*</code>,
+            <code>/colis/*</code>). Pour quiconque reprend le projet, cette
+            documentation envoie chercher des bugs inexistants.
+          </p>
+          <p>
+            <code>security-audit-results.md</code> posait un problème plus
+            sérieux&nbsp;: il analysait des fichiers supprimés depuis
+            (<code>LoginForm.tsx</code>, <code>AppSelectGuard.tsx</code>),
+            affirmait des manques déjà couverts (vérification du rôle côté
+            serveur, révocation des refresh tokens), et son « plan d'action en
+            3 phases » n'avait jamais été appliqué. Un rapport de sécurité faux
+            est pire qu'absent&nbsp;: il donne l'illusion d'une revue faite.
+          </p>
+          <p>
+            Correction&nbsp;: <code>SETUP.md</code> réécrit sur l'état réel
+            (dont le statut du backend colis et la condition de reprise), et
+            <code>security-audit-results.md</code> préfixé d'un avertissement de
+            péremption renvoyant vers le présent rapport.
+          </p>
+        </div>
+      </article>
+
+      <article class="finding">
+        <span class="chip p3">P3</span>
+        <div class="finding-body">
+          <h4>208 avertissements de lint, et un script de lint qui échoue</h4>
+          <p class="where">.eslintrc.cjs · package.json</p>
+          <p>
+            <span class="tag open">Non corrigé — délibérément</span>
+            <code>npm run lint</code> est configuré avec
+            <code>--max-warnings 0</code> alors que le projet porte 208
+            avertissements (207 <code>@typescript-eslint/no-explicit-any</code>,
+            1 <code>react-refresh/only-export-components</code>). Le script
+            échoue donc toujours, ce qui le rend inutilisable comme garde-fou.
+          </p>
+          <p>
+            Non corrigé sciemment&nbsp;: typer correctement 207 <code>any</code>
+            est un travail de fond qui touche la quasi-totalité des pages, avec
+            un risque de régression réel et aucun gain de sécurité immédiat.
+            C'est pour cette raison que le lint n'a pas été ajouté comme étape
+            bloquante du déploiement — l'y mettre en l'état aurait bloqué tous
+            les déploiements. Recommandation en section 8.
+          </p>
+        </div>
+      </article>
+
+      <article class="finding">
+        <span class="chip p3">P3</span>
+        <div class="finding-body">
+          <h4>Code OTP de réinitialisation sans compteur de tentatives</h4>
+          <p class="where">yobante-boutique-back/src/services/auth.service.js — verifyResetCode()</p>
+          <p>
+            <span class="tag open">Non corrigé — hors périmètre dashboard</span>
+            Le code à 6 chiffres n'est pas invalidé après N échecs&nbsp;; le
+            code reconnaît lui-même l'approximation en commentaire. La force
+            brute reste cependant contenue par <code>authLimiter</code>
+            (5 échecs/15&nbsp;min par IP) face à un espace de 10⁶ dans une
+            fenêtre de 10 minutes&nbsp;: l'attaque n'est réaliste que
+            distribuée sur un grand nombre d'adresses.
+          </p>
+          <p>
+            Classé P3 et laissé en l'état car ce parcours <b>ne concerne pas les
+            administrateurs</b>&nbsp;: <code>forgotPassword()</code> exclut
+            explicitement les comptes <code>ADMIN</code>. Le corriger touche le
+            parcours client/mobile, hors du périmètre de cet audit. Un compteur
+            de tentatives par enregistrement OTP reste la correction propre.
+          </p>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <section id="section-3">
+    <h2><span class="sec-no">03</span> &nbsp;Fichiers modifiés</h2>
+
+    <p>
+      21 fichiers touchés côté dashboard, 5 côté API. Aucune modification
+      étrangère à l'audit, et aucune fonctionnalité supprimée.
+    </p>
+
+    <div class="tablewrap">
+      <table>
+        <caption>yobante-admin — 15 modifiés, 6 ajoutés</caption>
+        <thead>
+          <tr><th>Fichier</th><th>Motif</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>deploy/nginx-admin.…conf</code></td><td>Bloc HTTPS, redirection 301, TLS durci, inclusion des en-têtes (P0)</td></tr>
+          <tr><td><code>deploy/nginx-security-headers.conf</code> <b>(+)</b></td><td>CSP, HSTS, frame-ancestors, nosniff, Referrer/Permissions-Policy (P0)</td></tr>
+          <tr><td><code>src/auth/services/auth.service.ts</code></td><td>Garde d'origine colis, contrat colis réel, refus d'une session sans jeton (P1)</td></tr>
+          <tr><td><code>src/app/routes/ColisRoute.tsx</code> <b>(+)</b></td><td>Garde exigeant une session colis réelle (P1)</td></tr>
+          <tr><td><code>src/app/routes/index.tsx</code></td><td>Chargement différé des 36 pages, montage de ColisRoute (P1, P2)</td></tr>
+          <tr><td><code>src/app/routes/PrivateRoute.tsx</code></td><td>Liste noire de rôles → liste blanche ADMIN (P2)</td></tr>
+          <tr><td><code>src/layouts/ShopLayout/index.tsx</code></td><td>Frontière Suspense sous la barre de navigation (P2)</td></tr>
+          <tr><td><code>src/layouts/ShipmentLayout/index.tsx</code></td><td>Frontière Suspense (P2)</td></tr>
+          <tr><td><code>src/shared/components/feedback/AttentePage.tsx</code> <b>(+)</b></td><td>État d'attente annoncé (<code>role="status"</code>)</td></tr>
+          <tr><td><code>src/shared/hooks/useRetour.ts</code></td><td>Rejet de l'antislash dans l'origine de retour (risque résiduel react-router)</td></tr>
+          <tr><td><code>src/pages/shop/profil/ProfilPage.tsx</code></td><td>Association label/champ, <code>autocomplete</code> (P3)</td></tr>
+          <tr><td><code>package.json</code> · <code>package-lock.json</code></td><td>axios 1.20.0, react-router-dom 6.30.6 (P1)</td></tr>
+          <tr><td><code>.github/workflows/deploy.yml</code></td><td>type-check + tests bloquants avant build (P2)</td></tr>
+          <tr><td><code>SETUP.md</code> · <code>security-audit-results.md</code></td><td>Mise à l'état réel, péremption signalée (P3)</td></tr>
+          <tr><td><code>…/auth.colis.test.ts</code>, <code>ColisRoute.test.tsx</code>, <code>useRetour.test.ts</code> <b>(+)</b></td><td>Nouveaux tests (section 4)</td></tr>
+          <tr><td><code>PrivateRoute.test.tsx</code> · <code>routes.test.tsx</code></td><td>Cas liste blanche&nbsp;; table des routes adaptée au lazy</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tablewrap">
+      <table>
+        <caption>yobante-boutique-back — 5 modifiés</caption>
+        <thead>
+          <tr><th>Fichier</th><th>Motif</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>src/app.js</code></td><td><code>auth</code> avant les limiteurs sur 10 montages&nbsp;; Swagger hors production (P2)</td></tr>
+          <tr><td><code>src/services/auth.service.js</code></td><td>Révocation transactionnelle au changement du mot de passe temporaire (P1)</td></tr>
+          <tr><td><code>src/services/admin/user.service.js</code></td><td>Purge du cache d'auth + révocation à la désactivation (P2)</td></tr>
+          <tr><td><code>src/services/admin/vendeur.service.js</code></td><td>Révocation des sessions au blocage d'un vendeur (P2)</td></tr>
+          <tr><td><code>tests/unit/services/auth.service.test.js</code></td><td>+5 tests de révocation</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <p>
+        <b>Point d'hygiène relevé lors de l'inspection du diff.</b> La suite de
+        tests de l'API réécrit par conception ~90 fichiers
+        <code>tests/contract/fixtures/*.json</code> à chaque exécution
+        (<code>mobile.contract.test.js:276</code>). Après mes exécutions, le
+        contenu était strictement identique (diff vide&nbsp;; seules les fins de
+        ligne changeaient) et ces fichiers ont été restaurés pour laisser un
+        diff lisible. Comportement préexistant, non modifié — mais il brouille
+        toute revue de diff après un <code>npm test</code>, et mériterait d'être
+        rendu explicite (variable d'environnement
+        <code>UPDATE_FIXTURES=1</code>).
+      </p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <section id="section-4">
+    <h2><span class="sec-no">04</span> &nbsp;Résultats des tests</h2>
+
+    <p>
+      Toutes les lignes ci-dessous correspondent à des exécutions réelles. Les
+      contrôles non exécutés sont signalés comme tels, et ne comptent pas comme
+      réussis.
+    </p>
+
+    <div class="tablewrap">
+      <table>
+        <caption>Exécutions — état final</caption>
+        <thead>
+          <tr><th>Commande</th><th>Résultat</th><th>Avant</th><th>Après</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>npx vitest run</code> (admin)</td>
+            <td class="pass">17 fichiers, 155 tests — tous passent</td>
+            <td class="num">131</td><td class="num">155</td>
+          </tr>
+          <tr>
+            <td><code>npx tsc --noEmit</code> (admin)</td>
+            <td class="pass">0 erreur</td>
+            <td class="num">0</td><td class="num">0</td>
+          </tr>
+          <tr>
+            <td><code>npx vite build</code></td>
+            <td class="pass">Réussi, sans avertissement de taille</td>
+            <td class="num">1 chunk</td><td class="num">57 chunks</td>
+          </tr>
+          <tr>
+            <td><code>npx eslint .</code></td>
+            <td class="skip">0 erreur, 208 avertissements</td>
+            <td class="num">208</td><td class="num">208</td>
+          </tr>
+          <tr>
+            <td><code>npm audit --omit=dev</code></td>
+            <td class="pass">0 haute / 0 critique&nbsp;; 2 moyennes résiduelles</td>
+            <td class="num">1H 2M</td><td class="num">2M</td>
+          </tr>
+          <tr>
+            <td><code>npx jest</code> (API, hors DB)</td>
+            <td class="pass">11 suites, 283 tests — tous passent</td>
+            <td class="num">278</td><td class="num">283</td>
+          </tr>
+          <tr>
+            <td><code>npx jest tests/integration/admin.protection.test.js</code></td>
+            <td class="pass">101 tests de contrôle d'accès — tous passent</td>
+            <td class="num">101</td><td class="num">101</td>
+          </tr>
+          <tr>
+            <td><code>npx jest **/*.db.test.js</code></td>
+            <td class="skip">17 tests IGNORÉS — PostgreSQL absent</td>
+            <td class="num">—</td><td class="num">—</td>
+          </tr>
+          <tr>
+            <td><code>nginx -t</code></td>
+            <td class="skip">NON EXÉCUTÉ — nginx absent de l'environnement</td>
+            <td class="num">—</td><td class="num">—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Tests ajoutés — 29 au total</h3>
+    <p>
+      Chaque correction de comportement est adossée à au moins un test qui
+      échoue sur le code d'avant.
+    </p>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Fichier</th><th>Nb</th><th>Couvre</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>src/auth/services/auth.colis.test.ts</code></td>
+            <td class="num">6</td>
+            <td>Aucune requête colis quand l'origine est identique&nbsp;; session boutique intacte&nbsp;; contrat <code>{ email, mot_de_passe }</code>&nbsp;; lecture de <code>token</code>/<code>utilisateur</code>&nbsp;; refus d'une réponse 200 sans jeton</td>
+          </tr>
+          <tr>
+            <td><code>src/app/routes/ColisRoute.test.tsx</code></td>
+            <td class="num">2</td>
+            <td>Sans session colis, <code>/colis/dashboard</code> renvoie vers la boutique&nbsp;; accès autorisé avec session réelle</td>
+          </tr>
+          <tr>
+            <td><code>src/shared/hooks/useRetour.test.ts</code></td>
+            <td class="num">12</td>
+            <td>Origines rejetées&nbsp;: <code>//hôte</code>, <code>/\hôte</code>, URL absolue, <code>javascript:</code>, chemin relatif, états inexploitables</td>
+          </tr>
+          <tr>
+            <td><code>src/app/routes/PrivateRoute.test.tsx</code></td>
+            <td class="num">4</td>
+            <td>Rôles hors liste blanche (<code>SUPPORT</code>, <code>LIVREUR</code>, <code>GESTIONNAIRE</code>, vide) → session purgée</td>
+          </tr>
+          <tr>
+            <td><code>tests/unit/services/auth.service.test.js</code></td>
+            <td class="num">5</td>
+            <td>Révocation au changement de mot de passe temporaire <i>et</i> classique&nbsp;; aucune révocation si la confirmation ou l'ancien mot de passe sont faux</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <details>
+      <summary>Sortie d'exécution finale</summary>
+<pre>$ npx vitest run            # yobante-admin
+ Test Files  17 passed (17)
+      Tests  155 passed (155)
+
+$ npx tsc --noEmit
+ (aucune sortie — 0 erreur)
+
+$ npx vite build
+ ✓ built in 12.47s           # aucun avertissement de taille
+
+$ npx jest --testPathIgnorePatterns='\.db\.test\.js$'   # yobante-boutique-back
+ Test Suites: 11 passed, 11 total
+ Tests:       283 passed, 283 total
+
+$ npx jest tests/integration/api.toutes-routes.db.test.js
+ Test Suites: 1 skipped, 0 of 1 total
+ Tests:       17 skipped, 17 total      # ← PostgreSQL absent</pre>
+    </details>
+
+    <div class="note">
+      <p>
+        <b>Une correction de test à signaler.</b> Un cas que j'avais d'abord
+        écrit affirmait qu'un rôle hors liste blanche ne déclenche
+        <i>aucun</i> appel à <code>GET /admin/me</code>. Il échouait&nbsp;: la
+        vérification de session part avant que l'effet de purge ne s'exécute.
+        L'assertion était fausse, pas le code — <code>aVerifier</code> ne
+        dépend pas du rôle. Le test a été corrigé pour vérifier ce qui compte
+        réellement (redirection et purge de la session)&nbsp;; la requête
+        superflue est sans impact, le serveur refusant de toute façon un jeton
+        non-admin.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <section id="section-5">
+    <h2><span class="sec-no">05</span> &nbsp;Sécurité — contrôles vérifiés</h2>
+
+    <h3>Vulnérabilités corrigées</h3>
+    <ul>
+      <li>Absence totale d'en-têtes de sécurité et de HTTPS sur le dashboard <b>(P0)</b></li>
+      <li>Session non révoquée au remplacement d'un mot de passe temporaire <b>(P1)</b></li>
+      <li>axios — pollution de prototype&nbsp;; react-router — redirection ouverte menant au XSS <b>(P1)</b></li>
+      <li>Verrouillage du périmètre auth, rafraîchissement inclus, après 5 connexions par IP <b>(P1)</b></li>
+      <li>Documentation OpenAPI exposée en production <b>(P2)</b></li>
+      <li>Liste noire de rôles remplacée par une liste blanche <b>(P2)</b></li>
+      <li>30 s d'accès résiduel après désactivation&nbsp;; jetons réactivables <b>(P2)</b></li>
+    </ul>
+
+    <h3>Contrôles vérifiés comme déjà corrects</h3>
+    <p>
+      Points explicitement contrôlés, trouvés satisfaisants, et laissés
+      inchangés&nbsp;:
+    </p>
+    <ul>
+      <li>
+        <b>Autorisation côté serveur</b> — tout <code>/api/v1/admin/*</code> est
+        gardé au point de montage&nbsp;; aucune route admin sans garde. Vérifié
+        par lecture exhaustive des 19 fichiers de routes admin et par les 101
+        tests de <code>admin.protection.test.js</code> (dont « jeton CLIENT →
+        403 » et « jeton ADMIN → passe »).
+      </li>
+      <li>
+        <b>Connexion réservée aux administrateurs</b> —
+        <code>/auth/admin/login</code> refuse les autres rôles en 403, et le
+        refus intervient <i>après</i> la vérification du mot de passe, pour ne
+        pas révéler le rôle d'un compte à qui n'en connaît pas les
+        identifiants.
+      </li>
+      <li>
+        <b>Mots de passe</b> — bcrypt coût 12&nbsp;; politique Joi (8 caractères
+        minimum, une majuscule, un chiffre)&nbsp;; jamais de hash renvoyé par
+        l'API.
+      </li>
+      <li>
+        <b>Requêtes SQL</b> — Sequelize avec paramètres liés&nbsp;; les rares
+        <code>sequelize.query</code> relus utilisent des substitutions, pas de
+        concaténation.
+      </li>
+      <li>
+        <b>Secrets</b> — aucun fichier <code>.env</code> suivi par git dans les
+        deux dépôts&nbsp;; secrets de déploiement en GitHub Secrets&nbsp;;
+        secrets JWT validés au démarrage (présence et distinction mutuelle).
+        Aucun secret n'apparaît dans ce rapport.
+      </li>
+      <li>
+        <b>Cache HTTP</b> — seul le catalogue public anonyme est cacheable&nbsp;;
+        toute réponse portant un <code>Authorization</code> est
+        <code>private, no-store</code>.
+      </li>
+      <li>
+        <b>Navigation</b> — aucun motif <code>?redirect=</code> /
+        <code>returnUrl</code> dans l'application&nbsp;; toutes les
+        destinations sont internes et construites depuis des constantes ou des
+        identifiants de ressource, et <code>useRetour</code> validait déjà les
+        origines.
+      </li>
+      <li>
+        <b>Téléversements</b> — 5 MB, types MIME en liste blanche
+        (png/jpeg/webp), corps limité à 1 MB globalement.
+      </li>
+    </ul>
+
+    <h3>Contrôles non réalisables ici</h3>
+    <p>
+      À ne pas considérer comme validés&nbsp;: test d'intrusion contre
+      l'instance déployée, vérification effective des en-têtes renvoyés par
+      nginx, tests IDOR/BOLA en conditions réelles contre la base de
+      production, revue des droits du compte PostgreSQL applicatif, test de
+      restauration de sauvegarde, et comportement réel sous charge.
+    </p>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <section id="section-6">
+    <h2><span class="sec-no">06</span> &nbsp;Performance</h2>
+
+    <div class="tablewrap">
+      <table>
+        <caption>Bundle de production — mesuré par <code>vite build</code></caption>
+        <thead>
+          <tr><th>Mesure</th><th>Avant</th><th>Après</th><th>Écart</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>JS au chargement initial</td><td class="num">911,5 kB</td><td class="num">232,9 kB</td><td class="num pass">−74 %</td></tr>
+          <tr><td>JS initial (gzip)</td><td class="num">238,8 kB</td><td class="num">73,2 kB</td><td class="num pass">−69 %</td></tr>
+          <tr><td>Nombre de chunks JS</td><td class="num">1</td><td class="num">57</td><td class="num">granularité</td></tr>
+          <tr><td>CSS au chargement initial</td><td class="num">94,9 kB</td><td class="num">57,7 kB</td><td class="num pass">−39 %</td></tr>
+          <tr><td>Avertissement de taille Vite</td><td class="num">Oui</td><td class="num pass">Non</td><td class="num">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      Les pages deviennent 36 modules distincts, chargés à la première visite
+      puis mis en cache&nbsp;; le CSS s'est scindé de la même façon. Le total
+      des octets augmente très légèrement (937 kB contre 911 kB) du fait du
+      surcoût de découpage&nbsp;: c'est le compromis attendu, et il est
+      favorable dès lors qu'un administrateur ne visite pas l'intégralité des
+      quarante pages à chaque session.
+    </p>
+
+    <h3>Observation non corrigée</h3>
+    <p>
+      Le plus gros chunk partagé (243 kB brut, 68 kB gzip) est dominé par
+      <b>sweetalert2</b>, utilisé par <code>shared/utils/alert.ts</code> donc
+      tiré par presque toutes les pages. Il est désormais isolé et cacheable
+      séparément, ce qui est déjà un gain, mais 68 kB gzip pour des boîtes de
+      confirmation reste disproportionné. Remplacer sweetalert2 par une modale
+      interne est une piste réelle — écartée ici parce qu'elle touche les
+      confirmations avant actions destructrices, qu'il serait imprudent de
+      refondre juste avant une mise en production.
+    </p>
+
+    <h3>Côté API</h3>
+    <p>
+      Lecture seule, sans base de données ni charge&nbsp;: pas de mesure de
+      temps de réponse, pas de détection de N+1 à l'exécution, pas de
+      vérification des index. Les éléments structurels relevés sont
+      corrects — pagination présente (<code>utils/paginate</code>), timeouts
+      par type de route, compression conditionnelle, cache de profil
+      d'authentification à TTL court, agrégation en une requête là où une
+      boucle N+1 était tentante (<code>user.service.js:_activite</code>).
+      Aucun index n'a été ajouté&nbsp;: sans mesure, ce serait de la
+      complexité non justifiée.
+    </p>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <section id="section-7">
+    <h2><span class="sec-no">07</span> &nbsp;Design et accessibilité</h2>
+
+    <div class="note">
+      <p>
+        <b>Limite majeure, à lire avant cette section.</b> Aucun navigateur
+        n'était disponible&nbsp;: l'audit UI/UX et accessibilité est
+        <b>statique</b> (lecture du code et des styles). Il n'y a eu ni
+        inspection aux résolutions desktop/tablette/mobile, ni mesure de
+        contraste rendue, ni test au lecteur d'écran, ni vérification
+        inter-navigateurs. Les points ci-dessous sont les seuls réellement
+        établis&nbsp;; le reste de la section 6/7 du cahier des charges reste à
+        couvrir manuellement.
+      </p>
+    </div>
+
+    <h3>Corrigé</h3>
+    <ul>
+      <li>
+        Association <code>label</code>/<code>input</code> et
+        <code>autocomplete</code> sur les six champs de
+        <code>ProfilPage</code> (WCAG 2.2 AA — 1.3.1, 4.1.2).
+      </li>
+      <li>
+        État d'attente du chargement différé annoncé aux technologies
+        d'assistance (<code>role="status"</code>,
+        <code>aria-live="polite"</code>), sans animation — rien ne justifie du
+        mouvement pour une attente de quelques centaines de millisecondes.
+      </li>
+    </ul>
+
+    <h3>Vérifié comme déjà correct</h3>
+    <ul>
+      <li>
+        <code>LoginPage</code> — <code>htmlFor</code>/<code>id</code> appariés,
+        <code>autoComplete="email"</code> et <code>"current-password"</code>,
+        <code>aria-label</code> et <code>aria-pressed</code> sur la bascule
+        d'affichage du mot de passe, logo décoratif en <code>alt=""</code> +
+        <code>aria-hidden</code>. C'est la page de référence du projet en la
+        matière.
+      </li>
+      <li>
+        Tableau de bord Colis — navigation clavier sur les entrées de menu
+        (<code>role="button"</code>, <code>tabIndex</code>, Entrée et Espace),
+        fermeture du tiroir à Échap, <code>aria-controls</code> /
+        <code>aria-expanded</code> sur le bouton d'ouverture.
+      </li>
+      <li>
+        Aucun emoji employé en remplacement d'icônes professionnelles (scan de
+        l'ensemble des <code>.tsx</code>)&nbsp;; toutes les
+        <code>&lt;img&gt;</code> contrôlées portent un <code>alt</code>.
+      </li>
+      <li>
+        Anneaux de focus explicites sur les champs
+        (<code>focus:ring-2</code>), non supprimés globalement.
+      </li>
+    </ul>
+
+    <h3>Non vérifié</h3>
+    <p>
+      Cohérence des espacements et de la hiérarchie visuelle entre les
+      quarante pages, débordements horizontaux, chevauchements, rendu des
+      modales et menus superposés, densité des grands tableaux, interactions
+      tactiles, ratios de contraste effectifs, respect de
+      <code>prefers-reduced-motion</code> dans les CSS existants, et
+      compatibilité inter-navigateurs.
+    </p>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <section id="section-8">
+    <h2><span class="sec-no">08</span> &nbsp;Risques résiduels</h2>
+
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Risque</th><th>Grav.</th><th>Position</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>Jetons en localStorage</b></td>
+            <td>P2</td>
+            <td>Migration d'architecture vers cookies <code>HttpOnly</code> à planifier (origines distinctes, SameSite, CSRF). Atténué par la CSP <code>script-src 'self'</code> et la correction react-router.</td>
+          </tr>
+          <tr>
+            <td><b>react-router — 2 avis moyens</b></td>
+            <td>P2</td>
+            <td>Corrigés seulement en v7 (migration majeure). Analyse d'exploitabilité&nbsp;: l'un concerne l'hydratation SSR, absente ici (SPA pure)&nbsp;; l'autre exige une destination de navigation contrôlée par l'attaquant, or toutes les destinations sont internes et <code>useRetour</code> a été durci contre l'antislash. <b>Non exploitable en l'état</b>, mais à suivre.</td>
+          </tr>
+          <tr>
+            <td><b>17 tests DB non exécutés</b></td>
+            <td>P1</td>
+            <td>Bloquant pour un GO franc. À rejouer sur un environnement doté de PostgreSQL avant déploiement.</td>
+          </tr>
+          <tr>
+            <td><b>nginx non validé</b></td>
+            <td>P1</td>
+            <td>Bloquant. <code>nginx -t</code> obligatoire avant rechargement&nbsp;; la configuration référence des certificats qui doivent exister au préalable.</td>
+          </tr>
+          <tr>
+            <td><b>2 critiques / 15 hautes en dépendances de dev</b></td>
+            <td>P3</td>
+            <td>Hors bundle de production. Planifier la migration vitest 4 hors fenêtre de mise en production.</td>
+          </tr>
+          <tr>
+            <td><b>208 avertissements de lint</b></td>
+            <td>P3</td>
+            <td>Recommandation&nbsp;: passer <code>--max-warnings</code> au nombre actuel pour figer un plafond, puis le faire décroître — plutôt que de laisser un script qui échoue toujours.</td>
+          </tr>
+          <tr>
+            <td><b>Espace Colis inachevé</b></td>
+            <td>P2</td>
+            <td>Rendu inatteignable, code conservé. Les panneaux doivent être raccordés à l'API <i>avant</i> que le backend colis ne soit déployé, sinon la garde s'ouvrira sur une interface non fonctionnelle.</td>
+          </tr>
+          <tr>
+            <td><b>Journalisation et supervision</b></td>
+            <td>P2</td>
+            <td>Winston, identifiant de corrélation, échantillonnage à 5 % en production et <code>/health</code> sont en place. Mais <b>non audités</b>&nbsp;: aucune traçabilité dédiée des actions administratives sensibles n'a été vérifiée, ni l'absence de données confidentielles dans les journaux, ni les alertes, ni la procédure de restauration.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Hypothèses posées</h3>
+    <ul>
+      <li>
+        <code>app.set('trust proxy', 1)</code> suppose exactement un proxy en
+        amont. La configuration nginx auditée correspond&nbsp;; si une couche
+        supplémentaire est ajoutée (CDN, répartiteur), les limiteurs par IP
+        deviennent contournables par en-tête <code>X-Forwarded-For</code>.
+      </li>
+      <li>
+        La CSP autorise <code>connect-src https://api.yobante-boutique.com</code>.
+        Tout changement de domaine d'API exige de mettre cette directive à
+        jour, sinon le navigateur bloquera toutes les requêtes du dashboard.
+      </li>
+      <li>
+        <code>style-src 'unsafe-inline'</code> est nécessaire et non
+        contournable sans réécriture&nbsp;: l'application utilise massivement
+        l'attribut <code>style={{…}}</code> et sweetalert2 injecte ses styles à
+        l'exécution. <code>script-src</code> reste strict, ce qui est la
+        directive qui protège réellement du XSS.
+      </li>
+    </ul>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <section id="section-9">
+    <h2><span class="sec-no">09</span> &nbsp;Mise en production</h2>
+
+    <h3>Conditions à lever avant déploiement</h3>
+    <ol>
+      <li>
+        <b>Rejouer les tests DB.</b>
+        <code>npx jest</code> au complet sur un environnement doté de
+        PostgreSQL. Les 17 tests ignorés doivent passer.
+      </li>
+      <li>
+        <b>Valider nginx.</b> Copier
+        <code>deploy/nginx-security-headers.conf</code> vers
+        <code>/etc/nginx/snippets/yobante-admin-security.conf</code>, puis la
+        configuration de site. Vérifier <b>dans cet ordre</b>&nbsp;: le
+        certificat existe (<code>certbot --nginx -d admin.yobante-boutique.com</code>
+        si ce n'est pas le cas), puis <code>nginx -t</code>, puis
+        <code>systemctl reload nginx</code>. La configuration référence les
+        certificats&nbsp;: l'appliquer avant leur émission empêche nginx de
+        démarrer.
+      </li>
+      <li>
+        <b>Vérifier la CSP sur une page réelle.</b> Ouvrir le dashboard,
+        console navigateur, se connecter et parcourir plusieurs pages. Toute
+        violation CSP y apparaît explicitement. C'est le contrôle qui ne peut
+        pas être simulé&nbsp;: une CSP trop stricte casse l'application
+        silencieusement pour l'utilisateur.
+      </li>
+    </ol>
+
+    <h3>Déploiement</h3>
+    <ol>
+      <li>Fusionner sur <code>main</code> — le workflow exécute désormais type-check et tests avant de construire, et s'arrête en cas d'échec.</li>
+      <li>Côté API, redéployer avec <code>NODE_ENV=production</code> et <b>sans</b> <code>ENABLE_API_DOCS</code>.</li>
+      <li>Sauvegarde PostgreSQL vérifiée avant toute migration (<code>npm run backup</code>). Aucune migration destructive n'est introduite par cet audit.</li>
+    </ol>
+
+    <h3>Vérifications après déploiement</h3>
+    <ol>
+      <li>
+        <code>curl -I https://admin.yobante-boutique.com</code> — confirmer la
+        présence de <code>Content-Security-Policy</code>,
+        <code>Strict-Transport-Security</code>,
+        <code>X-Content-Type-Options</code>. Contrôler aussi
+        <code>/assets/</code> et <code>/index.html</code>, précisément les
+        emplacements où les en-têtes se perdaient.
+      </li>
+      <li>
+        <code>curl -I http://admin.yobante-boutique.com</code> — doit renvoyer
+        301 vers HTTPS.
+      </li>
+      <li>
+        <code>curl https://api.yobante-boutique.com/api-docs</code> — doit
+        renvoyer 404.
+      </li>
+      <li>
+        <b>Se connecter six fois de suite</b> depuis la même adresse IP&nbsp;:
+        c'est le test de non-régression du défaut P1 de verrouillage. Avant
+        correction, la sixième tentative échouait en 429.
+      </li>
+      <li>
+        Saisir <code>/colis/dashboard</code> comme administrateur — doit
+        renvoyer vers <code>/boutique/dashboard</code>.
+      </li>
+      <li>
+        Créer un compte à mot de passe temporaire, ouvrir une session, changer
+        le mot de passe, puis vérifier que la première session ne peut plus
+        rafraîchir son jeton.
+      </li>
+    </ol>
+
+    <h3>Surveillance</h3>
+    <p>
+      Sur les premières 24 heures&nbsp;: taux de 429 sur
+      <code>/api/v1/auth/*</code> et <code>/api/v1/admin/*</code> (les deux
+      corrections de limiteurs doivent faire chuter ce taux — une hausse
+      signalerait une erreur de configuration de proxy), violations CSP
+      remontées par les administrateurs, taux de 401/403 sur
+      <code>/admin/me</code>, et erreurs 5xx dans les journaux Winston.
+    </p>
+
+    <h3>Retour arrière</h3>
+    <ul>
+      <li>
+        <b>Dashboard</b> — redéployer le <code>dist/</code> précédent (ou
+        <code>git revert</code> puis laisser le workflow reconstruire). Le
+        dashboard est statique&nbsp;: le retour arrière est immédiat et sans
+        état.
+      </li>
+      <li>
+        <b>nginx</b> — conserver une copie de l'ancienne configuration avant
+        remplacement&nbsp;; la restaurer puis <code>nginx -t &amp;&amp;
+        systemctl reload nginx</code>. <b>Attention</b>&nbsp;: une fois HSTS
+        envoyé avec <code>max-age=63072000</code>, les navigateurs refuseront
+        le HTTP en clair pendant deux ans pour ce domaine. Un retour vers une
+        configuration HTTP seule serait donc inopérant pour les visiteurs déjà
+        venus. C'est la seule modification de cet audit qui n'est pas
+        trivialement réversible, et la raison pour laquelle
+        <code>includeSubDomains</code> a été conservé mais <code>preload</code>
+        retiré de l'en-tête.
+      </li>
+      <li>
+        <b>API</b> — <code>pm2 reload</code> sur le commit précédent. Les
+        quatre fichiers modifiés sont sans schéma ni migration&nbsp;; aucune
+        donnée n'est transformée, le retour arrière est propre.
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h2><span class="sec-no">10</span> &nbsp;Portée de cet audit</h2>
+    <p>
+      Un audit automatisé ne garantit pas l'absence de vulnérabilités. Ce
+      rapport distingue systématiquement ce qui a été <b>exécuté et vérifié</b>
+      de ce qui n'a pu l'être, et aucun statut GO n'y est accordé sur la seule
+      absence d'erreur visible. Les contrôles listés comme non réalisables —
+      test d'intrusion réel, tests adossés à la base, vérification des en-têtes
+      servis, revue UI/UX et accessibilité en navigateur, comportement sous
+      charge — demandent une intervention humaine sur les environnements
+      concernés avant de pouvoir être considérés comme couverts.
+    </p>
+  </section>
+
+</div>

@@ -1,44 +1,62 @@
+import { lazy, Suspense, type ReactElement } from 'react';
 import { createBrowserRouter, Navigate, isRouteErrorResponse, useRouteError } from 'react-router-dom';
+import { AttentePage } from '@/shared/components/feedback/AttentePage';
 import { PrivateRoute } from './PrivateRoute';
 import ShopLayout from '@/layouts/ShopLayout';
-import ShipmentLayout from '@/layouts/ShipmentLayout';
 import { LoginPage } from '@/pages/auth/LoginPage';
-import SuppressionComptePage from '@/pages/public/SuppressionComptePage';
-import PolitiqueConfidentialitePage from '@/pages/public/PolitiqueConfidentialitePage';
-import ShopDashboard from '@/pages/shop/dashboard/DashboardPage';
-import AccueilPage from '@/pages/shop/accueil/AccueilPage';
-import SousSectionPage from '@/pages/shop/accueil/SousSectionPage';
-import ProfilPage from '@/pages/shop/profil/ProfilPage';
-import RayonsPage from '@/pages/shop/rayons/RayonsPage';
-import SousRayonProduitsPage from '@/pages/shop/rayons/SousRayonProduitsPage';
-import ProductsPage from '@/pages/shop/products/ProductsPage';
-import ProductCreatePage from '@/pages/shop/products/ProductCreatePage';
-import ProductEditPage from '@/pages/shop/products/ProductEditPage';
-import OrdersPage from '@/pages/shop/orders/OrdersPage';
-import OrderCreatePage from '@/pages/shop/orders/OrderCreatePage';
-import OrderDetailPage from '@/pages/shop/orders/OrderDetailPage';
-import UsersPage from '@/pages/shop/users/UsersPage';
-import UserDetailPage from '@/pages/shop/users/UserDetailPage';
-import VendeursPage from '@/pages/shop/vendeurs/VendeursPage';
-import AdministrateursPage from '@/pages/shop/administrateurs/AdministrateursPage';
-import { ChangerMotDePassePage } from '@/pages/auth/ChangerMotDePassePage';
-import DemandesPage from '@/pages/shop/demandes/DemandesPage';
-import RetoursPage from '@/pages/shop/retours/RetoursPage';
-import PaymentsPage from '@/pages/shop/payments/PaymentsPage';
-import SettingsPage from '@/pages/shop/settings/SettingsPage';
-import AlertesPage from '@/pages/shop/alertes/AlertesPage';
-import StockPage from '@/pages/shop/stock/StockPage';
-import LivraisonPage from '@/pages/shop/logistique/LivraisonPage';
-import ReclamationsPage from '@/pages/shop/reclamations/ReclamationsPage';
-import SyntheseFinancePage from '@/pages/shop/finance/SynthesePage';
-import ComptesVendeursPage from '@/pages/shop/finance/ComptesVendeursPage';
-import ReversementsPage from '@/pages/shop/finance/ReversementsPage';
-import AnalyticsVentesPage from '@/pages/shop/analytics/VentesPage';
-import AnalyticsProduitsPage from '@/pages/shop/analytics/ProduitsPage';
-import AnalyticsClientsPage from '@/pages/shop/analytics/ClientsPage';
-import AnalyticsVendeursPage from '@/pages/shop/analytics/VendeursPage';
-import RentabilitePage from '@/pages/shop/analytics/RentabilitePage';
-import { ShipmentDashboard } from '@/pages/shipment/dashboard/DashboardPage';
+
+// ── Pages chargées à la demande ────────────────────────────────────────
+// Un seul chunk de 911 kB (239 kB gzip) embarquait les ~40 pages du
+// dashboard : ouvrir la page de connexion téléchargeait l'analytique, la
+// finance et la gestion de stock. Chaque page devient un module séparé,
+// chargé à la première visite puis mis en cache par le navigateur.
+// Exportées pour que la table des routes reste vérifiable en test.
+export const ShopDashboard = lazy(() => import('@/pages/shop/dashboard/DashboardPage'));
+export const AccueilPage = lazy(() => import('@/pages/shop/accueil/AccueilPage'));
+export const SousSectionPage = lazy(() => import('@/pages/shop/accueil/SousSectionPage'));
+export const ProfilPage = lazy(() => import('@/pages/shop/profil/ProfilPage'));
+export const RayonsPage = lazy(() => import('@/pages/shop/rayons/RayonsPage'));
+export const SousRayonProduitsPage = lazy(() => import('@/pages/shop/rayons/SousRayonProduitsPage'));
+export const ProductsPage = lazy(() => import('@/pages/shop/products/ProductsPage'));
+export const ProductCreatePage = lazy(() => import('@/pages/shop/products/ProductCreatePage'));
+export const ProductEditPage = lazy(() => import('@/pages/shop/products/ProductEditPage'));
+export const OrdersPage = lazy(() => import('@/pages/shop/orders/OrdersPage'));
+export const OrderCreatePage = lazy(() => import('@/pages/shop/orders/OrderCreatePage'));
+export const OrderDetailPage = lazy(() => import('@/pages/shop/orders/OrderDetailPage'));
+export const UsersPage = lazy(() => import('@/pages/shop/users/UsersPage'));
+export const UserDetailPage = lazy(() => import('@/pages/shop/users/UserDetailPage'));
+export const VendeursPage = lazy(() => import('@/pages/shop/vendeurs/VendeursPage'));
+export const AdministrateursPage = lazy(() => import('@/pages/shop/administrateurs/AdministrateursPage'));
+export const DemandesPage = lazy(() => import('@/pages/shop/demandes/DemandesPage'));
+export const RetoursPage = lazy(() => import('@/pages/shop/retours/RetoursPage'));
+export const PaymentsPage = lazy(() => import('@/pages/shop/payments/PaymentsPage'));
+export const SettingsPage = lazy(() => import('@/pages/shop/settings/SettingsPage'));
+export const AlertesPage = lazy(() => import('@/pages/shop/alertes/AlertesPage'));
+export const StockPage = lazy(() => import('@/pages/shop/stock/StockPage'));
+export const LivraisonPage = lazy(() => import('@/pages/shop/logistique/LivraisonPage'));
+export const ReclamationsPage = lazy(() => import('@/pages/shop/reclamations/ReclamationsPage'));
+export const SyntheseFinancePage = lazy(() => import('@/pages/shop/finance/SynthesePage'));
+export const ComptesVendeursPage = lazy(() => import('@/pages/shop/finance/ComptesVendeursPage'));
+export const ReversementsPage = lazy(() => import('@/pages/shop/finance/ReversementsPage'));
+export const AnalyticsVentesPage = lazy(() => import('@/pages/shop/analytics/VentesPage'));
+export const AnalyticsProduitsPage = lazy(() => import('@/pages/shop/analytics/ProduitsPage'));
+export const AnalyticsClientsPage = lazy(() => import('@/pages/shop/analytics/ClientsPage'));
+export const AnalyticsVendeursPage = lazy(() => import('@/pages/shop/analytics/VendeursPage'));
+export const RentabilitePage = lazy(() => import('@/pages/shop/analytics/RentabilitePage'));
+export const SuppressionComptePage = lazy(() => import('@/pages/public/SuppressionComptePage'));
+export const PolitiqueConfidentialitePage = lazy(() => import('@/pages/public/PolitiqueConfidentialitePage'));
+export const ChangerMotDePassePage = lazy(() =>
+  import('@/pages/auth/ChangerMotDePassePage').then((m) => ({ default: m.ChangerMotDePassePage }))
+);
+
+/**
+ * Enveloppe les pages chargées à la demande qui ne vivent PAS dans un layout
+ * (celui-ci fournit déjà sa propre frontière Suspense). Sans elle, React
+ * lèverait « A component suspended while responding to synchronous input ».
+ */
+const attendre = (element: ReactElement) => (
+  <Suspense fallback={<AttentePage />}>{element}</Suspense>
+);
 
 /**
  * Écran d'erreur du routeur : page inconnue (404) OU composant qui plante.
@@ -86,9 +104,9 @@ export const router = createBrowserRouter(
         { path: 'login', element: <LoginPage /> },
         // Hors de PrivateRoute : celle-ci y renvoie tant que le mot de passe
         // temporaire n'a pas été remplacé. La page vérifie elle-même la session.
-        { path: 'changer-mot-de-passe', element: <ChangerMotDePassePage /> },
-        { path: 'suppression-compte', element: <SuppressionComptePage /> },
-        { path: 'politique-confidentialite', element: <PolitiqueConfidentialitePage /> },
+        { path: 'changer-mot-de-passe', element: attendre(<ChangerMotDePassePage />) },
+        { path: 'suppression-compte', element: attendre(<SuppressionComptePage />) },
+        { path: 'politique-confidentialite', element: attendre(<PolitiqueConfidentialitePage />) },
         {
           element: <PrivateRoute />,
           children: [
@@ -139,14 +157,6 @@ export const router = createBrowserRouter(
                 { path: 'analytics/clients', element: <AnalyticsClientsPage /> },
                 { path: 'analytics/vendeurs', element: <AnalyticsVendeursPage /> },
                 { path: 'analytics/rentabilite', element: <RentabilitePage /> },
-              ],
-            },
-            {
-              path: 'colis',
-              element: <ShipmentLayout />,
-              children: [
-                { index: true, element: <Navigate to="dashboard" replace /> },
-                { path: 'dashboard', element: <ShipmentDashboard /> },
               ],
             },
           ],

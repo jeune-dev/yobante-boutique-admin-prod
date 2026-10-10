@@ -141,6 +141,8 @@ export default function OrderDetailPage() {
         </div>
       </div>
 
+      <DisponibilitesVendeurs liste={commande.disponibilitesVendeurs ?? []} />
+
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm mb-6">
         <div className="p-4 border-b border-gray-100">
           <h2 className="font-semibold text-gray-900">Articles</h2>
@@ -587,6 +589,72 @@ function ModaleMotif({
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── Réponse des vendeurs ─────────────────────────────────────────────────
+// Chaque vendeur concerné confirme depuis l'application mobile que ses
+// produits sont disponibles, ou les déclare indisponibles avec un motif.
+
+const DISPO: Record<string, { libelle: string; classes: string }> = {
+  acceptee: { libelle: 'Disponible', classes: 'bg-green-50 text-green-700' },
+  refusee: { libelle: 'Indisponible', classes: 'bg-red-50 text-red-700' },
+  en_attente: { libelle: 'En attente de réponse', classes: 'bg-amber-50 text-amber-700' },
+};
+
+function DisponibilitesVendeurs({ liste }: { liste: any[] }) {
+  if (!liste.length) return null;
+  const refus = liste.filter((v) => v.statut === 'refusee').length;
+  return (
+    <div
+      className={`bg-white rounded-xl border shadow-sm mb-6 ${
+        refus ? 'border-red-200' : 'border-gray-100'
+      }`}
+    >
+      <div className="p-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="font-semibold text-gray-900">Disponibilité chez les vendeurs</h2>
+        {refus > 0 && (
+          <span className="text-xs font-semibold px-2 py-0.5 rounded bg-red-50 text-red-700">
+            {refus} vendeur{refus > 1 ? 's' : ''} sans stock
+          </span>
+        )}
+      </div>
+      <ul className="divide-y divide-gray-50">
+        {liste.map((v) => {
+          const etat = DISPO[v.statut] ?? DISPO.en_attente;
+          return (
+            <li key={v.vendeurId} className="p-4">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="font-medium text-gray-900">
+                    {v.boutique || v.vendeur || 'Vendeur'}
+                    {v.boutique && v.vendeur && (
+                      <span className="font-normal text-gray-500"> · {v.vendeur}</span>
+                    )}
+                  </p>
+                  {v.telephone && <p className="text-xs text-gray-500">{v.telephone}</p>}
+                  <p className="text-xs text-gray-500 mt-1">{(v.produits ?? []).join(' · ')}</p>
+                </div>
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded shrink-0 ${etat.classes}`}>
+                  {etat.libelle}
+                </span>
+              </div>
+              {v.statut === 'refusee' && v.motifRefus && (
+                <p className="mt-2 text-sm bg-red-50 text-red-800 rounded-lg px-3 py-2">
+                  <span className="font-semibold">Motif : </span>
+                  {v.motifRefus}
+                </p>
+              )}
+              {v.decideLe && (
+                <p className="mt-1 text-[11px] text-gray-400">
+                  Répondu le {new Date(v.decideLe).toLocaleString('fr-FR')}
+                </p>
+              )}
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }

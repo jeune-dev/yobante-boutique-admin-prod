@@ -1,3 +1,18 @@
+> **⚠️ DOCUMENT PÉRIMÉ — conservé comme historique.**
+>
+> Ce rapport décrit des fichiers qui n'existent plus dans le dépôt
+> (`src/auth/components/LoginForm.tsx`, `src/app/routes/AppSelectGuard.tsx`) et
+> son plan d'action était resté au stade des intentions : aucune des
+> corrections annoncées en « Phase 1 » n'avait été appliquée. Plusieurs de
+> ses constats étaient par ailleurs déjà faux au moment de sa rédaction
+> (la vérification du rôle côté serveur via `GET /admin/me` existe, les
+> refresh tokens sont bien révoqués à la déconnexion).
+>
+> **Se référer à `AUDIT-2026-10-09.md`**, qui établit l'état vérifié du
+> projet et la liste des corrections réellement appliquées et testées.
+
+---
+
 # Audit de Sécurité - yobante-boutique-admin-prod
 
 ## Résultats Initaux

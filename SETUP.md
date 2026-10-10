@@ -1,209 +1,83 @@
-# 🚀 Yobante Admin - Getting Started
+# 🚀 Yobante Admin — Démarrage
 
-## Prerequisites
+Dashboard web d'administration de **Yobante Boutique**.
+
+## Prérequis
 - Node.js 18+
-- npm ou yarn
-- yobante-boutique-back running on `localhost:5000`
-- yobante-colis-back running on `localhost:5001`
+- npm
+- `yobante-boutique-back` accessible (local `localhost:5000` ou `https://api.yobante-boutique.com/api/v1`)
 
 ## Installation
 
 ```bash
-# 1. Install dependencies
 npm install
 
-# 2. Environment configuration is already in .env.local:
+# .env.local
 # VITE_SHOP_API_URL=https://api.yobante-boutique.com/api/v1
-# VITE_SHIPMENT_API_URL=https://api.yobante-boutique.com/api/v1
 ```
 
-## Development Server
+## Serveur de développement
 
 ```bash
-npm run dev
+npm run dev   # http://localhost:5173
 ```
 
-The app will start at `http://localhost:5173`
+## Connexion
 
-## How to Test the Login Flow
+1. Ouvrir `http://localhost:5173/login`.
+2. Se connecter avec un compte dont le rôle est **ADMIN** : l'endpoint
+   `POST /auth/admin/login` refuse tout autre rôle (403). Les vendeurs et les
+   clients passent par l'application mobile.
+3. Déroulement attendu :
+   - `POST /auth/admin/login` → 200, jeton stocké sous `token_shop`
+     (refresh token sous `refresh_token_shop`)
+   - redirection vers `/boutique/dashboard`
+   - `GET /admin/me` confirme la session côté serveur à chaque ouverture
+4. Mot de passe temporaire (compte créé par l'administration) : la réponse
+   porte `mustChangePassword`, et toutes les routes `/api/v1/admin` répondent
+   403 `MOT_DE_PASSE_A_CHANGER` jusqu'au remplacement via
+   `/changer-mot-de-passe`.
 
-### Complete Dual Login (Both Backends Available)
-1. Start both backends:
-   ```bash
-   # Terminal 1: boutique backend
-   cd yobante-boutique && npm start  # http://localhost:5000
+## Architecture
 
-   # Terminal 2: colis backend
-   cd yobante-colis && npm start     # http://localhost:5001
-   ```
+### Session
+- **Store Zustand** : `src/auth/store/auth.store.ts`
+  - `user`, `isAuthenticated`, `isShopAvailable`, `mustChangePassword`
+- **Jetons** : `src/infrastructure/auth/tokenManager.ts` (localStorage)
+- **Client HTTP** : `src/infrastructure/http/shop.client.ts` (Axios, jeton et
+  rafraîchissement automatique ; un échec du rafraîchissement déconnecte)
 
-2. Navigate to `http://localhost:5173/login`
+### Protection des routes
+- **PrivateRoute** : exige une session et la confirme côté serveur
+  (`useVerificationSession`), sinon renvoie vers `/login`.
+- Toutes les pages du dashboard vivent sous `/boutique/*`.
 
-3. Enter credentials that exist in BOTH databases:
-   - Email: `admin@yobante.com`
-   - Password: (as configured in your backends)
-
-4. Expected flow:
-   - ✅ Both backends return 201 (success)
-   - ✅ Tokens stored separately (token_shop, token_shipment)
-   - ✅ Redirects to `/select-app` modal
-   - ✅ Shows 2 cards: "Yobante Boutique" and "Yobante Colis"
-   - Click either card → redirects to `/shop/dashboard` or `/shipment/dashboard`
-
-### Single Backend Available (Boutique Only)
-1. Start only boutique backend:
-   ```bash
-   cd yobante-boutique && npm start
-   ```
-
-2. Login with credentials
-3. Expected flow:
-   - ✅ Shop: 201 (success)
-   - ✅ Shipment: 401/error
-   - ✅ Auto-redirects to `/shop/dashboard` WITHOUT showing modal
-   - No need to select app
-
-### Single Backend Available (Colis Only)
-Same as above but:
-- Start only colis backend
-- Auto-redirects to `/shipment/dashboard`
-
-## Architecture Overview
-
-### Login Flow (Promise.allSettled)
-```
-User submits credentials
-    ↓
-Promise.allSettled([
-  shopClient.post('/auth/login'),
-  shipmentClient.post('/auth/login')
-])
-    ↓
-Result handling:
-├─ Both 201 → Show modal (/select-app)
-├─ Only shop 201 → Redirect /shop/dashboard
-├─ Only shipment 201 → Redirect /shipment/dashboard
-└─ None 201 → Show error
-```
-
-### Token Management
-- **Shop token**: Stored in `localStorage.token_shop`
-- **Shipment token**: Stored in `localStorage.token_shipment`
-- Each client has separate Axios instance with token interceptors
-- On 401 refresh error: Auto-logout and redirect to `/login`
-
-### State Management
-- **Zustand store**: `src/auth/store/auth.store.ts`
-  - `user`: Current user data
-  - `isAuthenticated`: Login status
-  - `selectedApp`: 'shop' | 'shipment' | null
-  - `isShopAvailable`: Shop backend reachable
-  - `isShipmentAvailable`: Colis backend reachable
-
-### Route Protection
-- **PrivateRoute**: Checks `isAuthenticated`
-  - All private routes require login
-  - Redirect to `/login` if not authenticated
-
-- **AppSelectGuard**: Checks `selectedApp === requiredApp`
-  - `/shop/*` requires `selectedApp === 'shop'`
-  - `/shipment/*` requires `selectedApp === 'shipment'`
-  - Redirect to `/select-app` if mismatch
-
-## File Structure
+### Structure
 
 ```
 src/
-├── auth/                          # Authentication logic
-│   ├── services/auth.service.ts   # Login with Promise.allSettled
-│   ├── store/auth.store.ts        # Zustand global state
-│   ├── hooks/useLogin.ts          # TanStack Query mutation
-│   ├── hooks/useAuth.ts           # Store consumer hook
-│   └── components/
-│       ├── LoginForm.tsx          # Login form with validation
-│       └── AppSelector.tsx        # App selection modal
-├── infrastructure/
-│   ├── http/
-│   │   ├── shop.client.ts         # Axios instance for boutique API
-│   │   └── shipment.client.ts     # Axios instance for colis API
-│   └── auth/
-│       └── tokenManager.ts        # localStorage token management
-├── config/
-│   ├── env.ts                     # Environment variables (validated)
-│   └── queryClient.ts             # TanStack Query configuration
-├── app/
-│   └── routes/
-│       ├── index.tsx              # Route configuration
-│       ├── PrivateRoute.tsx       # Auth guard
-│       └── AppSelectGuard.tsx     # App selection guard
-├── pages/
-│   ├── auth/LoginPage.tsx         # Beautiful login page
-│   └── select-app/SelectAppPage.tsx # App selection page
-└── main.tsx                        # React entry point
+├── auth/            # service de connexion, store, hooks
+├── infrastructure/  # client HTTP boutique, gestion des jetons
+├── config/          # variables d'environnement (validées), TanStack Query
+├── app/routes/      # table des routes, PrivateRoute
+├── layouts/         # ShopLayout (en-tête, navigation)
+├── pages/           # auth, public, shop/* (une page par écran)
+└── domains/shop/    # appels API, hooks et types métier
 ```
 
-## Key Features Implemented
+## Dépannage
 
-✅ **Beautiful Login Page**
-- Gradient background with animated blobs
-- Email & password fields with validation
-- Show/hide password toggle
-- Loading state with spinner
-- Error message display
+- **La connexion échoue toujours** : vérifier que le compte a le rôle ADMIN,
+  que `VITE_SHOP_API_URL` est correct et que le CORS du backend autorise
+  l'origine du dashboard.
+- **Le jeton ne persiste pas** : vider le stockage (`localStorage.clear()`)
+  et vérifier l'appel à `tokenManager.setShopToken()`.
 
-✅ **App Selector Modal**
-- Shows available apps (Boutique & Colis)
-- Only clickable if backend available
-- Auto-selects if only one available
-- Logout button
-
-✅ **Dual API Authentication**
-- Parallel login to both backends
-- Independent token storage
-- Smart redirect based on availability
-- Separate Axios interceptors per API
-
-✅ **Error Handling**
-- 401 token refresh with auto-retry
-- Network error handling
-- Auto-logout on refresh failure
-- User-friendly error messages
-
-## Testing Credentials
-
-You'll need to create test accounts in your backends. Example:
-```
-Email: admin@yobante.com
-Password: securePassword123
-Role: admin (in both databases)
-```
-
-## Troubleshooting
-
-### "Cannot read property of undefined" errors
-- Ensure both `.env.local` URLs are correct
-- Check backend URLs are reachable: `curl http://localhost:5000/api/health`
-
-### Login always fails
-- Check credentials exist in both/either backend database
-- Verify backends are running on correct ports
-- Check CORS configuration in backend
-
-### Token not persisting
-- Clear localStorage and retry: `localStorage.clear()`
-- Verify `tokenManager.setShopToken()` is being called
-- Check browser DevTools > Application > Local Storage
-
-### Can't select app after login
-- Verify `/select-app` route is accessible
-- Check `isShopAvailable` and `isShipmentAvailable` in store
-- Check if one backend returned error during login
-
-## Build for Production
+## Build de production
 
 ```bash
-npm run build        # Build optimized bundle
-npm run preview      # Preview production build locally
+npm run build     # bundle optimisé
+npm run preview   # prévisualisation locale
 ```
 
 ## Déploiement Production (VPS Contabo)
@@ -234,11 +108,10 @@ Dans le repo **`jeune-dev/yobante-boutique-admin-prod`** → *Settings → Secre
 | `VPS_USER` | Utilisateur SSH (ex: `root`) |
 | `VPS_SSH_KEY` | Clé SSH privée complète (au format `-----BEGIN OPENSSH PRIVATE KEY-----…`) |
 | `VITE_SHOP_API_URL` | `https://api.yobante-boutique.com/api/v1` |
-| `VITE_SHIPMENT_API_URL` | `https://api.yobante-boutique.com/api/v1` |
 | `VITE_APP_NAME` | `Yobante Admin` |
 | `VITE_APP_VERSION` | `1.0.0` |
 
-> Les 4 variables `VITE_*` sont injectées dans le build (pas secrètes en soi) mais passent par des secrets
+> Les 3 variables `VITE_*` sont injectées dans le build (pas secrètes en soi) mais passent par des secrets
 > pour changer d'URL sans toucher au code.
 
 ### Préparation du VPS (une seule fois)
@@ -270,52 +143,13 @@ curl -f -I https://admin.yobante-boutique.com   # doit répondre 200
 ```
 Suivez l'exécution dans *Actions* du repo GitHub.
 
-## Development Commands
+## Commandes
 
 ```bash
-npm run dev         # Start dev server
-npm run build       # Build for production
-npm run lint        # Run ESLint
-npm run format      # Format code with Prettier
-npm run type-check  # Check TypeScript types
+npm run dev         # serveur de développement
+npm run build       # build de production
+npm run lint        # ESLint
+npm run format      # Prettier
+npm run type-check  # vérification TypeScript
+npm test            # tests (Vitest)
 ```
-
-## Next Steps for Developer
-
-1. **Implement Dashboard Pages**
-   - `/shop/dashboard` and `/shipment/dashboard`
-   - Use the placeholder components as template
-
-2. **Implement Domain Features**
-   - Shop: Products, Categories, Orders, Payments, Reviews, Users
-   - Shipment: Colis, Expeditions, Douane, Tarifs, etc.
-   - See `domains/shop/` and `domains/shipment/` for structure
-
-3. **API Integration**
-   - Each feature has API files in `domains/shop/api/` and `domains/shipment/api/`
-   - Use existing hooks as templates (e.g., `useProducts()`)
-
-4. **Add More Tests**
-   - Unit tests for services
-   - Component tests for forms
-   - Integration tests for API flows
-
-## Quick Reference
-
-**Default Ports:**
-- Frontend: `http://localhost:5173`
-- Shop API: `https://api.yobante-boutique.com/api/v1`
-- Shipment API: `https://api.yobante-boutique.com/api/v1`
-
-**Store Paths:**
-- Auth store: `useAuthStore()`
-- Shop state: `useShopStore()` (to be implemented)
-- Shipment state: `useShipmentStore()` (to be implemented)
-
-**API Clients:**
-- Shop: `shopClient` (import from `@/infrastructure/http/shop.client`)
-- Shipment: `shipmentClient` (import from `@/infrastructure/http/shipment.client`)
-
-## Support
-
-For architecture questions, see: `C:\Users\vPro\Downloads\yobante_admin_guide.pdf`

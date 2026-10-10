@@ -2,13 +2,8 @@ import { useEffect } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuthStore } from '@/auth/store/auth.store';
 import { useVerificationSession } from '@/auth/hooks/useVerificationSession';
-import { MESSAGE_ACCES_RESERVE } from '@/auth/services/auth.service';
+import { MESSAGE_ACCES_RESERVE, estAdminBoutique } from '@/auth/services/auth.service';
 import { showError } from '@/shared/utils/alert';
-
-// Rôles boutique qui n'ont pas accès au dashboard : ils utilisent l'app mobile.
-// Une session de ce type ne peut venir que d'un stockage antérieur à la
-// restriction de la connexion aux administrateurs — on la referme.
-const ROLES_SANS_ACCES = ['VENDEUR', 'CLIENT'];
 
 /**
  * Garde des routes du dashboard. Deux niveaux :
@@ -25,8 +20,12 @@ export const PrivateRoute = () => {
   const setMustChangePassword = useAuthStore((state) => state.setMustChangePassword);
   const { enCours, refusee, motDePasseAChanger } = useVerificationSession();
 
-  const roleInterdit =
-    isAuthenticated && ROLES_SANS_ACCES.includes(user?.role?.toUpperCase() ?? '');
+  // Liste blanche, et non liste noire. La version précédente refusait
+  // explicitement VENDEUR et CLIENT : tout rôle absent de cette liste (un
+  // futur SUPPORT, LIVREUR, GESTIONNAIRE, ou une valeur vide) était donc
+  // accepté par défaut. Ici seul ADMIN ouvre le dashboard ; l'ajout d'un rôle
+  // côté backend ne peut plus accorder l'accès par omission.
+  const roleInterdit = isAuthenticated && !estAdminBoutique(user);
   const sessionInterdite = roleInterdit || refusee;
 
   useEffect(() => {

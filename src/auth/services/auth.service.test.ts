@@ -2,15 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Les clients HTTP sont doublés : on teste la logique de session, pas axios.
 vi.mock('@/infrastructure/http/shop.client', () => ({ default: { post: vi.fn() } }));
-vi.mock('@/infrastructure/http/shipment.client', () => ({ default: { post: vi.fn() } }));
 
 import shopClient from '@/infrastructure/http/shop.client';
-import shipmentClient from '@/infrastructure/http/shipment.client';
 import { authService, estAdminBoutique, MESSAGE_ACCES_RESERVE } from './auth.service';
 import { tokenManager } from '@/infrastructure/auth/tokenManager';
 
 const shopPost = shopClient.post as unknown as ReturnType<typeof vi.fn>;
-const shipmentPost = shipmentClient.post as unknown as ReturnType<typeof vi.fn>;
 
 const admin = { id: '1', email: 'admin@yobante.com', nom: 'Diallo', prenom: 'Aminata', role: 'ADMIN' };
 
@@ -18,7 +15,6 @@ describe('authService.login', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     tokenManager.clearAll();
-    shipmentPost.mockRejectedValue({ status: 0, message: 'injoignable' });
   });
 
   it('appelle le endpoint réservé aux administrateurs avec { identifiant, password }', async () => {
@@ -66,7 +62,6 @@ describe('authService.login', () => {
 describe('authService.logout', () => {
   it('révoque le refresh token côté serveur et vide les jetons', async () => {
     shopPost.mockResolvedValue({});
-    shipmentPost.mockResolvedValue({});
     tokenManager.setShopToken('t');
     await authService.logout('refresh-abc');
     expect(shopPost).toHaveBeenCalledWith('/auth/logout', { refreshToken: 'refresh-abc' }, expect.any(Object));
@@ -75,7 +70,6 @@ describe('authService.logout', () => {
 
   it('un backend injoignable ne bloque pas la déconnexion', async () => {
     shopPost.mockRejectedValue(new Error('réseau'));
-    shipmentPost.mockRejectedValue(new Error('réseau'));
     tokenManager.setShopToken('t');
     await expect(authService.logout('r')).resolves.toBeUndefined();
     expect(tokenManager.getShopToken()).toBeNull();

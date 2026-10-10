@@ -28,9 +28,22 @@ export const etatRetour = (location: Pick<Location, 'pathname' | 'search'>): Eta
   retour: `${location.pathname}${location.search}`,
 });
 
-/** Seules les adresses internes de l'application sont acceptées comme origine. */
+/**
+ * Seules les adresses internes de l'application sont acceptées comme origine.
+ *
+ * Le rejet de `//` écarte les URL « protocol-relative » (`//exemple.com`), et
+ * celui de l'antislash la variante `/\exemple.com` : react-router 6 la
+ * normalise en `//exemple.com` et sort du site (avis GHSA-wrjc-x8rr-h8h6,
+ * corrigé seulement en v7). L'état de navigation n'est pas télécommandable
+ * par un tiers, donc le risque reste théorique ici — mais c'est le seul
+ * endroit où l'application navigue vers une adresse calculée, autant le
+ * fermer plutôt que de dépendre du comportement de la librairie.
+ */
 const origineValide = (valeur: unknown): valeur is string =>
-  typeof valeur === 'string' && valeur.startsWith('/') && !valeur.startsWith('//');
+  typeof valeur === 'string' &&
+  valeur.startsWith('/') &&
+  !valeur.startsWith('//') &&
+  !valeur.includes('\\');
 
 /** Adresse d'origine transmise par la page précédente, s'il y en a une. */
 export const lireOrigine = (state: unknown): string | null => {

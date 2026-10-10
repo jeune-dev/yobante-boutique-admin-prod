@@ -12,14 +12,22 @@ interface Props {
   onEnregistre: () => void;
 }
 
+interface OptionRayon {
+  id: string;
+  nom: string;
+}
+
 const formaterPrix = (v: any) => Number(v ?? 0).toLocaleString('fr-FR');
 
 /**
- * Crée ou modifie une bannière de la section principale, et lui rattache les
- * produits mis en avant.
+ * Crée ou modifie une bannière de la section principale de l'accueil mobile.
  *
- * Remplace l'ancienne page « Bannières » : tout se règle désormais depuis la
- * page d'accueil, là où l'on voit le rendu.
+ * Dans l'application, la bannière porte un bouton (« Découvrir » par défaut).
+ * Au toucher, l'application ouvre, dans cet ordre de priorité :
+ *   1. les produits mis en avant ci-dessous, s'il y en a ;
+ *   2. sinon le rayon choisi ;
+ *   3. sinon le lien externe ;
+ *   4. sinon la liste des promotions en cours.
  */
 export default function BanniereModal({ banniere, onFermer, onEnregistre }: Props) {
   const edition = Boolean(banniere);
@@ -27,8 +35,15 @@ export default function BanniereModal({ banniere, onFermer, onEnregistre }: Prop
 
   const [titre, setTitre] = useState(banniere?.titre ?? '');
   const [lien, setLien] = useState(banniere?.lien ?? '');
+  const [rayonId, setRayonId] = useState<string>(banniere?.rayonId ?? '');
+  const [afficherBouton, setAfficherBouton] = useState<boolean>(banniere?.afficherBouton ?? true);
+  const [texteBouton, setTexteBouton] = useState<string>(banniere?.texteBouton || 'Découvrir');
   const [fichier, setFichier] = useState<File | null>(null);
   const [apercu, setApercu] = useState<string | null>(banniere?.image ?? null);
+
+  const [rayons, setRayons] = useState<OptionRayon[]>([]);
+  // Tenue à jour localement : la liste reste juste après un ajout ou un retrait.
+  const [produitsAssocies, setProduitsAssocies] = useState<any[]>(banniere?.produits ?? []);
 
   const [recherche, setRecherche] = useState('');
   const [resultats, setResultats] = useState<any[]>([]);
@@ -42,6 +57,14 @@ export default function BanniereModal({ banniere, onFermer, onEnregistre }: Prop
     // Sans révocation, chaque changement d'image fuit un objet en mémoire.
     return () => URL.revokeObjectURL(url);
   }, [fichier]);
+
+  /** Rayons proposés comme destination de la bannière. */
+  useEffect(() => {
+    shopClient
+      .get<{ rayons?: OptionRayon[] }>('/admin/rayons', { params: { actif: true, limit: 100 } })
+      .then((r: any) => setRayons(r.rayons ?? []))
+      .catch(() => setRayons([]));
+  }, []);
 
   /** Catalogue affiché d'emblée, filtré au fil de la frappe. */
   useEffect(() => {
@@ -72,7 +95,10 @@ export default function BanniereModal({ banniere, onFermer, onEnregistre }: Prop
     mutationFn: () => {
       const fd = new FormData();
       fd.append('titre', titre);
-      if (lien) fd.append('lien', lien);
+      fd.append('lien', lien.trim());
+      fd.append('rayonId', rayonId);
+      fd.append('afficherBouton', String(afficherBouton));
+      fd.append('texteBouton', texteBouton.trim() || 'Découvrir');
       if (fichier) fd.append('image', fichier);
       const options = { headers: { 'Content-Type': 'multipart/form-data' } };
       return edition
@@ -88,11 +114,23 @@ export default function BanniereModal({ banniere, onFermer, onEnregistre }: Prop
   });
 
   const associer = useMutation({
-    mutationFn: (produitId: string) =>
-      shopClient.post(`/admin/bannieres/${banniere.id}/produits`, { produitId }),
-    onSuccess: (data) => {
+    mutationFn: (produit: any) =>
+      shopClient.post(`/admin/bannieres/${banniere.id}/produits`, { produitId: produit.id }),
+    onSuccess: (data, produit) => {
       showSuccess(data);
+      setProduitsAssocies((liste) => [...liste, produit]);
       setRecherche('');
+      onEnregistre();
+    },
+    onError: (e: any) => showError(e),
+  });
+
+  const retirer = useMutation({
+    mutationFn: (produitId: string) =>
+      shopClient.delete(`/admin/bannieres/${banniere.id}/produits/${produitId}`),
+    onSuccess: (data, produitId) => {
+      showSuccess(data);
+      setProduitsAssocies((liste) => liste.filter((p) => p.id !== produitId));
       onEnregistre();
     },
     onError: (e: any) => showError(e),
@@ -101,10 +139,24 @@ export default function BanniereModal({ banniere, onFermer, onEnregistre }: Prop
   const valider = () => {
     if (!titre.trim()) return showError('Le titre est obligatoire');
     if (!edition && !fichier) return showError('Choisissez une image');
+    // L'application n'ouvre que les liens sécurisés.
+    if (lien.trim() && !/^https:\/\//i.test(lien.trim())) {
+      return showError('Le lien doit commencer par https://');
+    }
     enregistrer.mutate();
   };
 
-  const produitsAssocies: any[] = banniere?.produits ?? [];
+  const idsAssocies = new Set(produitsAssocies.map((p) => p.id));
+
+  /** Ce que l'application ouvrira au toucher, pour l'expliquer à l'admin. */
+  const destination =
+    produitsAssocies.length > 0
+      ? `les ${produitsAssocies.length} produit(s) mis en avant`
+      : rayonId
+        ? `le rayon « ${rayons.find((r) => r.id === rayonId)?.nom ?? '…'} »`
+        : lien.trim()
+          ? 'le lien externe'
+          : 'la liste des promotions en cours';
 
   return (
     <Modal
@@ -122,17 +174,22 @@ export default function BanniereModal({ banniere, onFermer, onEnregistre }: Prop
       }
     >
       <div className="space-y-4">
-        {/* ── Image ─────────────────────────────────────────────────────── */}
+        {/* ── Image (avec le bouton tel qu'il apparaîtra dans l'application) ── */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Image</label>
           <button
             type="button"
             onClick={() => fichierRef.current?.click()}
-            className="w-full aspect-[16/9] rounded-lg border-2 border-dashed border-gray-200 hover:border-yellow-400 bg-gray-50 overflow-hidden flex items-center justify-center transition-colors group"
+            className="w-full aspect-[1.9/1] rounded-2xl border-2 border-dashed border-gray-200 hover:border-yellow-400 bg-gray-50 overflow-hidden flex items-center justify-center transition-colors group"
           >
             {apercu ? (
               <span className="relative w-full h-full block">
                 <img src={apercu} alt="" className="w-full h-full object-cover" />
+                {afficherBouton && (
+                  <span className="absolute left-3 bottom-3 inline-flex items-center gap-1.5 bg-white text-[#053D8F] text-xs font-bold px-3.5 py-1.5 rounded-full shadow">
+                    {texteBouton.trim() || 'Découvrir'} <span aria-hidden>→</span>
+                  </span>
+                )}
                 <span className="absolute inset-0 bg-gray-900/0 group-hover:bg-gray-900/40 transition-colors flex items-center justify-center">
                   <span className="opacity-0 group-hover:opacity-100 text-xs font-semibold text-white bg-gray-900/80 px-2.5 py-1 rounded-full">
                     Changer l'image
@@ -142,7 +199,7 @@ export default function BanniereModal({ banniere, onFermer, onEnregistre }: Prop
             ) : (
               <span className="flex flex-col items-center gap-1.5 text-gray-400">
                 <Icon name="image" size={24} />
-                <span className="text-xs font-medium">Choisir une image</span>
+                <span className="text-xs font-medium">Choisir une image (format 1,9:1 conseillé)</span>
               </span>
             )}
           </button>
@@ -160,14 +217,60 @@ export default function BanniereModal({ banniere, onFermer, onEnregistre }: Prop
           )}
         </div>
 
-        <Champ label="Titre" valeur={titre} onChange={setTitre} placeholder="Ex. Soldes d'été" />
+        <Champ label="Titre" valeur={titre} onChange={setTitre} placeholder="Ex. Spécial Tabaski" />
+
+        {/* ── Bouton posé sur la bannière ───────────────────────────────── */}
+        <div className="rounded-lg border border-gray-100 p-3 space-y-3">
+          <label className="flex items-center justify-between gap-3 cursor-pointer">
+            <span>
+              <span className="block text-sm font-medium text-gray-700">Bouton sur la bannière</span>
+              <span className="block text-xs text-gray-400">Affiché en bas à gauche de l'image</span>
+            </span>
+            <input
+              type="checkbox"
+              checked={afficherBouton}
+              onChange={(e) => setAfficherBouton(e.target.checked)}
+              className="h-4 w-4 accent-[#053D8F]"
+            />
+          </label>
+          {afficherBouton && (
+            <Champ
+              label="Texte du bouton"
+              valeur={texteBouton}
+              onChange={(v) => setTexteBouton(v.slice(0, 40))}
+              placeholder="Découvrir"
+            />
+          )}
+        </div>
+
+        {/* ── Destination ───────────────────────────────────────────────── */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Rayon ouvert (facultatif)
+          </label>
+          <select
+            value={rayonId}
+            onChange={(e) => setRayonId(e.target.value)}
+            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
+          >
+            <option value="">Aucun rayon</option>
+            {rayons.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.nom}
+              </option>
+            ))}
+          </select>
+        </div>
         <Champ
-          label="Lien (facultatif)"
+          label="Lien externe (facultatif)"
           valeur={lien}
           onChange={setLien}
           placeholder="https://…"
-          aide="Ouvert au clic sur la bannière dans l'application."
+          aide="Utilisé seulement sans produits mis en avant ni rayon."
         />
+        <p className="text-xs text-[#053D8F] bg-blue-50 rounded-lg px-3 py-2">
+          Dans l'application, le toucher ouvrira {destination}.
+        </p>
 
         {/* ── Produits mis en avant ─────────────────────────────────────── */}
         {edition ? (
@@ -181,9 +284,18 @@ export default function BanniereModal({ banniere, onFermer, onEnregistre }: Prop
                 {produitsAssocies.map((p: any) => (
                   <span
                     key={p.id}
-                    className="text-xs font-medium bg-gray-100 text-gray-700 px-2 py-1 rounded-full"
+                    className="inline-flex items-center gap-1 text-xs font-medium bg-gray-100 text-gray-700 pl-2 pr-1 py-1 rounded-full"
                   >
                     {p.nom}
+                    <button
+                      type="button"
+                      onClick={() => retirer.mutate(p.id)}
+                      disabled={retirer.isPending}
+                      title="Retirer de la bannière"
+                      className="w-4 h-4 rounded-full hover:bg-gray-300 text-gray-500 leading-none disabled:opacity-50"
+                    >
+                      ×
+                    </button>
                   </span>
                 ))}
               </div>
@@ -205,30 +317,32 @@ export default function BanniereModal({ banniere, onFermer, onEnregistre }: Prop
 
             {!chargement && resultats.length > 0 && (
               <ul className="mt-2 border border-gray-100 rounded-lg max-h-52 overflow-auto divide-y divide-gray-50">
-                {resultats.map((p) => (
-                  <li key={p.id}>
-                    <button
-                      type="button"
-                      onClick={() => associer.mutate(p.id)}
-                      disabled={associer.isPending}
-                      className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-yellow-50/60 disabled:opacity-50"
-                    >
-                      {p.images?.[0] ? (
-                        <img
-                          src={p.images[0]}
-                          alt=""
-                          className="w-8 h-8 rounded object-cover shrink-0"
-                        />
-                      ) : (
-                        <span className="w-8 h-8 rounded bg-gray-100 shrink-0" />
-                      )}
-                      <span className="flex-1 text-sm text-gray-800 truncate">{p.nom}</span>
-                      <span className="text-xs text-gray-500 shrink-0">
-                        {formaterPrix(p.prix)} FCFA
-                      </span>
-                    </button>
-                  </li>
-                ))}
+                {resultats
+                  .filter((p) => !idsAssocies.has(p.id))
+                  .map((p) => (
+                    <li key={p.id}>
+                      <button
+                        type="button"
+                        onClick={() => associer.mutate(p)}
+                        disabled={associer.isPending}
+                        className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-yellow-50/60 disabled:opacity-50"
+                      >
+                        {p.images?.[0] ? (
+                          <img
+                            src={p.images[0]}
+                            alt=""
+                            className="w-8 h-8 rounded object-cover shrink-0"
+                          />
+                        ) : (
+                          <span className="w-8 h-8 rounded bg-gray-100 shrink-0" />
+                        )}
+                        <span className="flex-1 text-sm text-gray-800 truncate">{p.nom}</span>
+                        <span className="text-xs text-gray-500 shrink-0">
+                          {formaterPrix(p.prix)} FCFA
+                        </span>
+                      </button>
+                    </li>
+                  ))}
               </ul>
             )}
           </div>

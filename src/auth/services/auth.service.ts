@@ -1,5 +1,4 @@
 ﻿import shopClient from '@/infrastructure/http/shop.client';
-import shipmentClient from '@/infrastructure/http/shipment.client';
 import { tokenManager } from '@/infrastructure/auth/tokenManager';
 
 export interface LoginPayload {
@@ -53,7 +52,6 @@ const normalizeShopAuth = (body: ShopLoginBody): AuthResponse => {
 
 export interface LoginResult {
   shop: { success: boolean; data?: AuthResponse; error?: any };
-  shipment: { success: boolean; data?: AuthResponse; error?: any };
   user?: AuthResponse['user'];
 }
 
@@ -85,31 +83,23 @@ export const estAdminBoutique = (user?: { role?: string } | null) =>
 
 export const authService = {
   login: async (payload: LoginPayload): Promise<LoginResult> => {
-    const results = await Promise.allSettled([
-      // Backend boutique : endpoint réservé aux administrateurs, attend
-      // { identifiant, password } et répond 403 pour tout autre rôle.
-      shopClient.post('/auth/admin/login', {
+    let shopResult: LoginResult['shop'];
+    try {
+      // Endpoint réservé aux administrateurs : attend { identifiant, password }
+      // et répond 403 pour tout autre rôle.
+      const body = await shopClient.post('/auth/admin/login', {
         identifiant: payload.email,
         password: payload.password,
-      }),
-      shipmentClient.post('/auth/login', payload),
-    ]);
-
-    let shopResult: LoginResult['shop'] =
-      results[0].status === 'fulfilled'
-        ? { success: true, data: normalizeShopAuth(results[0].value as unknown as ShopLoginBody) }
-        : { success: false, error: results[0].reason };
+      });
+      shopResult = { success: true, data: normalizeShopAuth(body as unknown as ShopLoginBody) };
+    } catch (error) {
+      shopResult = { success: false, error };
+    }
 
     if (shopResult.success && !estAdminBoutique(shopResult.data?.user)) {
       shopResult = { success: false, error: { status: 403, message: MESSAGE_ACCES_RESERVE } };
     }
 
-    const shipmentResult =
-      results[1].status === 'fulfilled'
-        ? { success: true, data: results[1].value as unknown as AuthResponse }
-        : { success: false, error: results[1].reason };
-
-    // Store tokens
     if (shopResult.success && shopResult.data) {
       tokenManager.setShopToken(shopResult.data.accessToken);
       if (shopResult.data.refreshToken) {
@@ -117,17 +107,9 @@ export const authService = {
       }
     }
 
-    if (shipmentResult.success && shipmentResult.data) {
-      tokenManager.setShipmentToken(shipmentResult.data.accessToken);
-    }
-
-    // Use shop user data if available, else shipment
-    const user = shopResult.data?.user || shipmentResult.data?.user;
-
     return {
       shop: shopResult,
-      shipment: shipmentResult,
-      user,
+      user: shopResult.success ? shopResult.data?.user : undefined,
     };
   },
 
@@ -140,12 +122,9 @@ export const authService = {
    */
   logout: async (refreshToken: string | null): Promise<void> => {
     try {
-      await Promise.allSettled([
-        refreshToken
-          ? shopClient.post('/auth/logout', { refreshToken }, { timeout: 5_000 })
-          : Promise.resolve(),
-        shipmentClient.post('/auth/logout', {}, { timeout: 5_000 }),
-      ]);
+      if (refreshToken) {
+        await shopClient.post('/auth/logout', { refreshToken }, { timeout: 5_000 });
+      }
     } catch {
       // Ignore errors on logout
     } finally {

@@ -57,7 +57,32 @@ function IconeBlocage() {
   );
 }
 
-const CHAMPS_VIDES = { nom: '', prenom: '', email: '', telephone: '', phoneCountryCode: '', phoneNationalNumber: '', nomBoutique: '', adresseBoutique: '' };
+const CHAMPS_VIDES = { nom: '', prenom: '', email: '', telephone: '', phoneCountryCode: '', phoneNationalNumber: '', nomBoutique: '', adresseBoutique: '', password: '' };
+
+/** Mêmes règles que le backend : 8 caractères, une majuscule, un chiffre. */
+const erreurMotDePasseVendeur = (mdp: string) => {
+  if (mdp.length < 8) return 'Le mot de passe doit contenir au moins 8 caractères.';
+  if (mdp.length > 72) return 'Le mot de passe ne doit pas dépasser 72 caractères.';
+  if (!/[A-Z]/.test(mdp) || !/\d/.test(mdp)) {
+    return 'Le mot de passe doit contenir au moins une majuscule et un chiffre.';
+  }
+  return null;
+};
+
+/** Mot de passe lisible (sans 0/O, 1/l/I), à recopier facilement depuis l'email. */
+const genererMotDePasse = () => {
+  const maj = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const min = 'abcdefghjkmnpqrstuvwxyz';
+  const chi = '23456789';
+  const tirer = (a: string) => a[crypto.getRandomValues(new Uint32Array(1))[0] % a.length];
+  const car = [tirer(maj), tirer(chi), tirer(min)];
+  while (car.length < 10) car.push(tirer(maj + min + chi));
+  for (let i = car.length - 1; i > 0; i--) {
+    const j = crypto.getRandomValues(new Uint32Array(1))[0] % (i + 1);
+    [car[i], car[j]] = [car[j], car[i]];
+  }
+  return car.join('');
+};
 
 export default function VendeursPage() {
   const qc = useQueryClient();
@@ -67,6 +92,7 @@ export default function VendeursPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingVendeur, setEditingVendeur] = useState<Vendeur | null>(null);
   const [form, setForm] = useState(CHAMPS_VIDES);
+  const [voirMotDePasse, setVoirMotDePasse] = useState(false);
   const [editForm, setEditForm] = useState(CHAMPS_VIDES);
 
   const { data, isLoading, isError, error } = useQuery({
@@ -91,6 +117,7 @@ export default function VendeursPage() {
       rafraichir();
       setShowModal(false);
       setForm(CHAMPS_VIDES);
+      setVoirMotDePasse(false);
       showSuccess(reponse);
     },
     onError: (e: any) => showError(e),
@@ -131,9 +158,14 @@ export default function VendeursPage() {
 
   const handleCreer = async (e: React.FormEvent) => {
     e.preventDefault();
+    const erreur = erreurMotDePasseVendeur(form.password);
+    if (erreur) {
+      showError(erreur);
+      return;
+    }
     const confirme = await showConfirm({
       titre: 'Créer le vendeur',
-      message: `Créer le compte vendeur de ${form.prenom} ${form.nom} ? Un mot de passe temporaire lui sera envoyé par email.`,
+      message: `Créer le compte vendeur de ${form.prenom} ${form.nom} ?\nSon identifiant (${form.email.trim()}) et son mot de passe lui seront envoyés par email. Il se connectera depuis l'application mobile.`,
       confirmText: 'Créer',
     });
     if (!confirme) return;
@@ -144,6 +176,7 @@ export default function VendeursPage() {
       nom: form.nom.trim(),
       prenom: form.prenom.trim(),
       email: form.email.trim(),
+      password: form.password,
       nomBoutique: form.nomBoutique.trim(),
     };
     if (form.phoneCountryCode && form.phoneNationalNumber) {
@@ -186,6 +219,7 @@ export default function VendeursPage() {
       phoneNationalNumber: '',
       nomBoutique: nomBoutique(v) === '—' ? '' : nomBoutique(v),
       adresseBoutique: adresseBoutique(v),
+      password: '', // non modifiable ici : « Renvoyer les identifiants » le régénère
     });
     setShowEditModal(true);
   };
@@ -223,7 +257,7 @@ export default function VendeursPage() {
 
     const confirme = await showConfirm({
       titre: 'Renvoyer les identifiants',
-      message: `Générer un nouveau mot de passe temporaire pour ${nomComplet} ?\nLes identifiants seront envoyés par email à : ${destEmail}`,
+      message: `Générer un nouveau mot de passe temporaire pour ${nomComplet} ?\nLes identifiants seront envoyés par email à : ${destEmail}\nLe vendeur devra le changer à sa prochaine connexion dans l'application mobile.`,
       confirmText: 'Renvoyer',
     });
     if (!confirme) return;
@@ -363,8 +397,9 @@ export default function VendeursPage() {
         <Pagination page={page} totalPages={pagination?.totalPages ?? 1} onChange={setPage} />
       </div>
 
-      {/* Modal Créer vendeur — aucun champ mot de passe : il est généré par le
-          backend et transmis au vendeur par email. */}
+      {/* Modal Créer vendeur — l'administrateur choisit le mot de passe ; le
+          vendeur le reçoit par email avec son identifiant et se connecte
+          depuis l'application mobile (pas d'accès au dashboard web). */}
       {showModal && (
         <div
           className="modal-overlay"
@@ -379,8 +414,9 @@ export default function VendeursPage() {
           >
             <h2 className="text-lg font-bold mb-1">Nouveau vendeur</h2>
             <p className="text-xs text-gray-500 mb-4">
-              Le compte sera <strong>actif immédiatement</strong>. Un mot de passe temporaire est
-              envoyé par email ; le vendeur devra le changer à sa première connexion.
+              Le compte sera <strong>actif immédiatement</strong>. Le vendeur reçoit par email son
+              identifiant et le mot de passe ci-dessous, et se connecte depuis{' '}
+              <strong>l'application mobile</strong> (le dashboard est réservé aux administrateurs).
             </p>
             <form onSubmit={handleCreer} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -412,6 +448,49 @@ export default function VendeursPage() {
                   onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
                   className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
                 />
+              </div>
+              <div>
+                <div className="flex items-center justify-between">
+                  <label htmlFor="vendeur-mdp" className="text-sm font-medium text-gray-700">
+                    Mot de passe *
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForm((f) => ({ ...f, password: genererMotDePasse() }));
+                      setVoirMotDePasse(true);
+                    }}
+                    className="text-xs font-medium text-yellow-700 hover:text-yellow-800"
+                  >
+                    Générer
+                  </button>
+                </div>
+                <div className="relative mt-1">
+                  <input
+                    id="vendeur-mdp"
+                    required
+                    type={voirMotDePasse ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    minLength={8}
+                    maxLength={72}
+                    value={form.password}
+                    onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 pr-20 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setVoirMotDePasse((v) => !v)}
+                    aria-pressed={voirMotDePasse}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500 hover:text-gray-800 px-2 py-1"
+                  >
+                    {voirMotDePasse ? 'Masquer' : 'Afficher'}
+                  </button>
+                </div>
+                <p className={`text-xs mt-1 ${form.password && erreurMotDePasseVendeur(form.password) ? 'text-red-600' : 'text-gray-400'}`}>
+                  {form.password && erreurMotDePasseVendeur(form.password)
+                    ? erreurMotDePasseVendeur(form.password)
+                    : 'Au moins 8 caractères, dont une majuscule et un chiffre.'}
+                </p>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-700">Téléphone</label>

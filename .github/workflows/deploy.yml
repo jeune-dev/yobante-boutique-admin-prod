@@ -23,10 +23,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # ── Barrière qualité ────────────────────────────────────────────────
+      # Le workflow construisait et déployait sans jamais exécuter la suite
+      # de tests ni le contrôle de types : un commit cassé partait directement
+      # en production, et le seul contrôle (`curl -I`) se contentait de
+      # vérifier que nginx répondait — ce qu'il fait aussi avec un bundle
+      # défectueux, puisque l'erreur n'apparaît qu'à l'exécution côté
+      # navigateur. Ces deux étapes bloquent le déploiement en cas d'échec.
+      - name: Type check
+        run: npm run type-check
+
+      - name: Tests
+        run: npm test
+
       - name: Write .env
         run: |
           echo "VITE_SHOP_API_URL=${{ secrets.VITE_SHOP_API_URL }}" > .env
-          echo "VITE_SHIPMENT_API_URL=${{ secrets.VITE_SHIPMENT_API_URL }}" >> .env
           echo "VITE_APP_NAME=${{ secrets.VITE_APP_NAME }}" >> .env
           echo "VITE_APP_VERSION=${{ secrets.VITE_APP_VERSION }}" >> .env
 

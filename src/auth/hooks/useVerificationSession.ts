@@ -25,8 +25,6 @@ export const useVerificationSession = () => {
   const isShopAvailable = useAuthStore((s) => s.isShopAvailable);
   const mustChangePassword = useAuthStore((s) => s.mustChangePassword);
 
-  // Seule la session boutique est vérifiée ici : le back colis est un autre
-  // service, avec son propre contrôle sur ses endpoints.
   // Tant que le mot de passe temporaire n'est pas remplacé, le backend répond
   // 403 : ce n'est pas un refus de session, la garde renvoie vers le changement.
   const aVerifier = isAuthenticated && isShopAvailable && !mustChangePassword;

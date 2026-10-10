@@ -9,16 +9,8 @@ export const useAuth = () => {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const selectedApp = useAuthStore((state) => state.selectedApp);
   const isShopAvailable = useAuthStore((state) => state.isShopAvailable);
-  const isShipmentAvailable = useAuthStore((state) => state.isShipmentAvailable);
-  const setSelectedApp = useAuthStore((state) => state.setSelectedApp);
   const logout = useAuthStore((state) => state.logout);
-
-  const selectApp = (app: 'shop' | 'shipment') => {
-    setSelectedApp(app);
-    navigate(app === 'shop' ? '/boutique/dashboard' : '/colis/dashboard');
-  };
 
   const handleLogout = async () => {
     // 1. Purge locale immédiate (jetons, profil, cache) et retour à la
@@ -34,10 +26,7 @@ export const useAuth = () => {
   return {
     user,
     isAuthenticated,
-    selectedApp,
     isShopAvailable,
-    isShipmentAvailable,
-    selectApp,
     logout: handleLogout,
   };
 };

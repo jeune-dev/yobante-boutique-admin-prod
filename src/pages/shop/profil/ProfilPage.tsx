@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { showSuccess, showError } from '@/shared/utils/alert';
 import shopClient from '@/infrastructure/http/shop.client';
@@ -85,9 +85,9 @@ function Informations({
     <section className="bg-white rounded-xl border border-gray-100 p-5">
       <h2 className="font-semibold text-gray-900 mb-4">Informations</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <Champ label="Prénom" valeur={prenom} onChange={setPrenom} />
-        <Champ label="Nom" valeur={nom} onChange={setNom} />
-        <Champ label="Téléphone" valeur={telephone} onChange={setTelephone} />
+        <Champ label="Prénom" valeur={prenom} onChange={setPrenom} autoComplete="given-name" />
+        <Champ label="Nom" valeur={nom} onChange={setNom} autoComplete="family-name" />
+        <Champ label="Téléphone" valeur={telephone} onChange={setTelephone} autoComplete="tel" />
       </div>
       <button
         onClick={() => enregistrer.mutate()}
@@ -132,13 +132,26 @@ function MotDePasse() {
     <section className="bg-white rounded-xl border border-gray-100 p-5">
       <h2 className="font-semibold text-gray-900 mb-4">Mot de passe</h2>
       <div className="space-y-3">
-        <Champ label="Mot de passe actuel" valeur={ancien} onChange={setAncien} type="password" />
-        <Champ label="Nouveau mot de passe" valeur={nouveau} onChange={setNouveau} type="password" />
+        <Champ
+          label="Mot de passe actuel"
+          valeur={ancien}
+          onChange={setAncien}
+          type="password"
+          autoComplete="current-password"
+        />
+        <Champ
+          label="Nouveau mot de passe"
+          valeur={nouveau}
+          onChange={setNouveau}
+          type="password"
+          autoComplete="new-password"
+        />
         <Champ
           label="Confirmer le nouveau mot de passe"
           valeur={confirmation}
           onChange={setConfirmation}
           type="password"
+          autoComplete="new-password"
         />
       </div>
       <button
@@ -157,19 +170,30 @@ function Champ({
   valeur,
   onChange,
   type = 'text',
+  autoComplete,
 }: {
   label: string;
   valeur: string;
   onChange: (v: string) => void;
   type?: string;
+  autoComplete?: string;
 }) {
+  // `htmlFor` / `id` : le libellé n'était relié à aucun champ. Un lecteur
+  // d'écran annonçait « zone de saisie » sans dire laquelle, et cliquer le
+  // libellé ne donnait pas le focus (WCAG 2.2 AA, 1.3.1 et 4.1.2).
+  // `useId` garantit l'unicité même si le composant est rendu plusieurs fois.
+  const id = useId();
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+      <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">
+        {label}
+      </label>
       <input
+        id={id}
         type={type}
         value={valeur}
         onChange={(e) => onChange(e.target.value)}
+        autoComplete={autoComplete}
         className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
       />
     </div>

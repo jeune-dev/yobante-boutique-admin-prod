@@ -159,6 +159,12 @@ export interface Banniere {
   titre: string;
   image: string;
   lien?: string;
+  /** Rayon ouvert par l'application quand la bannière n'a pas de produits. */
+  rayonId?: string | null;
+  /** Bouton posé sur la bannière dans l'application. */
+  afficherBouton?: boolean;
+  /** Libellé du bouton (« Découvrir » par défaut). */
+  texteBouton?: string | null;
   ordre: number;
   isActive: boolean;
   createdAt: string;
