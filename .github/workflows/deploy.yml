@@ -17,7 +17,9 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # jsdom 30 (tests) dépend d'undici 8, qui exige Node 22 récent (>= 22.22) :
+          # sous Node 20, `npm test` échoue (webidl.util.markAsUncloneable).
+          node-version-file: '.nvmrc'
           cache: 'npm'
 
       - name: Install dependencies
