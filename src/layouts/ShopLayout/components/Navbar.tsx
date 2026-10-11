@@ -16,14 +16,14 @@ const LARGEUR_MENU = 248;
  * cran, gouttières comprises, font tenir l'ensemble sans défilement.
  */
 const classesOnglet = (actif: boolean) =>
-  `flex items-center gap-1.5 whitespace-nowrap px-2 lg:px-2.5 text-xs font-medium border-b-2 transition-colors ${
+  `flex items-center gap-1.5 whitespace-nowrap px-2 lg:px-2.5 text-[13.5px] font-medium border-b-2 transition-colors ${
     actif
       ? 'border-yellow-400 text-yellow-700'
       : 'border-transparent text-gray-500 hover:bg-gray-50 hover:text-gray-900'
   }`;
 
-/** Taille des icônes d'onglet, accordée au `text-xs` des intitulés. */
-const TAILLE_ICONE = 15;
+/** Taille des icônes d'onglet, accordée aux intitulés (13,5 px). */
+const TAILLE_ICONE = 16;
 
 /**
  * Navigation principale, intégrée à la barre du haut.
@@ -234,14 +234,14 @@ export default function ShopNavbar() {
                       largeur. Seules les gouttières se resserrent. */}
                   <span className="min-w-0">
                     <span
-                      className={`block text-[13px] font-medium leading-snug ${
+                      className={`block text-[14px] font-medium leading-snug ${
                         actif ? 'text-yellow-700' : 'text-gray-800'
                       }`}
                     >
                       {enfant.label}
                     </span>
                     {enfant.aide && (
-                      <span className="block text-[11px] text-gray-400 leading-tight">
+                      <span className="block text-[12px] text-gray-400 leading-tight">
                         {enfant.aide}
                       </span>
                     )}
