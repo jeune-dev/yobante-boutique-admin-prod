@@ -1,7 +1,6 @@
 import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import AdminBackButton from '@/shared/components/AdminBackButton';
-import Icon from '@/shared/components/dashboard/Icon';
 import shopClient from '@/infrastructure/http/shop.client';
 import { Bloc, Chiffre, Titre, Vide } from '@/shared/components/dashboard/Blocs';
 import { date, fcfa, nombre } from '@/shared/utils/format';
@@ -218,14 +217,6 @@ export default function UserDetailPage() {
           </div>
         )}
       </Bloc>
-
-      <p className="flex items-start gap-1.5 text-xs text-gray-500">
-        <Icon name="eye-off" size={13} className="mt-0.5 shrink-0" />
-        <span>
-          Le programme de fidélité prévu au cahier des charges n'existe pas encore : aucun point
-          ni palier n'est enregistré en base.
-        </span>
-      </p>
     </div>
   );
 }

@@ -1,9 +1,21 @@
 import { Suspense } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useAuthStore } from '@/auth/store/auth.store';
+import { peutOuvrir, premierCheminAutorise } from '@/shared/accesAdmin';
 import ShopHeader from './components/Header';
 import { AttentePage } from '@/shared/components/feedback/AttentePage';
 
 export default function ShopLayout() {
+  const location = useLocation();
+  const permissions = useAuthStore((s) => s.user?.permissions);
+
+  // Page non attribuée à cet administrateur (lien direct, favori, ancien
+  // onglet) : renvoi vers sa première page autorisée. Le backend refuse de
+  // toute façon les données correspondantes.
+  if (!peutOuvrir(permissions, location.pathname)) {
+    return <Navigate to={premierCheminAutorise(permissions)} replace />;
+  }
+
   return (
     // `h-screen` + `overflow-hidden` : seul le contenu défile, la barre du
     // haut reste en place.

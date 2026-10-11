@@ -142,14 +142,6 @@ export default function LivraisonPage() {
               aide={p.natureDesFrais}
             />
           </div>
-
-          <div className="mt-3">
-            <Reserve>
-              Les « frais moyens » sont le montant <strong>facturé au client</strong>, pas le coût
-              réel du transport : aucune donnée transporteur n'existe en base. Le coût moyen de
-              livraison demandé au cahier des charges reste donc inconnu.
-            </Reserve>
-          </div>
         </Bloc>
 
         {/* ── Retours ────────────────────────────────────────────────────── */}

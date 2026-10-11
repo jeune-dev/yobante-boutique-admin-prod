@@ -6,7 +6,6 @@ import {
   BoutonActualiser,
   Chiffre,
   EntetePage,
-  Reserve,
   Squelette,
   Titre,
 } from '@/shared/components/dashboard/Blocs';
@@ -199,18 +198,6 @@ export default function RentabilitePage() {
           )}
         </Bloc>
       </div>
-
-      <Reserve>
-        La « marge totale des vendeurs » du cahier des charges n'est pas calculable : Yobante
-        connaît ce qui leur est dû, pas leur prix d'achat. Le chiffre affiché est leur{' '}
-        <strong>chiffre d'affaires net de commission</strong>, pas leur marge.
-        {kpi && !kpi.margeComplete && (
-          <>
-            {' '}De plus, {nombre(kpi.lignesSansPrixAchat)} ligne(s) vendue(s) n'ont pas de prix
-            d'achat : la marge sur ventes propres est minorée.
-          </>
-        )}
-      </Reserve>
     </div>
   );
 }

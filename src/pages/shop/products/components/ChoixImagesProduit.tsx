@@ -70,7 +70,7 @@ export default function ChoixImagesProduit({ fichiers, onChange, imagesActuelles
                 key={url + i}
                 src={url}
                 alt=""
-                className="w-16 h-16 rounded-lg object-cover border border-gray-100"
+                className="w-16 h-16 rounded-lg object-contain bg-white border border-gray-100"
               />
             ))}
           </div>
@@ -95,9 +95,9 @@ export default function ChoixImagesProduit({ fichiers, onChange, imagesActuelles
         {fichiers.map((f, i) => (
           <div
             key={`${f.name}-${f.size}-${f.lastModified}`}
-            className="relative aspect-square rounded-lg overflow-hidden border border-gray-100 bg-gray-50 group"
+            className="relative aspect-square rounded-lg overflow-hidden border border-gray-100 bg-white group"
           >
-            <img src={apercus[i]} alt={f.name} className="w-full h-full object-cover" />
+            <img src={apercus[i]} alt={f.name} className="w-full h-full object-contain p-1.5" />
             {i === 0 ? (
               <span className="absolute bottom-1 left-1 text-[10px] font-semibold bg-yellow-500 text-white rounded px-1.5 py-0.5">
                 Principale

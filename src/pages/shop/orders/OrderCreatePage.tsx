@@ -414,7 +414,7 @@ function RechercheProduits({ panier, onAjouter }: { panier: LignePanier[]; onAjo
             return (
               <li key={p.id} className="flex items-center gap-3 px-3 py-2.5">
                 {p.images?.[0] ? (
-                  <img src={p.images[0]} alt="" className="w-10 h-10 rounded-lg object-cover bg-gray-100 shrink-0" />
+                  <img src={p.images[0]} alt="" className="w-10 h-10 rounded-lg object-contain bg-white border border-gray-100 shrink-0" />
                 ) : (
                   <div className="w-10 h-10 rounded-lg bg-gray-100 shrink-0" aria-hidden="true" />
                 )}

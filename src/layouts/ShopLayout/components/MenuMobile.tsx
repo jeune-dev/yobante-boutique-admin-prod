@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { NavLink, useLocation } from 'react-router-dom';
 import Icon from '@/shared/components/dashboard/Icon';
 import { PICTO } from '@/assets/images/logos';
-import { NAV, estActif } from '../navigation';
+import { navPourAcces, estActif } from '../navigation';
+import { useAuthStore } from '@/auth/store/auth.store';
 
 /**
  * Navigation mobile : un tiroir listant **toutes** les pages, groupes dépliés.
@@ -14,6 +15,9 @@ import { NAV, estActif } from '../navigation';
  * et évite ces deux frictions.
  */
 export default function MenuMobile() {
+  // Seules les pages autorisées de l'administrateur apparaissent.
+  const permissions = useAuthStore((s) => s.user?.permissions);
+  const NAV = useMemo(() => navPourAcces(permissions), [permissions]);
   const { pathname, search } = useLocation();
   const [ouvert, setOuvert] = useState(false);
 

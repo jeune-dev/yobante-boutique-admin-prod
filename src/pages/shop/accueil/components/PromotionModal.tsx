@@ -222,7 +222,7 @@ export default function PromotionModal({
                       <img
                         src={p.images[0]}
                         alt=""
-                        className="w-10 h-10 rounded-md object-cover shrink-0"
+                        className="w-10 h-10 rounded-md object-contain bg-white border border-gray-100 shrink-0"
                       />
                     ) : (
                       <span className="w-10 h-10 rounded-md bg-gray-100 shrink-0" />
@@ -252,7 +252,7 @@ export default function PromotionModal({
               <img
                 src={produit.images[0]}
                 alt=""
-                className="w-10 h-10 rounded-md object-cover shrink-0"
+                className="w-10 h-10 rounded-md object-contain bg-white border border-gray-100 shrink-0"
               />
             )}
             <div className="min-w-0 flex-1">

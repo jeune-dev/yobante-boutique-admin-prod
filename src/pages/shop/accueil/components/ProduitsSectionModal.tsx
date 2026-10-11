@@ -157,7 +157,7 @@ export default function ProduitsSectionModal({
                       className="w-4 h-4 accent-yellow-500 shrink-0"
                     />
                     {p.images?.[0] ? (
-                      <img src={p.images[0]} alt="" className="w-10 h-10 rounded-md object-cover shrink-0" />
+                      <img src={p.images[0]} alt="" className="w-10 h-10 rounded-md object-contain bg-white border border-gray-100 shrink-0" />
                     ) : (
                       <span className="w-10 h-10 rounded-md bg-gray-100 shrink-0" />
                     )}

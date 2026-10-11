@@ -216,7 +216,7 @@ export default function DemandeDetailModal({ demande, onFermer, onTraitee }: Pro
                           i === imageActive ? 'border-yellow-500' : 'border-transparent'
                         }`}
                       >
-                        <img src={src} alt="" className="w-full h-full object-cover" />
+                        <img src={src} alt="" className="w-full h-full object-contain bg-white" />
                       </button>
                     ))}
                   </div>

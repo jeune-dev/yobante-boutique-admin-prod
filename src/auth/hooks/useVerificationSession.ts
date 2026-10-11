@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
 import {
@@ -8,7 +9,7 @@ import {
 import { useAuthStore } from '@/auth/store/auth.store';
 
 interface SessionAdmin {
-  user?: { id: string; role?: string };
+  user?: { id: string; role?: string; permissions?: string[] | null };
 }
 
 /**
@@ -44,6 +45,21 @@ export const useVerificationSession = () => {
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: true,
   });
+
+  // Les accès viennent du serveur : une modification par un autre
+  // administrateur s'applique au prochain contrôle (au plus 5 min, ou au
+  // retour sur l'onglet), sans reconnexion.
+  const setUser = useAuthStore((s) => s.setUser);
+  const sessionServeur = query.data?.user;
+  useEffect(() => {
+    if (!sessionServeur) return;
+    const actuel = useAuthStore.getState().user;
+    if (!actuel) return;
+    const permissions = sessionServeur.permissions ?? null;
+    if (JSON.stringify(actuel.permissions ?? null) !== JSON.stringify(permissions)) {
+      setUser({ ...actuel, permissions });
+    }
+  }, [sessionServeur, setUser]);
 
   // Seul un refus explicite du serveur invalide la session : une panne réseau
   // ne doit pas déconnecter l'administrateur.

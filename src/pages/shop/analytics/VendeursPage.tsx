@@ -7,7 +7,6 @@ import {
   BoutonActualiser,
   Chiffre,
   EntetePage,
-  Reserve,
   Squelette,
   Vide,
 } from '@/shared/components/dashboard/Blocs';
@@ -302,14 +301,6 @@ export default function VendeursAnalyticsPage() {
           </div>
         )}
       </Bloc>
-
-      <Reserve>
-        La <strong>note</strong> est la moyenne des avis laissés sur les produits du vendeur, et
-        le <strong>score</strong> ne mesure que les incidents qui lui sont imputables. L'enquête
-        post-livraison du cahier des charges — qualité, délais, amabilité du livreur, aspect du
-        colis, note sur 10 — n'existe pas encore en base : aucun de ces deux chiffres ne la
-        remplace.
-      </Reserve>
     </div>
   );
 }

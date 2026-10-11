@@ -119,7 +119,7 @@ export default function DemandesPage() {
                           <span className="relative shrink-0">
                             <img
                               src={p.images[0]}
-                              className="w-10 h-10 rounded-lg object-cover"
+                              className="w-10 h-10 rounded-lg object-contain bg-white border border-gray-100"
                               alt=""
                             />
                             {p.images.length > 1 && (

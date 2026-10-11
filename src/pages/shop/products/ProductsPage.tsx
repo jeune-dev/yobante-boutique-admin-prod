@@ -187,7 +187,7 @@ export default function ProductsPage() {
                         {p.images?.[0] ? (
                           <img
                             src={p.images[0]}
-                            className="w-10 h-10 rounded-lg object-cover shrink-0"
+                            className="w-10 h-10 rounded-lg object-contain bg-white border border-gray-100 shrink-0"
                             alt=""
                           />
                         ) : (

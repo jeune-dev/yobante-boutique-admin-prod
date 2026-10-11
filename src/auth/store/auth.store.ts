@@ -9,6 +9,8 @@ export interface User {
   nom: string;
   prenom: string;
   role: string;
+  /** Pages du dashboard autorisées ; null ou absent = accès complet. */
+  permissions?: string[] | null;
 }
 
 interface AuthStore {

@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import Icon from '@/shared/components/dashboard/Icon';
-import { NAV, estActif, type EntreeNav } from '../navigation';
+import { navPourAcces, estActif, type EntreeNav } from '../navigation';
+import { useAuthStore } from '@/auth/store/auth.store';
 
 /** Largeur du fondu appliqué au bord où la barre continue hors champ. */
 const FONDU = '28px';
@@ -47,6 +48,9 @@ const TAILLE_ICONE = 16;
  * n'indiquerait que des sections existent hors champ sur un écran étroit.
  */
 export default function ShopNavbar() {
+  // Seules les pages autorisées de l'administrateur apparaissent.
+  const permissions = useAuthStore((s) => s.user?.permissions);
+  const NAV = useMemo(() => navPourAcces(permissions), [permissions]);
   const { pathname, search } = useLocation();
   const navigate = useNavigate();
   const bandeau = useRef<HTMLElement>(null);

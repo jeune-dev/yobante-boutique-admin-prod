@@ -9,7 +9,6 @@ import {
   Chiffre,
   EntetePage,
   Pastille,
-  Reserve,
   Squelette,
   Vide,
 } from '@/shared/components/dashboard/Blocs';
@@ -22,7 +21,6 @@ type Vue = 'tout' | 'rupture' | 'alerte' | 'surstock' | 'sans-prix';
 
 const VUES: Array<{ cle: Vue; libelle: string; aide: string }> = [
   { cle: 'tout', libelle: 'Tous', aide: 'Tout le catalogue actif' },
-  { cle: 'rupture', libelle: 'Ruptures', aide: 'Stock à zéro — ventes perdues' },
   { cle: 'alerte', libelle: 'Sous seuil', aide: 'Moins de deux semaines de ventes en stock' },
   { cle: 'surstock', libelle: 'Surstock', aide: 'Plus de deux mois d’écoulement immobilisés' },
   { cle: 'sans-prix', libelle: 'Sans prix d’achat', aide: 'Marge et valeur de stock incalculables' },
@@ -44,7 +42,9 @@ export default function StockPage() {
   // La vue est dans l'URL : l'alerte « produits en rupture » du dashboard
   // amène directement sur le bon onglet, et le lien reste partageable.
   const [params, setParams] = useSearchParams();
-  const vue = (params.get('vue') as Vue) || 'tout';
+  // Vue inconnue (ancien lien « ?vue=rupture ») : retour à la vue complète.
+  const demandee = params.get('vue') as Vue | null;
+  const vue: Vue = VUES.some((v) => v.cle === demandee) ? (demandee as Vue) : 'tout';
   const [recherche, setRecherche] = useState('');
   const [tri, setTri] = useState<Tri>('couverture');
   const [page, setPage] = useState(1);
@@ -181,15 +181,6 @@ export default function StockPage() {
           />
         </div>
 
-        {(synthese?.produitsSansPrixAchat ?? 0) > 0 && (
-          <div className="mt-3">
-            <Reserve>
-              {nombre(synthese?.produitsSansPrixAchat)} produit(s) n'ont pas de prix d'achat : la
-              valeur de stock affichée ci-dessus les <strong>exclut</strong> et est donc
-              sous-évaluée.
-            </Reserve>
-          </div>
-        )}
       </Bloc>
 
       {/* ── Filtres ──────────────────────────────────────────────────────── */}
@@ -353,12 +344,6 @@ export default function StockPage() {
           </>
         )}
       </Bloc>
-
-      <Reserve>
-        La <strong>date de rupture</strong> demandée au cahier des charges n'est pas disponible :
-        aucune colonne n'horodate le passage du stock à zéro. La colonne « modifié le » est la
-        dernière modification de la fiche, pas la date de rupture.
-      </Reserve>
     </div>
   );
 }

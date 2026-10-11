@@ -7,7 +7,6 @@ import {
   BoutonActualiser,
   Chiffre,
   EntetePage,
-  Reserve,
   Squelette,
   Titre,
 } from '@/shared/components/dashboard/Blocs';
@@ -80,14 +79,6 @@ export default function ClientsAnalyticsPage() {
             valeur={c.joursAvantPremierAchat === null ? '—' : `${decimal(c.joursAvantPremierAchat, 1)} j`}
             aide="Temps moyen entre l'inscription et la première commande"
           />
-        </div>
-
-        <div className="mt-3">
-          <Reserve>
-            Ce taux de conversion rapporte les <strong>inscrits qui ont commandé</strong> aux
-            inscrits de la période. Le taux visiteurs → commandes demandé au cahier des charges
-            exige un suivi des visites qui n'existe pas encore en base.
-          </Reserve>
         </div>
       </Bloc>
 

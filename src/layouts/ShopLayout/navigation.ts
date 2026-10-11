@@ -1,3 +1,5 @@
+import { peutOuvrir } from '@/shared/accesAdmin';
+
 export interface EntreeNav {
   label: string;
   icon: string;
@@ -10,7 +12,7 @@ export interface EntreeNav {
 /**
  * Sections de la navigation principale.
  *
- * Le découpage suit celui du cahier des charges — Commerce, Stock,
+ * Le découpage suit l'organisation de la boutique — Commerce, Stock,
  * Marketplace, Clients, Logistique, Finance, Analytics — parce que c'est
  * ainsi que la boutique raisonne : on cherche une commission dans Finance,
  * pas dans Utilisateurs.
@@ -64,24 +66,7 @@ export const NAV: EntreeNav[] = [
       },
     ],
   },
-  {
-    label: 'Stock',
-    icon: 'boxes',
-    enfants: [
-      {
-        label: 'Stocks',
-        icon: 'boxes',
-        path: '/boutique/stock',
-        aide: 'Couverture, rotation et valeur du stock',
-      },
-      {
-        label: 'Ruptures',
-        icon: 'alert-triangle',
-        path: '/boutique/stock?vue=rupture',
-        aide: 'Produits à zéro et sous le seuil de ventes',
-      },
-    ],
-  },
+  { label: 'Stock', icon: 'boxes', path: '/boutique/stock' },
   {
     label: 'Marketplace',
     icon: 'store',
@@ -302,4 +287,16 @@ export function libelleDuChemin(pathname: string): string | null {
     .sort((a, b) => b.path.length - a.path.length)[0];
 
   return correspondance?.label ?? null;
+}
+
+/**
+ * Navigation limitée aux pages autorisées de l'administrateur (null = tout).
+ * Un groupe dont aucune sous-page n'est autorisée disparaît.
+ */
+export function navPourAcces(permissions?: string[] | null): EntreeNav[] {
+  return NAV.flatMap((entree) => {
+    if (entree.path) return peutOuvrir(permissions, entree.path) ? [entree] : [];
+    const enfants = (entree.enfants ?? []).filter((e) => peutOuvrir(permissions, e.path));
+    return enfants.length ? [{ ...entree, enfants }] : [];
+  });
 }

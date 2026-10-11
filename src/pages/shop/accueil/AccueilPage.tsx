@@ -445,9 +445,9 @@ function GrilleProduits({
               index < 6 ? 'border-yellow-200' : 'border-gray-100'
             } ${promo.isActive ? '' : 'opacity-60'}`}
           >
-            <div className="relative aspect-square bg-gray-50 flex items-center justify-center">
+            <div className="relative aspect-square bg-white flex items-center justify-center">
               {image ? (
-                <img src={image} alt={produit.nom ?? ''} className="w-full h-full object-cover" />
+                <img src={image} alt={produit.nom ?? ''} className="w-full h-full object-contain p-3" />
               ) : (
                 <Icon name="image" size={22} className="text-gray-300" />
               )}

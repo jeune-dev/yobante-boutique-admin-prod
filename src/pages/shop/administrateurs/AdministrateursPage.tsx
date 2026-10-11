@@ -5,6 +5,8 @@ import { useAuthStore } from '@/auth/store/auth.store';
 import { showSuccess, showError, showConfirm } from '@/shared/utils/alert';
 import Pagination from '@/shared/components/tables/Pagination';
 import { PhoneInput } from '@/shared/components/PhoneInput';
+import { libellesPages } from '@/shared/accesAdmin';
+import ChoixAccesAdmin from './ChoixAccesAdmin';
 
 const api = {
   lister: (p: Record<string, unknown>) => shopClient.get('/admin/users/admins', { params: p }),
@@ -15,6 +17,7 @@ const api = {
   debloquer: (id: string) => shopClient.patch(`/admin/users/admins/${id}/debloquer`),
   renvoyerIdentifiants: (id: string) =>
     shopClient.post(`/admin/users/admins/${id}/renvoyer-identifiants`),
+  supprimer: (id: string) => shopClient.delete(`/admin/users/admins/${id}`),
 };
 
 interface Administrateur {
@@ -26,6 +29,9 @@ interface Administrateur {
   statut?: 'actif' | 'bloque';
   isActive?: boolean;
   mustChangePassword?: boolean;
+  /** Pages autorisées ; null = accès complet. */
+  permissions?: string[] | null;
+  accesComplet?: boolean;
   createdAt?: string;
 }
 
@@ -43,9 +49,20 @@ interface Formulaire {
   telephone: string;
   /** Indicatif du pays choisi : un champ qui ne contient que lui est vide. */
   indicatif: string;
+  /** Accès : complet, ou la liste des pages cochées. */
+  complet: boolean;
+  pages: string[];
 }
 
-const VIDE: Formulaire = { nom: '', prenom: '', email: '', telephone: '', indicatif: '' };
+const VIDE: Formulaire = {
+  nom: '',
+  prenom: '',
+  email: '',
+  telephone: '',
+  indicatif: '',
+  complet: false,
+  pages: [],
+};
 
 /** Téléphone à envoyer : null si seul l'indicatif a été saisi. */
 const telephoneSaisi = (f: Formulaire) => {
@@ -102,6 +119,15 @@ export default function AdministrateursPage() {
     onError: (e) => showError(e),
   });
 
+  const supprimerMutation = useMutation({
+    mutationFn: (id: string) => api.supprimer(id),
+    onSuccess: (reponse) => {
+      rafraichir();
+      showSuccess(reponse);
+    },
+    onError: (e) => showError(e),
+  });
+
   const renvoyerMutation = useMutation({
     mutationFn: (id: string) => api.renvoyerIdentifiants(id),
     onSuccess: (reponse) => {
@@ -127,6 +153,8 @@ export default function AdministrateursPage() {
       email: a.email || '',
       telephone: a.telephone || '',
       indicatif: '',
+      complet: a.accesComplet ?? !Array.isArray(a.permissions),
+      pages: Array.isArray(a.permissions) ? a.permissions : [],
     });
     setModal(a);
   };
@@ -136,6 +164,12 @@ export default function AdministrateursPage() {
     const nom = form.nom.trim();
     const prenom = form.prenom.trim();
     const email = form.email.trim();
+    const modifieSesAcces = !enEdition || enEdition.id !== moi?.id;
+
+    if (modifieSesAcces && !form.complet && form.pages.length === 0) {
+      showError('Choisissez au moins une page à laquelle cet administrateur aura accès.');
+      return;
+    }
 
     const confirme = await showConfirm(
       enEdition
@@ -153,6 +187,8 @@ export default function AdministrateursPage() {
     if (!confirme) return;
 
     const payload: Record<string, unknown> = { nom, prenom, email };
+    // Ses propres accès ne se modifient pas (le backend le refuse aussi).
+    if (modifieSesAcces) payload.permissions = form.complet ? null : form.pages;
     const telephone = telephoneSaisi(form);
     // En création, un champ vide n'est pas envoyé ; en modification, il efface
     // le numéro enregistré.
@@ -174,6 +210,17 @@ export default function AdministrateursPage() {
     });
     if (!confirme) return;
     statutMutation.mutate({ id: a.id, bloquer });
+  };
+
+  const handleSupprimer = async (a: Administrateur) => {
+    const confirme = await showConfirm({
+      titre: "Supprimer l'administrateur",
+      message: `Supprimer définitivement le compte de ${nomComplet(a)} (${a.email ?? ''}) ?\nIl ne pourra plus se connecter au dashboard. L'historique de ses actions est conservé.\nCette action est irréversible.`,
+      confirmText: 'Supprimer',
+      danger: true,
+    });
+    if (!confirme) return;
+    supprimerMutation.mutate(a.id);
   };
 
   const handleRenvoyer = async (a: Administrateur) => {
@@ -252,6 +299,7 @@ export default function AdministrateursPage() {
                 <tr className="border-b border-gray-100 text-left">
                   <th className="p-4 font-medium text-gray-500">Administrateur</th>
                   <th className="p-4 font-medium text-gray-500">Contact</th>
+                  <th className="p-4 font-medium text-gray-500">Accès</th>
                   <th className="p-4 font-medium text-gray-500">Statut</th>
                   <th className="p-4 font-medium text-gray-500 text-center">Actions</th>
                 </tr>
@@ -275,6 +323,25 @@ export default function AdministrateursPage() {
                       <td className="p-4 text-gray-500 text-xs" data-label="Contact">
                         <div>{a.email || '—'}</div>
                         <div>{a.telephone || '—'}</div>
+                      </td>
+                      <td className="p-4" data-label="Accès">
+                        {Array.isArray(a.permissions) ? (
+                          <span
+                            className="px-2 py-1 rounded-full text-xs bg-blue-50 text-blue-700 cursor-help"
+                            title={libellesPages(a.permissions).join(', ')}
+                          >
+                            {a.permissions.length} page{a.permissions.length > 1 ? 's' : ''}
+                          </span>
+                        ) : (
+                          <span className="px-2 py-1 rounded-full text-xs bg-yellow-50 text-yellow-800">
+                            Accès complet
+                          </span>
+                        )}
+                        {Array.isArray(a.permissions) && a.permissions.length > 0 && (
+                          <p className="text-[11px] text-gray-400 mt-1 max-w-[220px] truncate">
+                            {libellesPages(a.permissions).join(', ')}
+                          </p>
+                        )}
                       </td>
                       <td className="p-4" data-label="Statut">
                         <div className="flex flex-wrap gap-1.5">
@@ -326,6 +393,14 @@ export default function AdministrateursPage() {
                               >
                                 {bloque ? 'Débloquer' : 'Bloquer'}
                               </button>
+                              <button
+                                onClick={() => handleSupprimer(a)}
+                                disabled={supprimerMutation.isPending}
+                                title="Supprimer ce compte administrateur"
+                                className="px-2.5 py-1.5 sm:py-1 rounded text-[11px] font-medium bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+                              >
+                                Supprimer
+                              </button>
                             </>
                           )}
                         </div>
@@ -335,7 +410,7 @@ export default function AdministrateursPage() {
                 })}
                 {admins.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="p-8 text-center text-gray-400 tbl-empty">
+                    <td colSpan={5} className="p-8 text-center text-gray-400 tbl-empty">
                       Aucun administrateur trouvé
                     </td>
                   </tr>
@@ -356,7 +431,10 @@ export default function AdministrateursPage() {
           aria-modal="true"
           aria-label={enEdition ? "Modifier l'administrateur" : 'Nouvel administrateur'}
         >
-          <div className="modal-box max-w-md p-5 sm:p-6" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="modal-box max-w-2xl p-5 sm:p-6 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h2 className="text-lg font-bold mb-1">
               {enEdition ? "Modifier l'administrateur" : 'Nouvel administrateur'}
             </h2>
@@ -416,6 +494,25 @@ export default function AdministrateursPage() {
                       indicatif: String(meta?.country?.dialCode ?? ''),
                     }))
                   }
+                />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-1">Pages accessibles *</p>
+                {enEdition && enEdition.id === moi?.id ? (
+                  <p className="text-xs text-gray-500 mb-2">
+                    Vos propres accès ne peuvent être modifiés que par un autre administrateur.
+                  </p>
+                ) : (
+                  <p className="text-xs text-gray-500 mb-2">
+                    L'administrateur ne verra que ces pages dans le dashboard.
+                  </p>
+                )}
+                <ChoixAccesAdmin
+                  complet={form.complet}
+                  pages={form.pages}
+                  accesAuteur={moi?.permissions}
+                  desactive={!!enEdition && enEdition.id === moi?.id}
+                  onChange={({ complet, pages }) => setForm((f) => ({ ...f, complet, pages }))}
                 />
               </div>
               <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2">
