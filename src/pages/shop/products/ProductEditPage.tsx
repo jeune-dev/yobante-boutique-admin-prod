@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import ChoixImagesProduit from './components/ChoixImagesProduit';
 import { useParams } from 'react-router-dom';
 import AdminBackButton from '@/shared/components/AdminBackButton';
 import { useRetour } from '@/shared/hooks/useRetour';
@@ -11,7 +12,6 @@ export default function ProductEditPage() {
   const { id } = useParams<{ id: string }>();
   const retour = useRetour('/boutique/produits');
   const qc = useQueryClient();
-  const fileRef = useRef<HTMLInputElement>(null);
 
   const [nom, setNom] = useState('');
   const [description, setDescription] = useState('');
@@ -25,7 +25,7 @@ export default function ProductEditPage() {
   const [etat, setEtat] = useState<'neuf' | 'reconditionne'>('neuf');
   const [rayonId, setRayonId] = useState('');
   const [sousRayonId, setSousRayonId] = useState('');
-  const [nbImages, setNbImages] = useState(0);
+  const [images, setImages] = useState<File[]>([]);
   // Valeurs chargées depuis l'API : référence pour détecter une modification.
   const [initial, setInitial] = useState<string | null>(null);
 
@@ -74,7 +74,7 @@ export default function ProductEditPage() {
 
   const modifie =
     initial !== null &&
-    (nbImages > 0 ||
+    (images.length > 0 ||
       JSON.stringify({ nom, description, prix, venduAuPoids, stock, poids, reference, avecEtat, etat, rayonId, sousRayonId }) !==
         initial);
   const { autoriserSortie } = useConfirmationSortie(modifie);
@@ -137,10 +137,8 @@ export default function ProductEditPage() {
     if (reference) fd.append('reference', reference);
     if (rayonId) fd.append('rayonId', rayonId);
     if (sousRayonId) fd.append('sousRayonId', sousRayonId);
-    const files = fileRef.current?.files;
-    if (files && files.length > 0) {
-      for (let i = 0; i < files.length; i++) fd.append('images', files[i]);
-    }
+    // Nouvelles photos (dans l'ordre choisi) : elles remplacent les actuelles.
+    images.forEach((f) => fd.append('images', f));
     updateMutation.mutate(fd);
   };
 
@@ -342,16 +340,11 @@ export default function ProductEditPage() {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">
-              Images (vide = garder les actuelles)
-            </label>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={(e) => setNbImages(e.target.files?.length ?? 0)}
-              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
+            <label className="text-sm font-medium text-gray-700">Photos du produit</label>
+            <ChoixImagesProduit
+              fichiers={images}
+              onChange={setImages}
+              imagesActuelles={Array.isArray((produit as any)?.images) ? (produit as any).images : []}
             />
           </div>
 

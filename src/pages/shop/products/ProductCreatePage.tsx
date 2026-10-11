@@ -1,4 +1,5 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
+import ChoixImagesProduit from './components/ChoixImagesProduit';
 import AdminBackButton from '@/shared/components/AdminBackButton';
 import { useRetour } from '@/shared/hooks/useRetour';
 import { useConfirmationSortie } from '@/shared/hooks/useConfirmationSortie';
@@ -9,7 +10,6 @@ import { showSuccess, showError, showConfirm } from '@/shared/utils/alert';
 export default function ProductCreatePage() {
   const retour = useRetour('/boutique/produits');
   const qc = useQueryClient();
-  const fileRef = useRef<HTMLInputElement>(null);
 
   const [nom, setNom] = useState('');
   const [description, setDescription] = useState('');
@@ -23,7 +23,7 @@ export default function ProductCreatePage() {
   const [etat, setEtat] = useState<'neuf' | 'reconditionne'>('neuf');
   const [rayonId, setRayonId] = useState('');
   const [sousRayonId, setSousRayonId] = useState('');
-  const [nbImages, setNbImages] = useState(0);
+  const [images, setImages] = useState<File[]>([]);
 
   // Formulaire vierge = rien à protéger ; la moindre saisie demande confirmation
   // avant de quitter la page.
@@ -32,7 +32,7 @@ export default function ProductCreatePage() {
     venduAuPoids ||
     avecEtat ||
     stock !== '0' ||
-    nbImages > 0;
+    images.length > 0;
   const { autoriserSortie } = useConfirmationSortie(modifie);
 
   const { data: rayonsData } = useQuery({
@@ -93,8 +93,8 @@ export default function ProductCreatePage() {
     fd.append('etat', avecEtat ? etat : 'neuf');
     if (poids) fd.append('poids', poids);
     if (reference) fd.append('reference', reference);
-    const files = fileRef.current?.files;
-    if (files) for (let i = 0; i < files.length; i++) fd.append('images', files[i]);
+    // Dans l'ordre choisi : la première est la photo principale.
+    images.forEach((f) => fd.append('images', f));
     createMutation.mutate(fd);
   };
 
@@ -309,15 +309,8 @@ export default function ProductCreatePage() {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">Images</label>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={(e) => setNbImages(e.target.files?.length ?? 0)}
-              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
-            />
+            <label className="text-sm font-medium text-gray-700">Photos du produit</label>
+            <ChoixImagesProduit fichiers={images} onChange={setImages} />
           </div>
 
           <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
