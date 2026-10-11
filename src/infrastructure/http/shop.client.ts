@@ -36,6 +36,13 @@ shopClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Envoi de fichiers : l'en-tête JSON par défaut ci-dessus pousse axios à
+    // convertir le FormData en JSON — les fichiers y deviennent des objets
+    // vides et le backend répond « images must be an array ». En multipart,
+    // axios laisse le navigateur poser l'en-tête avec sa frontière (boundary).
+    if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+      config.headers['Content-Type'] = 'multipart/form-data';
+    }
     return config;
   },
   (error) => Promise.reject(error)
