@@ -26,6 +26,8 @@ export interface ShopUser {
 }
 
 export const usersApi = {
+  /** Supprime (anonymise) un compte client ; ses commandes restent. */
+  supprimerClient: (id: string): Promise<any> => shopClient.delete(`/admin/users/clients/${id}`),
   getAll: (filters?: UserFilters): Promise<any> =>
     shopClient.get('/admin/users', { params: filters }),
 

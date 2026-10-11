@@ -13,6 +13,7 @@ const api = {
   bloquer: (id: string) => shopClient.patch(`/admin/vendeurs/${id}/bloquer`),
   debloquer: (id: string) => shopClient.patch(`/admin/vendeurs/${id}/debloquer`),
   renvoyerIdentifiants: (id: string) => shopClient.post(`/admin/vendeurs/${id}/renvoyer-identifiants`),
+  supprimer: (id: string) => shopClient.delete(`/admin/vendeurs/${id}`),
 };
 
 interface Vendeur {
@@ -68,6 +69,24 @@ const erreurMotDePasseVendeur = (mdp: string) => {
   }
   return null;
 };
+
+/**
+ * Masquage du mot de passe sans `type="password"` : un champ mot de passe
+ * pousse le navigateur (Chrome, gestionnaires de mots de passe) à proposer ou
+ * remplir tout seul un mot de passe — ici, c'est à l'admin de le choisir.
+ * Repli sur `password` pour les navigateurs sans `-webkit-text-security`.
+ */
+const MASQUAGE_CSS =
+  typeof CSS !== 'undefined' && typeof CSS.supports === 'function' && CSS.supports('-webkit-text-security', 'disc');
+
+/** Attributs qui écartent l'autoremplissage des navigateurs et gestionnaires. */
+const SANS_AUTOREMPLISSAGE = {
+  autoComplete: 'off',
+  'data-lpignore': 'true',
+  'data-1p-ignore': 'true',
+  'data-bwignore': 'true',
+  'data-form-type': 'other',
+} as const;
 
 /** Mot de passe lisible (sans 0/O, 1/l/I), à recopier facilement depuis l'email. */
 const genererMotDePasse = () => {
@@ -146,6 +165,15 @@ export default function VendeursPage() {
 
   const renvoyerMutation = useMutation({
     mutationFn: (id: string) => api.renvoyerIdentifiants(id),
+    onSuccess: (reponse) => {
+      rafraichir();
+      showSuccess(reponse);
+    },
+    onError: (e: any) => showError(e),
+  });
+
+  const supprimerMutation = useMutation({
+    mutationFn: (id: string) => api.supprimer(id),
     onSuccess: (reponse) => {
       rafraichir();
       showSuccess(reponse);
@@ -265,6 +293,20 @@ export default function VendeursPage() {
     renvoyerMutation.mutate(v.id);
   };
 
+  const handleSupprimer = async (v: Vendeur) => {
+    const nomComplet = `${v.prenom ?? ''} ${v.nom ?? ''}`.trim();
+    const confirme = await showConfirm({
+      titre: 'Supprimer le compte vendeur',
+      message: `Supprimer définitivement le compte de ${nomComplet}${
+        nomBoutique(v) !== '—' ? ` (${nomBoutique(v)})` : ''
+      } ?\nIl ne pourra plus se connecter et ses produits seront retirés du catalogue. L'historique de ses commandes et reversements est conservé.\nCette action est irréversible.`,
+      confirmText: 'Supprimer',
+      danger: true,
+    });
+    if (!confirme) return;
+    supprimerMutation.mutate(v.id);
+  };
+
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
@@ -377,6 +419,14 @@ export default function VendeursPage() {
                           >
                             {bloque ? 'Débloquer' : 'Bloquer'}
                           </button>
+                          <button
+                            onClick={() => handleSupprimer(v)}
+                            disabled={supprimerMutation.isPending}
+                            title="Supprimer ce compte vendeur"
+                            className="px-2.5 py-1.5 sm:py-1 rounded text-[11px] font-medium bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+                          >
+                            Supprimer
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -418,7 +468,7 @@ export default function VendeursPage() {
               identifiant et le mot de passe ci-dessous, et se connecte depuis{' '}
               <strong>l'application mobile</strong> (le dashboard est réservé aux administrateurs).
             </p>
-            <form onSubmit={handleCreer} className="space-y-4">
+            <form onSubmit={handleCreer} className="space-y-4" autoComplete="off">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-sm font-medium text-gray-700">Prénom *</label>
@@ -444,6 +494,7 @@ export default function VendeursPage() {
                 <input
                   required
                   type="email"
+                  {...SANS_AUTOREMPLISSAGE}
                   value={form.email}
                   onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
                   className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
@@ -468,9 +519,18 @@ export default function VendeursPage() {
                 <div className="relative mt-1">
                   <input
                     id="vendeur-mdp"
+                    name="vendeur-acces"
                     required
-                    type={voirMotDePasse ? 'text' : 'password'}
-                    autoComplete="new-password"
+                    type={voirMotDePasse || MASQUAGE_CSS ? 'text' : 'password'}
+                    {...SANS_AUTOREMPLISSAGE}
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck={false}
+                    style={
+                      MASQUAGE_CSS && !voirMotDePasse
+                        ? ({ WebkitTextSecurity: 'disc' } as React.CSSProperties)
+                        : undefined
+                    }
                     minLength={8}
                     maxLength={72}
                     value={form.password}
@@ -557,7 +617,7 @@ export default function VendeursPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-lg font-bold mb-4">Modifier le vendeur</h2>
-            <form onSubmit={handleModifier} className="space-y-4">
+            <form onSubmit={handleModifier} className="space-y-4" autoComplete="off">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-sm font-medium text-gray-700">Prénom *</label>

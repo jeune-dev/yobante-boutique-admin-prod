@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useUsers, useToggleUserActive } from '@/domains/shop/hooks/useUsers';
+import { useUsers, useToggleUserActive, useSupprimerClient } from '@/domains/shop/hooks/useUsers';
 import { ShopUser } from '@/domains/shop/api/users.api';
-import { showSuccess } from '@/shared/utils/alert';
+import { showSuccess, showError, showConfirm } from '@/shared/utils/alert';
 import Pagination from '@/shared/components/tables/Pagination';
 import { etatRetour } from '@/shared/hooks/useRetour';
 import { lirePage, useParametresUrl } from '@/shared/hooks/useParametresUrl';
@@ -19,9 +19,16 @@ function fmtDate(iso: string) {
 }
 
 function initiales(u: ShopUser) {
-  return `${u.nom?.[0] ?? ''}${u.prenom?.[0] ?? ''}`.toUpperCase();
+  return `${u.prenom?.[0] ?? ''}${u.nom?.[0] ?? ''}`.toUpperCase();
 }
 
+const nomComplet = (u: ShopUser) => `${u.prenom ?? ''} ${u.nom ?? ''}`.trim();
+
+/**
+ * Clients de la boutique : recherche, filtre actif / bloqué, activité
+ * commerciale, blocage et suppression du compte.
+ * Même présentation que l'écran Vendeurs.
+ */
 export default function UsersPage() {
   const location = useLocation();
   // Recherche validée, statut et page vivent dans l'URL : le retour depuis la
@@ -34,157 +41,206 @@ export default function UsersPage() {
 
   const { data, isLoading, isError } = useUsers({ page, limit: 15, search, isActive: activeFilter });
   const toggleMut = useToggleUserActive();
+  const supprimerMut = useSupprimerClient();
 
   // Le backend renvoie { users, pagination: { total, totalPages, page, limit } }.
-  const users = (data as any)?.users ?? [];
+  const users: ShopUser[] = (data as any)?.users ?? [];
   const totalPages = (data as any)?.pagination?.totalPages ?? 1;
   const count = (data as any)?.pagination?.total ?? users.length;
 
-  const handleToggle = (u: ShopUser) => {
-    toggleMut.mutate({ id: u.id, isActive: u.isActive }, {
-      onSuccess: (data) => showSuccess(data),
+  const handleToggle = async (u: ShopUser) => {
+    const bloquer = u.isActive;
+    const confirme = await showConfirm({
+      titre: bloquer ? 'Bloquer le client' : 'Débloquer le client',
+      message: bloquer
+        ? `Bloquer ${nomComplet(u)} ? Il ne pourra plus se connecter à l'application.`
+        : `Débloquer ${nomComplet(u)} ? Il retrouvera l'accès à l'application.`,
+      confirmText: bloquer ? 'Bloquer' : 'Débloquer',
+      danger: bloquer,
+    });
+    if (!confirme) return;
+    toggleMut.mutate(
+      { id: u.id, isActive: u.isActive },
+      { onSuccess: (r) => showSuccess(r), onError: (e: any) => showError(e) }
+    );
+  };
+
+  const handleSupprimer = async (u: ShopUser) => {
+    const confirme = await showConfirm({
+      titre: 'Supprimer le compte client',
+      message: `Supprimer définitivement le compte de ${nomComplet(u)} (${u.email}) ?\nSes informations personnelles sont effacées et il ne pourra plus se connecter. L'historique de ses commandes est conservé.\nCette action est irréversible.`,
+      confirmText: 'Supprimer',
+      danger: true,
+    });
+    if (!confirme) return;
+    supprimerMut.mutate(u.id, {
+      onSuccess: (r) => showSuccess(r),
+      onError: (e: any) => showError(e),
     });
   };
 
   return (
     <div>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.2rem', flexWrap: 'wrap', gap: '0.6rem' }}>
-        <div>
-          <div style={{ fontSize: '1.08rem', fontWeight: 700, color: 'var(--black)' }}>Clients</div>
-          <div style={{ fontSize: '0.78rem', color: 'var(--text3)', marginTop: 2 }}>
-            {count} client{count > 1 ? 's' : ''} au total
-          </div>
-        </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Clients</h1>
+        <p className="text-sm text-gray-500">
+          {count} client{count > 1 ? 's' : ''}
+          {activeFilter === true ? ' actifs' : activeFilter === false ? ' bloqués' : ' au total'}
+        </p>
       </div>
 
-      {/* Filtres */}
-      <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
-        <form onSubmit={(e) => { e.preventDefault(); setFiltres({ q: searchInput.trim(), page: '1' }); }} className="flex gap-1.5 w-full sm:w-auto">
-          <div className="db-search-wrap flex-1 sm:flex-none">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-            <input className="db-search-input w-full" placeholder="Nom, email…" aria-label="Rechercher un client" value={searchInput} onChange={e => setSearchInput(e.target.value)} />
-          </div>
-          <button type="submit" className="db-btn primary" style={{ padding: '0.42rem 0.9rem', fontSize: '0.85rem' }}>OK</button>
-        </form>
-
-        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-          {FILTRES_STATUT.map(f => (
-            <button key={f.url || 'tous'} className={`db-chip${activeFilter === f.val ? ' active' : ''}`}
-              onClick={() => setFiltres({ statut: f.url, page: '1' })}>
-              {f.label}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+        <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center gap-3">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              setFiltres({ q: searchInput.trim(), page: '1' });
+            }}
+            className="flex gap-2 w-full sm:w-auto"
+          >
+            <input
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Rechercher un client (nom, email)…"
+              aria-label="Rechercher un client"
+              className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-72 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+            />
+            <button
+              type="submit"
+              className="bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-600"
+            >
+              Rechercher
             </button>
-          ))}
+          </form>
+          <div className="flex flex-wrap gap-1.5 sm:ml-auto">
+            {FILTRES_STATUT.map((f) => (
+              <button
+                key={f.url || 'tous'}
+                onClick={() => setFiltres({ statut: f.url, page: '1' })}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                  activeFilter === f.val
+                    ? 'bg-yellow-50 border-yellow-300 text-yellow-800'
+                    : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Tableau */}
-      <div className="db-card">
         {isLoading ? (
-          <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text3)' }}>Chargement…</div>
+          <div className="p-8 text-center text-gray-400">Chargement…</div>
         ) : isError ? (
-          <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--red)' }}>Erreur lors du chargement.</div>
-        ) : users.length === 0 ? (
-          <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text3)' }}>Aucun client trouvé.</div>
+          <div className="p-8 text-center text-red-500 text-sm">Impossible de charger les clients.</div>
         ) : (
-          <div className="db-table-wrap tbl-wrap">
-            <table className="tbl-cards">
+          <div className="tbl-wrap">
+            <table className="w-full text-sm tbl-cards">
               <thead>
-                <tr>
-                  <th>Client</th>
-                  <th>Email</th>
-                  <th>Téléphone</th>
-                  <th>Commandes</th>
-                  <th>Inscrit le</th>
-                  <th>Vérifié</th>
-                  <th>Statut</th>
-                  <th>Actions</th>
+                <tr className="border-b border-gray-100 text-left">
+                  <th className="p-4 font-medium text-gray-500">Client</th>
+                  <th className="p-4 font-medium text-gray-500">Contact</th>
+                  <th className="p-4 font-medium text-gray-500">Commandes</th>
+                  <th className="p-4 font-medium text-gray-500 hidden lg:table-cell">Inscrit le</th>
+                  <th className="p-4 font-medium text-gray-500">Statut</th>
+                  <th className="p-4 font-medium text-gray-500 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {users.map((u: ShopUser) => (
-                  <tr key={u.id}>
-                    <td className="tbl-primary">
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <div style={{
-                          width: 34, height: 34, borderRadius: '50%', background: '#1341a3',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          color: '#fff', fontSize: '0.7rem', fontWeight: 700, flexShrink: 0,
-                        }}>
+                {users.map((u) => (
+                  <tr key={u.id} className="border-b border-gray-50 hover:bg-gray-50">
+                    <td className="p-4 tbl-primary">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-blue-900 text-white text-xs font-bold flex items-center justify-center shrink-0">
                           {initiales(u)}
                         </div>
-                        <div className="db-td-bold" style={{ fontSize: '0.87rem' }}>
-                          {u.nom} {u.prenom}
+                        <div className="min-w-0">
+                          <p className="font-medium text-gray-900 truncate">{nomComplet(u)}</p>
+                          <span
+                            className={`inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                              u.isVerified ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-500'
+                            }`}
+                          >
+                            {u.isVerified ? 'Email vérifié' : 'Email non vérifié'}
+                          </span>
                         </div>
                       </div>
                     </td>
-                    <td className="wrap-anywhere" style={{ fontSize: '0.84rem', color: 'var(--text2)' }} data-label="Email">{u.email}</td>
-                    <td style={{ fontSize: '0.84rem', color: 'var(--text3)' }} data-label="Téléphone">{u.telephone ?? '—'}</td>
+                    <td className="p-4" data-label="Contact">
+                      <p className="text-gray-700 wrap-anywhere">{u.email}</p>
+                      <p className="text-xs text-gray-400">{u.telephone || '—'}</p>
+                    </td>
                     {/* Volume d'activité : toutes les commandes passées, avec
                         en second les seules livrées (donc encaissées). */}
-                    <td style={{ fontSize: '0.84rem', whiteSpace: 'nowrap' }} data-label="Commandes">
-                      <span style={{ fontWeight: 600, color: 'var(--black)' }}>
+                    <td className="p-4 whitespace-nowrap" data-label="Commandes">
+                      <p className="font-semibold text-gray-900">
                         {u.activite?.nbCommandes ?? 0}
-                      </span>
-                      {!!u.activite?.nbCommandes && (
-                        <span style={{ color: 'var(--text3)', fontSize: '0.76rem' }}>
-                          {' '}
-                          · {u.activite.nbCommandesLivrees} livrée
-                          {u.activite.nbCommandesLivrees > 1 ? 's' : ''}
-                        </span>
-                      )}
+                        {!!u.activite?.nbCommandes && (
+                          <span className="font-normal text-xs text-gray-400">
+                            {' '}
+                            · {u.activite.nbCommandesLivrees} livrée
+                            {u.activite.nbCommandesLivrees > 1 ? 's' : ''}
+                          </span>
+                        )}
+                      </p>
                       {!!u.activite?.montantDepense && (
-                        <span
-                          style={{ display: 'block', color: 'var(--text3)', fontSize: '0.76rem' }}
-                        >
+                        <p className="text-xs text-gray-400">
                           {Number(u.activite.montantDepense).toLocaleString('fr-FR')} FCFA
-                        </span>
+                        </p>
                       )}
                     </td>
-                    <td style={{ fontSize: '0.82rem', color: 'var(--text3)', whiteSpace: 'nowrap' }} data-label="Inscrit le">
+                    <td className="p-4 text-gray-500 whitespace-nowrap hidden lg:table-cell" data-label="Inscrit le">
                       {fmtDate(u.createdAt)}
                     </td>
-                    <td data-label="Vérifié">
-                      <span className={`badge ${u.isVerified ? 'bg' : 'bx'}`}>
-                        {u.isVerified ? 'Vérifié' : 'Non vérifié'}
+                    <td className="p-4" data-label="Statut">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs ${
+                          u.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                        }`}
+                      >
+                        {u.isActive ? 'Actif' : 'Bloqué'}
                       </span>
                     </td>
-                    <td data-label="Statut">
-                      <button
-                        onClick={() => handleToggle(u)}
-                        disabled={toggleMut.isPending}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                        title={u.isActive ? 'Bloquer ce compte' : 'Activer ce compte'}
-                        aria-label={u.isActive ? 'Bloquer ce compte' : 'Activer ce compte'}
-                      >
-                        <span className={`badge ${u.isActive ? 'bg' : 'br'}`}>
-                          {u.isActive ? 'Actif' : 'Bloqué'}
-                        </span>
-                      </button>
-                    </td>
-                    <td className="tbl-actions" data-label="Actions">
-                      <div className="db-actions">
+                    <td className="p-4 tbl-actions" data-label="Actions">
+                      <div className="flex flex-wrap items-center justify-center gap-1.5">
                         <Link
                           to={`/boutique/clients/${u.id}`}
                           state={etatRetour(location)}
-                          className="db-btn-ghost inline-flex items-center"
-                          aria-label={`Voir la fiche de ${u.prenom} ${u.nom}`}
+                          aria-label={`Voir la fiche de ${nomComplet(u)}`}
+                          className="px-2.5 py-1.5 sm:py-1 rounded text-[11px] font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
                         >
                           Voir
                         </Link>
                         <button
-                          className={u.isActive ? 'db-btn-danger' : 'db-btn-ghost'}
                           onClick={() => handleToggle(u)}
                           disabled={toggleMut.isPending}
+                          className={`px-2.5 py-1.5 sm:py-1 rounded text-[11px] font-medium disabled:opacity-50 transition-colors ${
+                            u.isActive
+                              ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                              : 'bg-green-50 text-green-700 hover:bg-green-100'
+                          }`}
                         >
-                          {u.isActive ? 'Bloquer' : 'Activer'}
+                          {u.isActive ? 'Bloquer' : 'Débloquer'}
+                        </button>
+                        <button
+                          onClick={() => handleSupprimer(u)}
+                          disabled={supprimerMut.isPending}
+                          title="Supprimer ce compte client"
+                          className="px-2.5 py-1.5 sm:py-1 rounded text-[11px] font-medium bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+                        >
+                          Supprimer
                         </button>
                       </div>
                     </td>
                   </tr>
                 ))}
+                {users.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="p-8 text-center text-gray-400 tbl-empty">
+                      Aucun client trouvé
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

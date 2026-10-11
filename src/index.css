@@ -226,3 +226,15 @@
     width: calc(100% - 2rem) !important;
   }
 }
+
+/* Barres de défilement invisibles dans tout le dashboard : le défilement
+   (molette, tactile, clavier) fonctionne toujours, seule la barre disparaît. */
+* {
+  scrollbar-width: none !important;      /* Firefox */
+  -ms-overflow-style: none !important;   /* Edge ancien */
+}
+*::-webkit-scrollbar {
+  display: none !important;              /* Chrome, Edge, Safari */
+  width: 0 !important;
+  height: 0 !important;
+}
