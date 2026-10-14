@@ -42,7 +42,7 @@ export interface Produit {
   isFeatured: boolean;
   statutValidation: StatutValidationProduit;
   reference?: string;
-  etat?: 'neuf' | 'reconditionne';
+  etat?: 'neuf' | 'reconditionne' | null;
   noteMoyenne?: number;
   nombreAvis?: number;
   categorie?: Categorie;

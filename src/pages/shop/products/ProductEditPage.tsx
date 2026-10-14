@@ -49,9 +49,8 @@ export default function ProductEditPage() {
         stock: String(produit.stock || '0'),
         poids: String(produit.poids || ''),
         reference: produit.reference || '',
-        // Le backend stocke toujours un état (défaut « neuf ») : la case n'est
-        // pré-cochée que si un état explicite (reconditionné) a été renseigné.
-        avecEtat: produit.etat === 'reconditionne',
+        // État précisé (neuf ou reconditionné) : case cochée. null = non précisé.
+        avecEtat: produit.etat === 'neuf' || produit.etat === 'reconditionne',
         etat: (produit.etat === 'reconditionne' ? 'reconditionne' : 'neuf') as 'neuf' | 'reconditionne',
         rayonId: produit.rayonId || produit.rayon?.id || '',
         sousRayonId: produit.sousRayonId || produit.sousRayon?.id || '',
@@ -132,7 +131,8 @@ export default function ProductEditPage() {
     fd.append('prixAchat', prixAchat);
     fd.append('venduAuPoids', String(venduAuPoids));
     fd.append('stock', stock);
-    fd.append('etat', avecEtat ? etat : 'neuf');
+    // Case décochée : état non précisé (aucun badge dans l'application).
+    fd.append('etat', avecEtat ? etat : '');
     if (poids) fd.append('poids', poids);
     if (reference) fd.append('reference', reference);
     if (rayonId) fd.append('rayonId', rayonId);

@@ -90,7 +90,8 @@ export default function ProductCreatePage() {
     fd.append('stock', stock);
     fd.append('rayonId', rayonId);
     fd.append('sousRayonId', sousRayonId);
-    fd.append('etat', avecEtat ? etat : 'neuf');
+    // Case décochée : état non précisé (aucun badge dans l'application).
+    fd.append('etat', avecEtat ? etat : '');
     if (poids) fd.append('poids', poids);
     if (reference) fd.append('reference', reference);
     // Dans l'ordre choisi : la première est la photo principale.
