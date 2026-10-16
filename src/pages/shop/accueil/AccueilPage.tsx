@@ -29,7 +29,7 @@ export const SECTIONS = [
     cle: 'nos_promos_du_moment',
     libelle: 'Nos promos du moment',
     sousSections: false,
-    aide: "Choisissez les produits à mettre en avant. Ils s'affichent dans l'application dans cet ordre : les 6 premiers sur l'accueil, la suite via « Voir tout », en haut à droite de la section. Sans produit, l'application montre les derniers produits du catalogue.",
+    aide: "Choisissez les produits en promotion, avec leur remise et leur date de fin. Ils s'affichent dans l'application dans cet ordre : les 6 premiers sur l'accueil, la suite via « Voir tout », en haut à droite de la section. Sans produit, l'application montre les derniers produits du catalogue.",
   },
   { cle: 'a_ne_pas_rater', libelle: 'À ne pas rater', sousSections: true, aide: null },
   { cle: 'nos_promos_a_venir', libelle: 'Nos promos à venir', sousSections: true, aide: null },
@@ -116,8 +116,14 @@ export default function AccueilPage() {
     }, {});
   }, [blocs.data]);
 
+  // Promotions dont la date de fin est passée : elles ne sont plus visibles
+  // dans l'application, on ne les montre donc plus dans leur section.
+  const maintenant = Date.now();
+  const estTerminee = (p: any) => Boolean(p.dateFin) && new Date(p.dateFin).getTime() < maintenant;
+  const terminees = listeDe(promotions.data, 'promotions').filter(estTerminee);
+
   const promosParSection = useMemo(() => {
-    const tous = listeDe(promotions.data, 'promotions');
+    const tous = listeDe(promotions.data, 'promotions').filter((p) => !estTerminee(p));
     return SECTIONS.reduce<Record<string, any[]>>((acc, s) => {
       acc[s.cle] = tous.filter((p) => p.section === s.cle);
       return acc;
@@ -259,6 +265,14 @@ export default function AccueilPage() {
             </div>
           )}
           </>
+          )}
+
+          {terminees.some((p: any) => p.section === section.cle) && (
+            <p className="flex items-center gap-1.5 text-xs text-gray-500 mb-3">
+              <Icon name="clock" size={13} className="shrink-0" />
+              {terminees.filter((p: any) => p.section === section.cle).length} promotion(s)
+              terminée(s) retirée(s) automatiquement : les produits sont revenus à leur prix normal.
+            </p>
           )}
 
           {/* Produits en promotion */}
@@ -471,16 +485,22 @@ function GrilleProduits({
                     <span className="text-gray-400 line-through">{prix(produit.prix)}</span>
                   </>
                 ) : (
-                  <span className="text-gray-700">{prix(produit.prix)}</span>
+                  <span className="text-red-600 font-medium">Sans remise</span>
                 )}
               </div>
+              {promo.dateFin && (
+                <div className="text-[10px] text-gray-500 mt-0.5">
+                  jusqu'au {new Date(promo.dateFin).toLocaleDateString('fr-FR')}
+                </div>
+              )}
               <div className="flex items-center justify-between mt-1.5">
                 <Etat actif={promo.isActive} />
                 {index === 5 && promos.length > 6 && (
                   <span className="text-[10px] text-gray-400">suite : « Voir tout »</span>
                 )}
               </div>
-              <div className="flex justify-between mt-1.5 -mx-1">
+              {/* Sur mobile, les icônes passent à la ligne plutôt que d'être coupées. */}
+              <div className="flex flex-wrap justify-between gap-y-1 mt-1.5 -mx-1">
                 <div className="flex">
                   <BoutonIcone
                     nom="arrow-left"
@@ -494,7 +514,7 @@ function GrilleProduits({
                   />
                 </div>
                 <div className="flex">
-                  <BoutonIcone nom="pencil" titre="Prix promo (facultatif)" onClick={() => onModifier(promo)} />
+                  <BoutonIcone nom="pencil" titre="Modifier la remise et la durée" onClick={() => onModifier(promo)} />
                   <BoutonIcone
                     nom={promo.isActive ? 'eye-off' : 'eye'}
                     titre={promo.isActive ? 'Masquer' : 'Afficher'}

@@ -16,6 +16,7 @@ import { useCaParRayon, useKpiAccueil } from '@/domains/shop/hooks/useAnalytique
 import { bornesDepuisPeriode, fcfa, libelleBornes, nombre, pourcent } from '@/shared/utils/format';
 import type { FiltrePeriode } from '@/domains/shop/types/indicateurs';
 import type { CaRayon } from '@/domains/shop/types/analytique';
+import { useOuvrirLigne } from '@/shared/hooks/useOuvrirLigne';
 
 /**
  * Analytique des ventes : d'où vient le chiffre d'affaires et ce qu'il laisse.
@@ -25,6 +26,7 @@ import type { CaRayon } from '@/domains/shop/types/analytique';
  * vit sur l'écran « Produits ».
  */
 export default function VentesPage() {
+  const ouvrir = useOuvrirLigne();
   const [periode, setPeriode] = useState<FiltrePeriode>({ periode: 'mois' });
   const bornes = bornesDepuisPeriode(periode);
 
@@ -145,8 +147,8 @@ export default function VentesPage() {
           ) : rayons.length === 0 ? (
             <Vide texte="Aucune vente livrée sur la période." />
           ) : (
-            <div className="scroller overflow-x-auto mt-3">
-              <table className="w-full text-sm">
+            <div className="scroller tbl-wrap mt-3">
+              <table className="w-full text-sm tbl-cards">
                 <thead>
                   <tr className="text-left text-[11px] uppercase tracking-wide text-gray-400">
                     <th className="pb-2 font-medium">Rayon</th>
@@ -159,8 +161,8 @@ export default function VentesPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {rayons.map((r) => (
-                    <tr key={r.id ?? r.rayon}>
-                      <td className="py-2.5 pr-3">
+                    <tr key={r.id ?? r.rayon} {...ouvrir(r.id ? `/boutique/produits?rayonId=${r.id}` : undefined)}>
+                      <td data-label="Rayon" className="py-2.5 pr-3">
                         <span className="font-medium text-gray-800">{r.rayon}</span>
                         {/* La barre rend la hiérarchie lisible sans lire les chiffres. */}
                         <div className="h-1 bg-gray-100 rounded-full overflow-hidden mt-1 max-w-[180px]">
@@ -170,19 +172,19 @@ export default function VentesPage() {
                           />
                         </div>
                       </td>
-                      <td className="py-2.5 text-right font-semibold text-gray-900 whitespace-nowrap tabular-nums">
+                      <td data-label="CA" className="py-2.5 text-right font-semibold text-gray-900 whitespace-nowrap tabular-nums">
                         {fcfa(r.chiffreAffaires)}
                       </td>
-                      <td className="py-2.5 text-right text-gray-500 tabular-nums">{pourcent(r.part)}</td>
-                      <td className="py-2.5 text-right text-gray-700 whitespace-nowrap tabular-nums">
+                      <td data-label="Part" className="py-2.5 text-right text-gray-500 tabular-nums">{pourcent(r.part)}</td>
+                      <td data-label="Marge" className="py-2.5 text-right text-gray-700 whitespace-nowrap tabular-nums">
                         {fcfa(r.margeBrute)}
                       </td>
-                      <td className="py-2.5 text-right tabular-nums">
+                      <td data-label="Taux" className="py-2.5 text-right tabular-nums">
                         <span className={r.tauxMarge >= 0 ? 'text-green-700' : 'text-red-700'}>
                           {pourcent(r.tauxMarge)}
                         </span>
                       </td>
-                      <td className="py-2.5 text-right text-gray-500 tabular-nums">{nombre(r.articlesVendus)}</td>
+                      <td data-label="Articles" className="py-2.5 text-right text-gray-500 tabular-nums">{nombre(r.articlesVendus)}</td>
                     </tr>
                   ))}
                 </tbody>

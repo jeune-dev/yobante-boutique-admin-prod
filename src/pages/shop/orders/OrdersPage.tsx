@@ -1,3 +1,8 @@
+import {
+  LIBELLE_STATUT_COMMANDE,
+  ORDRE_STATUTS_COMMANDE,
+  libelleStatut,
+} from '@/domains/shop/statutsCommande';
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -7,6 +12,7 @@ import Pagination from '@/shared/components/tables/Pagination';
 import ErreurChargement from '@/shared/components/feedback/ErreurChargement';
 import { etatRetour } from '@/shared/hooks/useRetour';
 import { lirePage, useParametresUrl } from '@/shared/hooks/useParametresUrl';
+import { useOuvrirLigne } from '@/shared/hooks/useOuvrirLigne';
 
 const api = {
   getCommandes: (p: any) =>
@@ -19,6 +25,7 @@ const api = {
 
 const STATUT_COLORS: Record<string, string> = {
   en_attente: 'bg-yellow-100 text-yellow-700',
+  en_modification: 'bg-orange-100 text-orange-700',
   validee: 'bg-blue-100 text-blue-700',
   en_preparation: 'bg-purple-100 text-purple-700',
   expediee: 'bg-indigo-100 text-indigo-700',
@@ -28,6 +35,7 @@ const STATUT_COLORS: Record<string, string> = {
 };
 
 export default function OrdersPage() {
+  const ouvrir = useOuvrirLigne();
   const navigate = useNavigate();
   const location = useLocation();
   const qc = useQueryClient();
@@ -130,13 +138,11 @@ export default function OrdersPage() {
             className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-auto bg-white focus:outline-none focus:ring-2 focus:ring-yellow-300"
           >
             <option value="">Tous les statuts</option>
-            <option value="en_attente">En attente</option>
-            <option value="validee">Validée</option>
-            <option value="en_preparation">En préparation</option>
-            <option value="expediee">Expédiée</option>
-            <option value="livree">Livrée</option>
-            <option value="rejetee">Rejetée</option>
-            <option value="annulee">Annulée</option>
+            {ORDRE_STATUTS_COMMANDE.map((s) => (
+              <option key={s} value={s}>
+                {LIBELLE_STATUT_COMMANDE[s]}
+              </option>
+            ))}
           </select>
         </div>
         {isLoading ? (
@@ -152,6 +158,7 @@ export default function OrdersPage() {
                 <th className="p-4 font-medium text-gray-500">Client</th>
                 <th className="p-4 font-medium text-gray-500">Montant</th>
                 <th className="p-4 font-medium text-gray-500 hidden xl:table-cell">Articles</th>
+                <th className="p-4 font-medium text-gray-500">Vendeurs</th>
                 <th className="p-4 font-medium text-gray-500">Statut</th>
                 <th className="p-4 font-medium text-gray-500">Date</th>
                 <th className="p-4 font-medium text-gray-500 text-center">Actions</th>
@@ -159,7 +166,7 @@ export default function OrdersPage() {
             </thead>
             <tbody>
               {commandes.map((c: any) => (
-                <tr key={c.id} className="border-b border-gray-50 hover:bg-gray-50">
+                <tr key={c.id} {...ouvrir(`/boutique/commandes/${c.id}`)} className="border-b border-gray-50">
                   <td className="p-4 font-mono text-xs tbl-primary">{c.reference}</td>
                   <td className="p-4" data-label="Client">
                     {c.user?.prenom} {c.user?.nom}
@@ -168,14 +175,18 @@ export default function OrdersPage() {
                     {c.montantTotal?.toLocaleString('fr-FR')} FCFA
                   </td>
                   <td className="p-4 text-center hidden xl:table-cell" data-label="Articles">{c.items?.length || '—'}</td>
+                  <td className="p-4" data-label="Vendeurs">
+                    <ReponsesVendeurs vendeurs={c.vendeurs ?? []} />
+                  </td>
                   <td className="p-4" data-label="Statut">
                     <span
                       className={`px-2 py-1 rounded-full text-xs ${
                         STATUT_COLORS[c.statut] || 'bg-gray-100'
                       }`}
                     >
-                      {c.statut}
+                      {libelleStatut(c.statut)}
                     </span>
+
                     {/* Un vendeur a déclaré ses produits indisponibles. */}
                     {c.refusVendeurs > 0 && (
                       <span
@@ -202,7 +213,7 @@ export default function OrdersPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
                       </button>
-                      {c.statut === 'en_attente' && (
+                      {(c.statut === 'en_attente' || c.statut === 'en_modification') && (
                         <>
                           <button
                             onClick={() => validerMutation.mutate(c.id)}
@@ -296,5 +307,48 @@ export default function OrdersPage() {
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * Vendeurs d'une commande et leur réponse : V (disponible), X (refusé, avec
+ * le motif) ou « … » (pas encore répondu).
+ */
+function ReponsesVendeurs({ vendeurs }: { vendeurs: any[] }) {
+  if (!vendeurs.length) return <span className="text-gray-400">—</span>;
+  return (
+    <ul className="space-y-1.5 min-w-[160px]">
+      {vendeurs.map((v) => {
+        const nom = v.boutique || v.vendeur || 'Vendeur';
+        const badge =
+          v.statut === 'acceptee'
+            ? { texte: 'V', classes: 'bg-green-100 text-green-700', titre: 'Produits disponibles' }
+            : v.statut === 'refusee'
+              ? { texte: 'X', classes: 'bg-red-100 text-red-700', titre: 'Refusée par le vendeur' }
+              : { texte: '…', classes: 'bg-amber-50 text-amber-700', titre: 'En attente de réponse' };
+        return (
+          <li key={v.vendeurId}>
+            <div className="flex items-center gap-1.5">
+              <span
+                title={badge.titre}
+                aria-label={badge.titre}
+                className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-bold shrink-0 ${badge.classes}`}
+              >
+                {badge.texte}
+              </span>
+              <span className="text-gray-800 truncate" title={[nom, v.vendeur, v.telephone].filter(Boolean).join(' · ')}>
+                {nom}
+              </span>
+            </div>
+            {v.telephone && <p className="text-[11px] text-gray-400 pl-6">{v.telephone}</p>}
+            {v.statut === 'refusee' && v.motifRefus && (
+              <p className="text-[11px] text-red-700 pl-6 line-clamp-2" title={v.motifRefus}>
+                Motif : {v.motifRefus}
+              </p>
+            )}
+          </li>
+        );
+      })}
+    </ul>
   );
 }

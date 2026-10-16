@@ -86,6 +86,7 @@ const METHODES = [
 
 const STATUT_LIBELLES: Record<string, string> = {
   en_attente: 'En attente',
+  en_modification: 'En modification',
   validee: 'Validée',
 };
 

@@ -7,6 +7,7 @@ import Pagination from '@/shared/components/tables/Pagination';
 import ErreurChargement from '@/shared/components/feedback/ErreurChargement';
 import { etatRetour } from '@/shared/hooks/useRetour';
 import { lirePage, useParametresUrl } from '@/shared/hooks/useParametresUrl';
+import { useOuvrirLigne } from '@/shared/hooks/useOuvrirLigne';
 
 const api = {
   getRayons: (params?: any) => shopClient.get('/admin/rayons', { params }),
@@ -23,6 +24,7 @@ const api = {
 };
 
 export default function RayonsPage() {
+  const ouvrir = useOuvrirLigne();
   // Onglet, recherche, page et rayon choisi vivent dans l'URL : le retour
   // depuis un sous-rayon rouvre l'onglet Sous-rayons sur le bon rayon.
   const [etatUrl, setEtatUrl] = useParametresUrl({ onglet: 'rayons', q: '', page: '1', rayon: '' });
@@ -193,7 +195,7 @@ export default function RayonsPage() {
               </thead>
               <tbody>
                 {rayons.map((r: any) => (
-                  <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50">
+                  <tr key={r.id} {...ouvrir(`/boutique/produits?rayonId=${r.id}`)} className="border-b border-gray-50">
                     <td className="p-4 font-medium tbl-primary">{r.nom}</td>
                     <td className="p-4 text-center" data-label="Sous-rayons">{r.sousRayons?.length || 0}</td>
                     <td className="p-4 text-center" data-label="Statut">

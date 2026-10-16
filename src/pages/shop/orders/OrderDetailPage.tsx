@@ -1,3 +1,10 @@
+import {
+  libelleStatut,
+  STATUTS_INTERNES,
+  statutsPossibles,
+  changementInterne,
+} from '@/domains/shop/statutsCommande';
+import { changerStatutCommande } from '@/domains/shop/changerStatutCommande';
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import AdminBackButton from '@/shared/components/AdminBackButton';
@@ -22,10 +29,17 @@ const api = {
   valider: (id: string) => shopClient.patch(`/admin/commandes/${id}/valider`),
   rejeter: (id: string, motif?: string) =>
     shopClient.patch(`/admin/commandes/${id}/rejeter`, { motif }),
+  // Produits en rupture de stock : le client est prévenu avec le motif.
+  rupture: (id: string, produitIds: string[], motif: string) =>
+    shopClient.patch(`/admin/commandes/${id}/rupture`, { produitIds, motif }),
 };
+
+/** Fenêtre « rupture de stock » : produits cochés et motif transmis au client. */
+type ModaleRupture = { produitIds: string[]; motif: string };
 
 const STATUT_COLORS: Record<string, string> = {
   en_attente: 'bg-yellow-100 text-yellow-700',
+  en_modification: 'bg-orange-100 text-orange-700',
   validee: 'bg-blue-100 text-blue-700',
   en_preparation: 'bg-purple-100 text-purple-700',
   expediee: 'bg-indigo-100 text-indigo-700',
@@ -53,6 +67,13 @@ export default function OrderDetailPage() {
   const [modaleModification, setModaleModification] = useState(false);
   const [motifModification, setMotifModification] = useState('');
   const [responsabiliteModification, setResponsabiliteModification] = useState<Responsabilite | ''>('');
+
+  // ── Changement de statut ─────────────────────────────────────────────────
+  const [nouveauStatut, setNouveauStatut] = useState('');
+  const [noteStatut, setNoteStatut] = useState('');
+
+  // ── Rupture de stock ─────────────────────────────────────────────────────
+  const [rupture, setRupture] = useState<ModaleRupture | null>(null);
 
   const annuler = useAnnulerCommande();
   const modifier = useModifierCommande();
@@ -84,6 +105,29 @@ export default function OrderDetailPage() {
     onError: (e: any) => showError(e),
   });
 
+  const statutMutation = useMutation({
+    mutationFn: () => changerStatutCommande(id!, nouveauStatut, noteStatut.trim() || undefined),
+    onSuccess: (data: any) => {
+      qc.invalidateQueries({ queryKey: ['commande', id] });
+      qc.invalidateQueries({ queryKey: ['commandes'] });
+      showSuccess(data);
+      setNouveauStatut('');
+      setNoteStatut('');
+    },
+    onError: (e: any) => showError(e),
+  });
+
+  const ruptureMutation = useMutation({
+    mutationFn: ({ produitIds, motif }: ModaleRupture) => api.rupture(id!, produitIds, motif),
+    onSuccess: (data: any) => {
+      qc.invalidateQueries({ queryKey: ['commande', id] });
+      qc.invalidateQueries({ queryKey: ['commandes'] });
+      showSuccess(data);
+      setRupture(null);
+    },
+    onError: (e: any) => showError(e),
+  });
+
   if (isLoading) {
     return (
       <div className="max-w-3xl mx-auto">
@@ -103,6 +147,18 @@ export default function OrderDetailPage() {
   }
 
   const items = commande.items || commande.CommandeItems || [];
+  const peutAgir = !STATUTS_CLOS.includes(commande.statut);
+  // Étapes possibles : calculées ici, sans dépendre d'un serveur à jour.
+  const etapes: string[] = statutsPossibles(commande.statut);
+
+  /** Ouvre la fenêtre de rupture, produits présélectionnés, motif pré-rempli. */
+  const ouvrirRupture = (produitIds: string[], motif = '') =>
+    setRupture({
+      produitIds: produitIds.filter((pid) =>
+        items.some((i: any) => i.produitId === pid && !i.enRupture)
+      ),
+      motif,
+    });
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -116,8 +172,13 @@ export default function OrderDetailPage() {
             STATUT_COLORS[commande.statut] || 'bg-gray-100'
           }`}
         >
-          {commande.statut}
+          {libelleStatut(commande.statut)}
         </span>
+        {STATUTS_INTERNES.includes(commande.statut) && (
+          <span className="text-xs text-gray-500">
+            Statut interne : le client et le vendeur voient « En attente ».
+          </span>
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
@@ -141,7 +202,14 @@ export default function OrderDetailPage() {
         </div>
       </div>
 
-      <DisponibilitesVendeurs liste={commande.disponibilitesVendeurs ?? []} />
+      <DisponibilitesVendeurs
+        liste={commande.disponibilitesVendeurs ?? []}
+        onRupture={
+          peutAgir
+            ? (v: any) => ouvrirRupture(v.produitIds ?? [], v.motifRefus ?? '')
+            : undefined
+        }
+      />
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm mb-6">
         <div className="p-4 border-b border-gray-100">
@@ -155,12 +223,30 @@ export default function OrderDetailPage() {
                 <th className="p-4 font-medium text-gray-500">Qté</th>
                 <th className="p-4 font-medium text-gray-500">Prix unit.</th>
                 <th className="p-4 font-medium text-gray-500">Sous-total</th>
+                {peutAgir && !modeEdition && <th className="p-4" />}
               </tr>
             </thead>
             <tbody>
               {items.map((item: any) => (
-                <tr key={item.id} className="border-b border-gray-50">
-                  <td className="p-4 tbl-primary">{item.produit?.nom || item.Produit?.nom || `Produit #${item.produitId}`}</td>
+                <tr
+                  key={item.id}
+                  className={`border-b border-gray-50 ${item.enRupture ? 'bg-red-50/40' : ''}`}
+                >
+                  <td className="p-4 tbl-primary">
+                    <span className={item.enRupture ? 'line-through text-gray-400' : ''}>
+                      {item.produit?.nom || item.Produit?.nom || `Produit #${item.produitId}`}
+                    </span>
+                    {item.enRupture && (
+                      <div className="mt-1">
+                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-red-100 text-red-700">
+                          Rupture de stock
+                        </span>
+                        {item.motifRupture && (
+                          <p className="text-xs text-red-700 mt-1">Motif : {item.motifRupture}</p>
+                        )}
+                      </div>
+                    )}
+                  </td>
                   <td className="p-4" data-label="Qté">
                     {modeEdition ? (
                       <input
@@ -181,7 +267,32 @@ export default function OrderDetailPage() {
                     )}
                   </td>
                   <td className="p-4 whitespace-nowrap" data-label="Prix unit.">{item.prixUnitaire?.toLocaleString('fr-FR')} FCFA</td>
-                  <td className="p-4 font-medium whitespace-nowrap" data-label="Sous-total">{item.sousTotal?.toLocaleString('fr-FR')} FCFA</td>
+                  <td className="p-4 font-medium whitespace-nowrap" data-label="Sous-total">
+                    {item.enRupture ? (
+                      <span className="text-gray-400 line-through">
+                        {item.sousTotal?.toLocaleString('fr-FR')} FCFA
+                      </span>
+                    ) : (
+                      <>{item.sousTotal?.toLocaleString('fr-FR')} FCFA</>
+                    )}
+                  </td>
+                  {peutAgir && !modeEdition && (
+                    <td className="p-4 text-right">
+                      {!item.enRupture && (
+                        // Action, pas un état : la quantité de cette ligne a été
+                        // réservée au moment de la commande, le produit est donc
+                        // dû au client même si le stock est à zéro aujourd'hui.
+                        // « Rupture de stock » ne s'affiche que si l'admin la déclare.
+                        <button
+                          onClick={() => ouvrirRupture([item.produitId])}
+                          title="Déclarer ce produit indisponible pour cette commande : le client est prévenu"
+                          className="text-xs font-medium text-gray-500 border border-gray-200 rounded-lg px-2.5 py-1 hover:text-red-600 hover:border-red-200 hover:bg-red-50 whitespace-nowrap transition-colors"
+                        >
+                          Signaler une rupture
+                        </button>
+                      )}
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -193,6 +304,17 @@ export default function OrderDetailPage() {
           </span>
         </div>
       </div>
+
+      {rupture && (
+        <ModaleRuptureStock
+          items={items}
+          valeur={rupture}
+          onChange={setRupture}
+          onAnnuler={() => setRupture(null)}
+          onConfirmer={() => ruptureMutation.mutate(rupture)}
+          enCours={ruptureMutation.isPending}
+        />
+      )}
 
       {commande.motifRejet && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
@@ -269,8 +391,50 @@ export default function OrderDetailPage() {
           </div>
         )}
 
+      {/* Changement de statut : seules les étapes possibles sont proposées. */}
+      {etapes.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-6">
+          <h2 className="font-semibold text-gray-900 mb-3">Statut de la commande</h2>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <select
+              value={nouveauStatut}
+              onChange={(e) => setNouveauStatut(e.target.value)}
+              aria-label="Nouveau statut"
+              className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-yellow-300 sm:w-60"
+            >
+              <option value="">Choisir un statut…</option>
+              {etapes.map((s) => (
+                <option key={s} value={s}>
+                  {libelleStatut(s)}
+                </option>
+              ))}
+            </select>
+            <input
+              value={noteStatut}
+              onChange={(e) => setNoteStatut(e.target.value)}
+              placeholder="Note interne (facultatif)"
+              className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+            />
+            <button
+              onClick={() => statutMutation.mutate()}
+              disabled={!nouveauStatut || statutMutation.isPending}
+              className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
+            >
+              {statutMutation.isPending ? 'Mise à jour…' : 'Mettre à jour'}
+            </button>
+          </div>
+          {nouveauStatut && (
+            <p className="text-xs text-gray-500 mt-2">
+              {changementInterne(commande.statut, nouveauStatut)
+                ? "Statut interne : le client n'est pas prévenu, il voit toujours « En attente »."
+                : 'Le client sera prévenu par e-mail, notification push et dans son application.'}
+            </p>
+          )}
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row flex-wrap gap-3">
-        {commande.statut === 'en_attente' && (
+        {(commande.statut === 'en_attente' || commande.statut === 'en_modification') && (
           <>
             <button
               onClick={() => validerMutation.mutate()}
@@ -603,7 +767,14 @@ const DISPO: Record<string, { libelle: string; classes: string }> = {
   en_attente: { libelle: 'En attente de réponse', classes: 'bg-amber-50 text-amber-700' },
 };
 
-function DisponibilitesVendeurs({ liste }: { liste: any[] }) {
+function DisponibilitesVendeurs({
+  liste,
+  onRupture,
+}: {
+  liste: any[];
+  /** Absent : commande close, plus d'action possible. */
+  onRupture?: (vendeur: any) => void;
+}) {
   if (!liste.length) return null;
   const refus = liste.filter((v) => v.statut === 'refusee').length;
   return (
@@ -651,10 +822,98 @@ function DisponibilitesVendeurs({ liste }: { liste: any[] }) {
                   Répondu le {new Date(v.decideLe).toLocaleString('fr-FR')}
                 </p>
               )}
+              {/* Le client n'est pas encore prévenu du refus : c'est cette
+                  action qui le notifie, avec le motif. */}
+              {v.statut === 'refusee' && onRupture && (
+                <button
+                  onClick={() => onRupture(v)}
+                  className="mt-3 text-sm font-medium px-3 py-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700"
+                >
+                  Marquer en rupture de stock et prévenir le client
+                </button>
+              )}
             </li>
           );
         })}
       </ul>
+    </div>
+  );
+}
+
+/**
+ * Choix des produits en rupture et du motif. Le client est prévenu par
+ * notification push, e-mail et sur sa page commande, avec ce motif.
+ */
+function ModaleRuptureStock({
+  items,
+  valeur,
+  onChange,
+  onAnnuler,
+  onConfirmer,
+  enCours,
+}: {
+  items: any[];
+  valeur: ModaleRupture;
+  onChange: (v: ModaleRupture) => void;
+  onAnnuler: () => void;
+  onConfirmer: () => void;
+  enCours: boolean;
+}) {
+  const disponibles = items.filter((i) => !i.enRupture);
+  const basculer = (pid: string) =>
+    onChange({
+      ...valeur,
+      produitIds: valeur.produitIds.includes(pid)
+        ? valeur.produitIds.filter((x) => x !== pid)
+        : [...valeur.produitIds, pid],
+    });
+  const valide = valeur.produitIds.length > 0 && valeur.motif.trim().length >= 3;
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
+        <h3 className="font-semibold text-lg text-gray-900 mb-1">Rupture de stock</h3>
+        <p className="text-sm text-gray-500 mb-4">
+          Le client sera prévenu par notification et par e-mail, avec ce motif. Les produits
+          cochés ne lui seront plus facturés.
+        </p>
+        <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Produits concernés</p>
+        <ul className="space-y-2 mb-4 max-h-48 overflow-y-auto">
+          {disponibles.map((i) => (
+            <li key={i.produitId}>
+              <label className="flex items-center gap-2 text-sm text-gray-800">
+                <input
+                  type="checkbox"
+                  checked={valeur.produitIds.includes(i.produitId)}
+                  onChange={() => basculer(i.produitId)}
+                  className="rounded border-gray-300 text-red-600 focus:ring-red-300"
+                />
+                {i.quantite} × {i.produit?.nom ?? `Produit #${i.produitId}`}
+              </label>
+            </li>
+          ))}
+        </ul>
+        <label className="text-xs font-semibold text-gray-500 uppercase">Motif (envoyé au client)</label>
+        <textarea
+          value={valeur.motif}
+          onChange={(e) => onChange({ ...valeur, motif: e.target.value })}
+          rows={3}
+          placeholder="Ex : produit épuisé chez le vendeur"
+          className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-200"
+        />
+        <div className="flex justify-end gap-2 mt-4">
+          <button onClick={onAnnuler} className="px-4 py-2 text-sm rounded-lg border border-gray-200">
+            Annuler
+          </button>
+          <button
+            onClick={onConfirmer}
+            disabled={!valide || enCours}
+            className="px-4 py-2 text-sm rounded-lg bg-red-600 text-white disabled:opacity-50"
+          >
+            {enCours ? 'Envoi…' : 'Confirmer et prévenir le client'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

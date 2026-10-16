@@ -159,8 +159,8 @@ export default function ReversementsPage() {
           />
         ) : (
           <>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+            <div className="tbl-wrap">
+              <table className="w-full text-sm tbl-cards">
                 <thead>
                   <tr className="text-left text-[11px] uppercase tracking-wide text-gray-400 border-b border-gray-100">
                     <th className="px-3 sm:px-4 py-2.5 font-medium">Référence</th>
@@ -175,10 +175,10 @@ export default function ReversementsPage() {
                 <tbody className="divide-y divide-gray-100">
                   {reversements.map((r) => (
                     <tr key={r.id} className="hover:bg-gray-50/60">
-                      <td className="px-3 sm:px-4 py-2.5 font-mono text-xs text-gray-700 whitespace-nowrap">
+                      <td data-label="Référence" className="px-3 sm:px-4 py-2.5 font-mono text-xs text-gray-700 whitespace-nowrap">
                         {r.reference}
                       </td>
-                      <td className="px-3 sm:px-4 py-2.5 min-w-[140px]">
+                      <td data-label="Vendeur" className="px-3 sm:px-4 py-2.5 min-w-[140px]">
                         {r.vendeur ? (
                           <>
                             <p className="font-medium text-gray-900 truncate">
@@ -190,20 +190,20 @@ export default function ReversementsPage() {
                           <span className="text-gray-400">Vendeur supprimé</span>
                         )}
                       </td>
-                      <td className="px-3 sm:px-4 py-2.5 text-right font-semibold text-gray-900 whitespace-nowrap tabular-nums">
+                      <td data-label="Montant" className="px-3 sm:px-4 py-2.5 text-right font-semibold text-gray-900 whitespace-nowrap tabular-nums">
                         {fcfa(r.montant)}
                       </td>
-                      <td className="px-3 sm:px-4 py-2.5 text-gray-600 whitespace-nowrap">
+                      <td data-label="Moyen" className="px-3 sm:px-4 py-2.5 text-gray-600 whitespace-nowrap">
                         {r.methode || '—'}
                       </td>
-                      <td className="px-3 sm:px-4 py-2.5">
+                      <td data-label="Statut" className="px-3 sm:px-4 py-2.5">
                         <span
                           className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${CLASSE_STATUT_REVERSEMENT[r.statut]}`}
                         >
                           {LIBELLE_STATUT_REVERSEMENT[r.statut]}
                         </span>
                       </td>
-                      <td className="px-3 sm:px-4 py-2.5 text-xs text-gray-500 whitespace-nowrap">
+                      <td data-label="Dates" className="px-3 sm:px-4 py-2.5 text-xs text-gray-500 whitespace-nowrap">
                         <p>Créé le {date(r.createdAt)}</p>
                         {r.payeLe && <p className="text-green-700">Payé le {date(r.payeLe)}</p>}
                         {(r.periodeDebut || r.periodeFin) && (
@@ -213,7 +213,7 @@ export default function ReversementsPage() {
                         )}
                         {r.note && <p className="text-gray-400 italic max-w-[200px] truncate">{r.note}</p>}
                       </td>
-                      <td className="px-3 sm:px-4 py-2.5 text-right whitespace-nowrap">
+                      <td data-label="Actions" className="px-3 sm:px-4 py-2.5 text-right whitespace-nowrap">
                         <div className="inline-flex gap-1">
                           {r.statut !== 'paye' && (
                             <button

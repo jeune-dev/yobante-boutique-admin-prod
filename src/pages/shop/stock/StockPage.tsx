@@ -15,6 +15,7 @@ import {
 import { useIndicateursStock } from '@/domains/shop/hooks/useAnalytique';
 import { date, decimal, fcfa, nombre, pourcent } from '@/shared/utils/format';
 import type { ProduitStock } from '@/domains/shop/types/analytique';
+import { useOuvrirLigne } from '@/shared/hooks/useOuvrirLigne';
 
 /** Les vues du stock, chacune répondant à une décision différente. */
 type Vue = 'tout' | 'rupture' | 'alerte' | 'surstock' | 'sans-prix';
@@ -39,6 +40,7 @@ type Tri = 'couverture' | 'stock' | 'valeur' | 'ventes' | 'nom';
  * changement d'onglet.
  */
 export default function StockPage() {
+  const ouvrir = useOuvrirLigne();
   // La vue est dans l'URL : l'alerte « produits en rupture » du dashboard
   // amène directement sur le bon onglet, et le lien reste partageable.
   const [params, setParams] = useSearchParams();
@@ -254,8 +256,8 @@ export default function StockPage() {
             <div className="px-3 sm:px-4 pt-3 text-xs text-gray-400">
               {nombre(filtres.length)} produit(s) · {VUES.find((v) => v.cle === vue)?.aide}
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+            <div className="tbl-wrap">
+              <table className="w-full text-sm tbl-cards">
                 <thead>
                   <tr className="text-left text-[11px] uppercase tracking-wide text-gray-400 border-b border-gray-100">
                     <th className="px-3 sm:px-4 py-2.5 font-medium">Produit</th>
@@ -269,8 +271,8 @@ export default function StockPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {visibles.map((p) => (
-                    <tr key={p.id} className="hover:bg-gray-50/60">
-                      <td className="px-3 sm:px-4 py-2.5 min-w-[180px]">
+                    <tr key={p.id} {...ouvrir(`/boutique/produits/${p.id}/modifier`)}>
+                      <td data-label="Produit" className="px-3 sm:px-4 py-2.5 min-w-[180px]">
                         <Link
                           to={`/boutique/produits/${p.id}/modifier`}
                           className="font-medium text-gray-900 hover:underline"
@@ -281,7 +283,7 @@ export default function StockPage() {
                           {p.rayon} · modifié le {date(p.derniereMaj)}
                         </p>
                       </td>
-                      <td className="px-3 sm:px-4 py-2.5 text-right tabular-nums">
+                      <td data-label="Stock" className="px-3 sm:px-4 py-2.5 text-right tabular-nums">
                         <span
                           className={
                             p.enRupture ? 'font-bold text-red-700' : 'font-semibold text-gray-900'
@@ -290,19 +292,19 @@ export default function StockPage() {
                           {nombre(p.stock)}
                         </span>
                       </td>
-                      <td
+                      <td data-label="Dispo."
                         className="px-3 sm:px-4 py-2.5 text-right text-gray-500 tabular-nums"
                         title="Stock moins les quantités déjà réservées par des commandes"
                       >
                         {nombre(p.stockDisponible)}
                       </td>
-                      <td className="px-3 sm:px-4 py-2.5 text-right text-gray-600 tabular-nums">
+                      <td data-label="Ventes / j" className="px-3 sm:px-4 py-2.5 text-right text-gray-600 tabular-nums">
                         {decimal(p.ventesMoyennesJour)}
                         <span className="block text-[11px] text-gray-400">
                           {decimal(p.ventesMoyennes14j)} sur 14 j
                         </span>
                       </td>
-                      <td className="px-3 sm:px-4 py-2.5 text-right tabular-nums">
+                      <td data-label="Couverture" className="px-3 sm:px-4 py-2.5 text-right tabular-nums">
                         {/* « Ne s'épuise pas » n'est pas « 0 jour » : un produit
                             qui ne se vend pas n'a pas de date de rupture. */}
                         {p.joursCouverture === null ? (
@@ -323,7 +325,7 @@ export default function StockPage() {
                           </span>
                         )}
                       </td>
-                      <td className="px-3 sm:px-4 py-2.5 text-right text-gray-600 whitespace-nowrap tabular-nums">
+                      <td data-label="Valeur" className="px-3 sm:px-4 py-2.5 text-right text-gray-600 whitespace-nowrap tabular-nums">
                         {p.valeurStock === null ? (
                           <span className="text-gray-300" title="Prix d'achat non renseigné">
                             —
@@ -332,7 +334,7 @@ export default function StockPage() {
                           fcfa(p.valeurStock)
                         )}
                       </td>
-                      <td className="px-3 sm:px-4 py-2.5">
+                      <td data-label="État" className="px-3 sm:px-4 py-2.5">
                         <EtatStock produit={p} />
                       </td>
                     </tr>

@@ -6,6 +6,7 @@ import { showSuccess, showError, showConfirm } from '@/shared/utils/alert';
 import Pagination from '@/shared/components/tables/Pagination';
 import { etatRetour } from '@/shared/hooks/useRetour';
 import { lirePage, useParametresUrl } from '@/shared/hooks/useParametresUrl';
+import { useOuvrirLigne } from '@/shared/hooks/useOuvrirLigne';
 
 /** Filtre de statut ↔ valeur conservée dans l'URL. */
 const FILTRES_STATUT = [
@@ -22,6 +23,15 @@ function initiales(u: ShopUser) {
   return `${u.prenom?.[0] ?? ''}${u.nom?.[0] ?? ''}`.toUpperCase();
 }
 
+/** Segments d'activité (même définition que la page Analytics › Clients). */
+const SEGMENTS: Record<string, string> = {
+  acheteurs: 'Acheteurs (au moins une commande)',
+  reachat: 'Clients ayant commandé plusieurs fois',
+  fideles: 'Clients fidèles (commande dans les 90 derniers jours)',
+  inactifs: 'Clients inactifs (aucune commande depuis 90 jours)',
+  sans_achat: 'Inscrits sans achat',
+};
+
 const nomComplet = (u: ShopUser) => `${u.prenom ?? ''} ${u.nom ?? ''}`.trim();
 
 /**
@@ -33,13 +43,23 @@ export default function UsersPage() {
   const location = useLocation();
   // Recherche validée, statut et page vivent dans l'URL : le retour depuis la
   // fiche d'un client restitue la liste telle qu'on l'avait laissée.
-  const [filtres, setFiltres] = useParametresUrl({ q: '', statut: '', page: '1' });
+  const [filtres, setFiltres] = useParametresUrl({ q: '', statut: '', page: '1', segment: '', du: '', au: '' });
+  const segment = SEGMENTS[filtres.segment] ? filtres.segment : '';
+  const ouvrir = useOuvrirLigne();
   const search = filtres.q;
   const page = lirePage(filtres.page);
   const activeFilter = FILTRES_STATUT.find((f) => f.url === filtres.statut)?.val;
   const [searchInput, setSearchInput] = useState(search);
 
-  const { data, isLoading, isError } = useUsers({ page, limit: 15, search, isActive: activeFilter });
+  const { data, isLoading, isError } = useUsers({
+    page,
+    limit: 15,
+    search,
+    isActive: activeFilter,
+    segment: segment || undefined,
+    commandeDebut: filtres.du || undefined,
+    commandeFin: filtres.au || undefined,
+  });
   const toggleMut = useToggleUserActive();
   const supprimerMut = useSupprimerClient();
 
@@ -88,6 +108,36 @@ export default function UsersPage() {
           {activeFilter === true ? ' actifs' : activeFilter === false ? ' bloqués' : ' au total'}
         </p>
       </div>
+
+      {(filtres.du || filtres.au) && (
+        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+          <span>
+            Clients ayant commandé
+            {filtres.du && <> du <strong>{fmtDate(filtres.du)}</strong></>}
+            {filtres.au && <> au <strong>{fmtDate(filtres.au)}</strong></>}
+          </span>
+          <button
+            onClick={() => setFiltres({ du: '', au: '', page: '1' })}
+            className="ml-auto rounded-full border border-blue-300 bg-white px-3 py-1 text-xs font-medium hover:bg-blue-100"
+          >
+            Retirer ce filtre ✕
+          </button>
+        </div>
+      )}
+
+      {segment && (
+        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-900">
+          <span>
+            Segment : <strong>{SEGMENTS[segment]}</strong>
+          </span>
+          <button
+            onClick={() => setFiltres({ segment: '', page: '1' })}
+            className="ml-auto rounded-full border border-yellow-300 bg-white px-3 py-1 text-xs font-medium hover:bg-yellow-100"
+          >
+            Voir tous les clients ✕
+          </button>
+        </div>
+      )}
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
         <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center gap-3">
@@ -148,7 +198,7 @@ export default function UsersPage() {
               </thead>
               <tbody>
                 {users.map((u) => (
-                  <tr key={u.id} className="border-b border-gray-50 hover:bg-gray-50">
+                  <tr key={u.id} {...ouvrir(`/boutique/clients/${u.id}`)} className="border-b border-gray-50">
                     <td className="p-4 tbl-primary">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-full bg-blue-900 text-white text-xs font-bold flex items-center justify-center shrink-0">

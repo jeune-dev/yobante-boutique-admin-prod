@@ -14,6 +14,7 @@ import {
   type Retour,
   type StatutRetour,
 } from '@/domains/shop/types/indicateurs';
+import { useOuvrirLigne } from '@/shared/hooks/useOuvrirLigne';
 
 const fcfa = (v: unknown) => `${Number(v ?? 0).toLocaleString('fr-FR')} FCFA`;
 const nombre = (v: unknown) => Number(v ?? 0).toLocaleString('fr-FR');
@@ -29,6 +30,7 @@ const STATUTS: Array<{ libelle: string; valeur?: StatutRetour }> = [
 ];
 
 export default function RetoursPage() {
+  const ouvrir = useOuvrirLigne();
   const [page, setPage] = useState(1);
   const [statut, setStatut] = useState<StatutRetour | undefined>();
   const [motif, setMotif] = useState<MotifRetour | undefined>();
@@ -240,7 +242,7 @@ export default function RetoursPage() {
                 </thead>
                 <tbody>
                   {retours.map((r) => (
-                    <tr key={r.id} className="border-t border-gray-50">
+                    <tr key={r.id} {...ouvrir(r.commande?.id ? `/boutique/commandes/${r.commande.id}` : undefined)} className="border-t border-gray-50">
                       <td className="py-2.5 text-gray-900 tbl-primary">
                         {r.produit?.nom ?? '— produit supprimé'}
                       </td>

@@ -10,6 +10,7 @@ import { useTopProduits } from '@/domains/shop/hooks/useAnalytique';
 import { bornesDepuisPeriode, fcfa, nombre, pourcent } from '@/shared/utils/format';
 import { LIBELLE_ORIGINE, type OrigineProduit, type TopProduit } from '@/domains/shop/types/analytique';
 import type { FiltrePeriode } from '@/domains/shop/types/indicateurs';
+import { useOuvrirLigne } from '@/shared/hooks/useOuvrirLigne';
 
 const ORIGINES: OrigineProduit[] = ['tout', 'marketplace', 'propre'];
 const TAILLES = [20, 50, 100];
@@ -28,6 +29,7 @@ interface OptionRayon {
  * c'est le CA qu'on arbitre. Les quantités restent affichées à côté.
  */
 export default function ProduitsPage() {
+  const ouvrir = useOuvrirLigne();
   const [periode, setPeriode] = useState<FiltrePeriode>({ periode: 'mois' });
   const [origine, setOrigine] = useState<OrigineProduit>('tout');
   const [rayonId, setRayonId] = useState<string>('');
@@ -84,7 +86,7 @@ export default function ProduitsPage() {
             value={rayonId}
             onChange={(e) => setRayonId(e.target.value)}
             aria-label="Filtrer par rayon"
-            className="px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs text-gray-700 bg-white"
+            className="px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs text-gray-700 bg-white max-w-full min-w-0"
           >
             <option value="">Tous les rayons</option>
             {rayons.map((r) => (
@@ -127,8 +129,8 @@ export default function ProduitsPage() {
         ) : produits.length === 0 ? (
           <Vide texte="Aucune vente livrée ne correspond à ces filtres." />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="tbl-wrap">
+            <table className="w-full text-sm tbl-cards">
               <thead>
                 <tr className="text-left text-[11px] uppercase tracking-wide text-gray-400 border-b border-gray-100">
                   <th className="px-3 sm:px-4 py-2.5 font-medium">#</th>
@@ -142,9 +144,9 @@ export default function ProduitsPage() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {produits.map((p, i) => (
-                  <tr key={p.id} className="hover:bg-gray-50/60">
-                    <td className="px-3 sm:px-4 py-2.5 text-gray-400 tabular-nums">{i + 1}</td>
-                    <td className="px-3 sm:px-4 py-2.5">
+                  <tr key={p.id} {...ouvrir(`/boutique/produits/${p.id}/modifier`)}>
+                    <td data-label="#" className="px-3 sm:px-4 py-2.5 text-gray-400 tabular-nums">{i + 1}</td>
+                    <td data-label="Produit" className="px-3 sm:px-4 py-2.5">
                       <Link
                         to={`/boutique/produits/${p.id}/modifier`}
                         className="font-medium text-gray-900 hover:underline"
@@ -153,7 +155,7 @@ export default function ProduitsPage() {
                       </Link>
                       <p className="text-xs text-gray-400">{p.rayon}</p>
                     </td>
-                    <td className="px-3 sm:px-4 py-2.5">
+                    <td data-label="Vendeur" className="px-3 sm:px-4 py-2.5">
                       <span
                         className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
                           p.marketplace
@@ -164,19 +166,19 @@ export default function ProduitsPage() {
                         {p.vendeur}
                       </span>
                     </td>
-                    <td className="px-3 sm:px-4 py-2.5 text-right text-gray-700 tabular-nums">
+                    <td data-label="Qté" className="px-3 sm:px-4 py-2.5 text-right text-gray-700 tabular-nums">
                       {nombre(p.quantiteVendue)}
                     </td>
-                    <td className="px-3 sm:px-4 py-2.5 text-right font-semibold text-gray-900 whitespace-nowrap tabular-nums">
+                    <td data-label="CA" className="px-3 sm:px-4 py-2.5 text-right font-semibold text-gray-900 whitespace-nowrap tabular-nums">
                       {fcfa(p.chiffreAffaires)}
                     </td>
-                    <td className="px-3 sm:px-4 py-2.5 text-right whitespace-nowrap tabular-nums">
+                    <td data-label="Marge" className="px-3 sm:px-4 py-2.5 text-right whitespace-nowrap tabular-nums">
                       <span className={p.margeBrute > 0 ? 'text-green-700' : 'text-gray-400'}>
                         {fcfa(p.margeBrute)}
                       </span>
                       <span className="block text-[11px] text-gray-400">{pourcent(p.tauxMarge)}</span>
                     </td>
-                    <td className="px-3 sm:px-4 py-2.5 text-right tabular-nums">
+                    <td data-label="Stock" className="px-3 sm:px-4 py-2.5 text-right tabular-nums">
                       {/* Un best-seller en rupture est le pire cas : on le signale
                           ici plutôt que d'obliger à ouvrir l'écran Stock. */}
                       {p.stock <= 0 ? (

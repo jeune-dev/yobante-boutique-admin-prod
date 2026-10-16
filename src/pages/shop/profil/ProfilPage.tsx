@@ -18,7 +18,8 @@ export default function ProfilPage() {
   const utilisateur = data?.user ?? data ?? {};
 
   return (
-    <div className="max-w-2xl space-y-6">
+    // Centré sur grand écran, pleine largeur sur mobile.
+    <div className="max-w-2xl mx-auto w-full space-y-6">
       <header>
         {/* Ouvert depuis l'entête : retour à la page quittée ; sinon tableau de bord. */}
         <AdminBackButton parent="/boutique/dashboard" className="mb-3" />

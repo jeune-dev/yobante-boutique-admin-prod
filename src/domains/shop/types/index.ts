@@ -1,6 +1,6 @@
 // ── Types Shop Admin — synchronisés avec yobante-boutique-back ──────────────
 
-export type StatutCommande = 'en_attente' | 'validee' | 'en_preparation' | 'expediee' | 'livree' | 'annulee' | 'rejetee';
+export type StatutCommande = 'en_attente' | 'en_modification' | 'validee' | 'en_preparation' | 'expediee' | 'livree' | 'annulee' | 'rejetee';
 export type StatutPaiement = 'en_attente' | 'succes' | 'echoue' | 'rembourse';
 export type MethodePaiement = 'wave' | 'orange_money' | 'carte' | 'cash';
 export type StatutValidationProduit = 'en_attente' | 'valide_step1' | 'valide' | 'rejete';

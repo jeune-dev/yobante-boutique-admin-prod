@@ -5,6 +5,7 @@ import shopClient from '@/infrastructure/http/shop.client';
 import { Bloc, Chiffre, Titre, Vide } from '@/shared/components/dashboard/Blocs';
 import { date, fcfa, nombre } from '@/shared/utils/format';
 import type { ActiviteClient } from '@/domains/shop/types/indicateurs';
+import { useOuvrirLigne } from '@/shared/hooks/useOuvrirLigne';
 
 /** La fiche telle que la renvoie `GET /admin/users/:id`, activité incluse. */
 interface FicheClient {
@@ -30,6 +31,7 @@ interface CommandeClient {
 
 const COULEUR_STATUT: Record<string, string> = {
   en_attente: 'bg-orange-100 text-orange-700',
+  en_modification: 'bg-amber-100 text-amber-800',
   validee: 'bg-blue-100 text-blue-700',
   en_preparation: 'bg-indigo-100 text-indigo-700',
   expediee: 'bg-purple-100 text-purple-700',
@@ -39,6 +41,7 @@ const COULEUR_STATUT: Record<string, string> = {
 };
 
 export default function UserDetailPage() {
+  const ouvrir = useOuvrirLigne();
   const { id } = useParams<{ id: string }>();
 
   const { data: user, isLoading } = useQuery<FicheClient>({
@@ -170,8 +173,8 @@ export default function UserDetailPage() {
         ) : commandes.length === 0 ? (
           <Vide texte="Ce client n'a passé aucune commande." />
         ) : (
-          <div className="overflow-x-auto mt-3">
-            <table className="w-full text-sm">
+          <div className="tbl-wrap mt-3">
+            <table className="w-full text-sm tbl-cards">
               <thead>
                 <tr className="text-left text-[11px] uppercase tracking-wide text-gray-400 border-b border-gray-100">
                   <th className="px-4 py-2.5 font-medium">Référence</th>
@@ -183,8 +186,8 @@ export default function UserDetailPage() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {commandes.map((c) => (
-                  <tr key={c.id} className="hover:bg-gray-50/60">
-                    <td className="px-4 py-2.5">
+                  <tr key={c.id} {...ouvrir(`/boutique/commandes/${c.id}`)}>
+                    <td data-label="Référence" className="px-4 py-2.5">
                       <Link
                         to={`/boutique/commandes/${c.id}`}
                         className="font-mono text-xs font-medium text-gray-900 hover:underline"
@@ -192,16 +195,16 @@ export default function UserDetailPage() {
                         {c.reference}
                       </Link>
                     </td>
-                    <td className="px-4 py-2.5 text-gray-500 whitespace-nowrap">
+                    <td data-label="Date" className="px-4 py-2.5 text-gray-500 whitespace-nowrap">
                       {date(c.createdAt)}
                     </td>
-                    <td className="px-4 py-2.5 text-right text-gray-600 tabular-nums">
+                    <td data-label="Articles" className="px-4 py-2.5 text-right text-gray-600 tabular-nums">
                       {nombre((c.items ?? []).reduce((total, i) => total + Number(i.quantite || 0), 0))}
                     </td>
-                    <td className="px-4 py-2.5 text-right font-semibold text-gray-900 whitespace-nowrap tabular-nums">
+                    <td data-label="Montant" className="px-4 py-2.5 text-right font-semibold text-gray-900 whitespace-nowrap tabular-nums">
                       {fcfa(c.montantTotal)}
                     </td>
-                    <td className="px-4 py-2.5">
+                    <td data-label="Statut" className="px-4 py-2.5">
                       <span
                         className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
                           COULEUR_STATUT[c.statut] ?? 'bg-gray-100 text-gray-600'

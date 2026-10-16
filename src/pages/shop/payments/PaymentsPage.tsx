@@ -3,6 +3,7 @@ import { usePayments, useRembourser } from '@/domains/shop/hooks/usePayments';
 import { Payment } from '@/domains/shop/api/payments.api';
 import { showSuccess, showConfirm } from '@/shared/utils/alert';
 import Pagination from '@/shared/components/tables/Pagination';
+import { useOuvrirLigne } from '@/shared/hooks/useOuvrirLigne';
 
 function fmtFcfa(n: number) { return Number(n).toLocaleString('fr-FR') + ' FCFA'; }
 function fmtDate(iso: string) {
@@ -21,6 +22,7 @@ const METHODES: Record<string, string> = {
 };
 
 export default function PaymentsPage() {
+  const ouvrir = useOuvrirLigne();
   const [page, setPage] = useState(1);
   const [statutFilter, setStatutFilter] = useState('');
 
@@ -113,7 +115,7 @@ export default function PaymentsPage() {
                   const s = STATUTS[p.statut];
                   const user = (p as any).Commande?.User;
                   return (
-                    <tr key={p.id}>
+                    <tr key={p.id} {...ouvrir(p.commandeId ? `/boutique/commandes/${p.commandeId}` : undefined)}>
                       <td className="tbl-primary" style={{ fontFamily: 'monospace', fontSize: '0.82rem', fontWeight: 600 }}>
                         #{p.commandeId?.slice(0, 8).toUpperCase() ?? '—'}
                       </td>

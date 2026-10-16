@@ -62,7 +62,7 @@ export default function ClientsAnalyticsPage() {
           Acquisition sur la période
         </Titre>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
-          <Chiffre libelle="Nouveaux clients" valeur={nombre(c.inscrits)} aide="Comptes créés sur la période" />
+          <Chiffre libelle="Nouveaux clients" vers="/boutique/clients" valeur={nombre(c.inscrits)} aide="Comptes créés sur la période" />
           <Chiffre
             libelle="Ont commandé"
             valeur={nombre(c.convertis)}
@@ -89,16 +89,18 @@ export default function ClientsAnalyticsPage() {
             Fidélité (base complète)
           </Titre>
           <div className="grid grid-cols-2 gap-3 mt-3">
-            <Chiffre libelle="Clients au total" valeur={nombre(c.clientsTotal)} />
-            <Chiffre libelle="Acheteurs" valeur={nombre(c.acheteurs)} aide="Ont passé au moins une commande" />
+            <Chiffre libelle="Clients au total" vers="/boutique/clients" valeur={nombre(c.clientsTotal)} />
+            <Chiffre libelle="Acheteurs" vers="/boutique/clients?segment=acheteurs" valeur={nombre(c.acheteurs)} aide="Ont passé au moins une commande" />
             <Chiffre
               libelle="Taux de réachat"
+              vers="/boutique/clients?segment=reachat"
               valeur={pourcent(c.tauxReachat)}
               ton={c.tauxReachat >= 30 ? 'bon' : 'attention'}
               aide="Acheteurs ayant commandé plus d'une fois"
             />
             <Chiffre
               libelle="Taux de churn"
+              vers="/boutique/clients?segment=inactifs"
               valeur={pourcent(c.tauxChurn)}
               ton={c.tauxChurn >= 50 ? 'critique' : c.tauxChurn >= 25 ? 'attention' : 'bon'}
               aide={`Aucune commande depuis ${c.fenetreChurnJours} jours`}
@@ -131,6 +133,7 @@ export default function ClientsAnalyticsPage() {
           <div className="mt-4 space-y-3">
             <Barre
               libelle="Clients fidèles"
+              vers="/boutique/clients?segment=fideles"
               valeur={nombre(fideles)}
               max={Math.max(c.clientsTotal, 1)}
               couleur="bg-green-500"
@@ -138,6 +141,7 @@ export default function ClientsAnalyticsPage() {
             />
             <Barre
               libelle="Clients inactifs"
+              vers="/boutique/clients?segment=inactifs"
               valeur={nombre(c.inactifs)}
               max={Math.max(c.clientsTotal, 1)}
               couleur="bg-orange-500"
@@ -145,6 +149,7 @@ export default function ClientsAnalyticsPage() {
             />
             <Barre
               libelle="Inscrits sans achat"
+              vers="/boutique/clients?segment=sans_achat"
               valeur={nombre(nonAcheteurs)}
               max={Math.max(c.clientsTotal, 1)}
               couleur="bg-gray-300"

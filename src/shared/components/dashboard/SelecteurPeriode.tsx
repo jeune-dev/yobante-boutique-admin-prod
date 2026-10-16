@@ -28,15 +28,17 @@ export default function SelecteurPeriode({ valeur, onChange, sansTout = false }:
     onChange({ ...valeur, periode: 'personnalise', [champ]: date || undefined });
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <div className="inline-flex rounded-lg border border-gray-200 overflow-hidden">
+    <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto min-w-0">
+      {/* Sur mobile, les raccourcis passent sur deux lignes de trois au lieu
+          de déborder de l'écran. */}
+      <div className="grid grid-cols-3 w-full sm:w-auto sm:inline-flex rounded-lg border border-gray-200 overflow-hidden">
         {RACCOURCIS.filter((p) => !(sansTout && p === 'tout')).map((p) => (
           <button
             key={p}
             type="button"
             onClick={() => choisir(p)}
             aria-pressed={actuelle === p}
-            className={`px-2.5 py-1.5 text-xs font-medium border-r border-gray-200 last:border-r-0 transition-colors ${
+            className={`px-2.5 py-1.5 text-xs font-medium border-r border-b sm:border-b-0 border-gray-200 sm:last:border-r-0 transition-colors ${
               actuelle === p ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
@@ -47,7 +49,7 @@ export default function SelecteurPeriode({ valeur, onChange, sansTout = false }:
           type="button"
           onClick={() => setOuvertPerso((o) => !o)}
           aria-pressed={actuelle === 'personnalise'}
-          className={`px-2.5 py-1.5 text-xs font-medium transition-colors ${
+          className={`px-2.5 py-1.5 text-xs font-medium border-b sm:border-b-0 border-gray-200 transition-colors ${
             actuelle === 'personnalise'
               ? 'bg-gray-900 text-white'
               : 'bg-white text-gray-600 hover:bg-gray-50'
@@ -58,7 +60,7 @@ export default function SelecteurPeriode({ valeur, onChange, sansTout = false }:
       </div>
 
       {ouvertPerso && (
-        <div className="inline-flex items-center gap-1.5 text-xs">
+        <div className="flex flex-wrap items-center gap-1.5 text-xs min-w-0">
           <input
             type="date"
             value={valeur.debut ?? ''}

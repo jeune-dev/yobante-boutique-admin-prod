@@ -5,6 +5,7 @@ import { showSuccess, showError } from '@/shared/utils/alert';
 import shopClient from '@/infrastructure/http/shop.client';
 import Icon from '@/shared/components/dashboard/Icon';
 import PromotionModal from './components/PromotionModal';
+import { LIBELLE_SECTION } from './components/PromoExistante';
 import ErreurChargement from '@/shared/components/feedback/ErreurChargement';
 import AdminBackButton from '@/shared/components/AdminBackButton';
 
@@ -288,6 +289,7 @@ export default function SousSectionPage() {
         <PromotionModal
           section={bloc.section}
           blocPromoId={bloc.id}
+          cibleLibelle={[LIBELLE_SECTION[bloc.section] ?? bloc.section, bloc.titre].filter(Boolean).join(' › ')}
           promotion={promoEnEdition}
           onFermer={() => {
             setModalOuvert(false);

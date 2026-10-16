@@ -187,8 +187,8 @@ export default function VendeursAnalyticsPage() {
             }
           />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="tbl-wrap">
+            <table className="w-full text-sm tbl-cards">
               <thead>
                 <tr className="text-left text-[11px] uppercase tracking-wide text-gray-400 border-b border-gray-100">
                   <th className="px-3 sm:px-4 py-2.5 font-medium">Vendeur</th>
@@ -208,28 +208,28 @@ export default function VendeursAnalyticsPage() {
               <tbody className="divide-y divide-gray-100">
                 {lignes.map((v) => (
                   <tr key={v.id} className="hover:bg-gray-50/60">
-                    <td className="px-3 sm:px-4 py-2.5 min-w-[160px]">
+                    <td data-label="Vendeur" className="px-3 sm:px-4 py-2.5 min-w-[160px]">
                       <p className="font-medium text-gray-900 truncate">
                         {v.nomBoutique || `${v.prenom} ${v.nom}`}
                       </p>
                       <p className="text-xs text-gray-400 truncate">{v.email}</p>
                     </td>
-                    <td className="px-3 sm:px-4 py-2.5 text-right font-semibold text-gray-900 whitespace-nowrap tabular-nums">
+                    <td data-label="CA" className="px-3 sm:px-4 py-2.5 text-right font-semibold text-gray-900 whitespace-nowrap tabular-nums">
                       {fcfa(v.chiffreAffaires)}
                     </td>
-                    <td className="px-3 sm:px-4 py-2.5 text-right text-gray-700 tabular-nums">
+                    <td data-label="Cdes" className="px-3 sm:px-4 py-2.5 text-right text-gray-700 tabular-nums">
                       {nombre(v.commandes)}
                       <span className="block text-[11px] text-gray-400">
                         {nombre(v.commandesLivrees)} livrée(s)
                       </span>
                     </td>
-                    <td className="px-3 sm:px-4 py-2.5 text-right text-gray-600 whitespace-nowrap tabular-nums">
+                    <td data-label="Panier" className="px-3 sm:px-4 py-2.5 text-right text-gray-600 whitespace-nowrap tabular-nums">
                       {fcfa(v.panierMoyen)}
                     </td>
-                    <td className="px-3 sm:px-4 py-2.5 text-right text-gray-600 tabular-nums">
+                    <td data-label="Produits" className="px-3 sm:px-4 py-2.5 text-right text-gray-600 tabular-nums">
                       {nombre(v.produitsActifs)}
                     </td>
-                    <td className="px-3 sm:px-4 py-2.5 text-right tabular-nums">
+                    <td data-label="Accept." className="px-3 sm:px-4 py-2.5 text-right tabular-nums">
                       <Taux valeur={v.tauxAcceptation} sensInverse />
                       {v.commandesSansReponse > 0 && (
                         <span
@@ -240,16 +240,16 @@ export default function VendeursAnalyticsPage() {
                         </span>
                       )}
                     </td>
-                    <td className="px-3 sm:px-4 py-2.5 text-right tabular-nums">
+                    <td data-label="Annul." className="px-3 sm:px-4 py-2.5 text-right tabular-nums">
                       <Taux valeur={v.tauxAnnulation} seuilAttention={5} seuilCritique={10} />
                     </td>
-                    <td className="px-3 sm:px-4 py-2.5 text-right tabular-nums">
+                    <td data-label="Retour" className="px-3 sm:px-4 py-2.5 text-right tabular-nums">
                       <Taux valeur={v.tauxRetour} seuilAttention={5} seuilCritique={10} />
                       <span className="block text-[11px] text-gray-400">
                         {nombre(v.articlesRetournes)} art.
                       </span>
                     </td>
-                    <td className="px-3 sm:px-4 py-2.5 text-right tabular-nums">
+                    <td data-label="Note" className="px-3 sm:px-4 py-2.5 text-right tabular-nums">
                       {v.noteClient === null ? (
                         <span className="text-gray-300" title="Aucun avis reçu">
                           —
@@ -262,21 +262,21 @@ export default function VendeursAnalyticsPage() {
                         </span>
                       )}
                     </td>
-                    <td className="px-3 sm:px-4 py-2.5 text-right tabular-nums">
+                    <td data-label="Score" className="px-3 sm:px-4 py-2.5 text-right tabular-nums">
                       {v.scoreFiabilite === null ? (
                         <span className="text-gray-300">—</span>
                       ) : (
                         <Taux valeur={v.scoreFiabilite} sensInverse unite="" />
                       )}
                     </td>
-                    <td className="px-3 sm:px-4 py-2.5 text-right text-gray-700 whitespace-nowrap tabular-nums">
+                    <td data-label="Commission" className="px-3 sm:px-4 py-2.5 text-right text-gray-700 whitespace-nowrap tabular-nums">
                       {fcfa(v.commission)}
                       <span className="block text-[11px] text-gray-400">
                         {v.tauxCommission === null ? '—' : pourcent(v.tauxCommission, 2)}
                         {v.tauxParDefaut && ' (défaut)'}
                       </span>
                     </td>
-                    <td className="px-3 sm:px-4 py-2.5 text-right whitespace-nowrap tabular-nums">
+                    <td data-label="À reverser" className="px-3 sm:px-4 py-2.5 text-right whitespace-nowrap tabular-nums">
                       <span
                         className={
                           v.resteDu > 0

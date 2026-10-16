@@ -114,8 +114,8 @@ export default function ComptesVendeursPage() {
             }
           />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="tbl-wrap">
+            <table className="w-full text-sm tbl-cards">
               <thead>
                 <tr className="text-left text-[11px] uppercase tracking-wide text-gray-400 border-b border-gray-100">
                   <th className="px-3 sm:px-4 py-2.5 font-medium">Vendeur</th>
@@ -131,7 +131,7 @@ export default function ComptesVendeursPage() {
               <tbody className="divide-y divide-gray-100">
                 {comptes.map((c) => (
                   <tr key={c.vendeurId} className="hover:bg-gray-50/60">
-                    <td className="px-3 sm:px-4 py-2.5 min-w-[160px]">
+                    <td data-label="Vendeur" className="px-3 sm:px-4 py-2.5 min-w-[160px]">
                       <p className="font-medium text-gray-900 truncate">
                         {c.nomBoutique || `${c.prenom} ${c.nom}`}
                       </p>
@@ -139,10 +139,10 @@ export default function ComptesVendeursPage() {
                         {nombre(c.commandes)} commande(s) · {c.email}
                       </p>
                     </td>
-                    <td className="px-3 sm:px-4 py-2.5 text-right font-semibold text-gray-900 whitespace-nowrap tabular-nums">
+                    <td data-label="CA" className="px-3 sm:px-4 py-2.5 text-right font-semibold text-gray-900 whitespace-nowrap tabular-nums">
                       {fcfa(c.chiffreAffaires)}
                     </td>
-                    <td className="px-3 sm:px-4 py-2.5 text-right tabular-nums">
+                    <td data-label="Taux" className="px-3 sm:px-4 py-2.5 text-right tabular-nums">
                       <span className="text-gray-700">{pourcent(c.tauxCommission, 2)}</span>
                       {c.tauxParDefaut && (
                         <span className="block text-[11px] text-gray-400" title="Aucun taux négocié enregistré">
@@ -150,13 +150,13 @@ export default function ComptesVendeursPage() {
                         </span>
                       )}
                     </td>
-                    <td className="px-3 sm:px-4 py-2.5 text-right text-green-700 whitespace-nowrap tabular-nums">
+                    <td data-label="Commission" className="px-3 sm:px-4 py-2.5 text-right text-green-700 whitespace-nowrap tabular-nums">
                       {fcfa(c.commission)}
                     </td>
-                    <td className="px-3 sm:px-4 py-2.5 text-right text-gray-700 whitespace-nowrap tabular-nums">
+                    <td data-label="Dû" className="px-3 sm:px-4 py-2.5 text-right text-gray-700 whitespace-nowrap tabular-nums">
                       {fcfa(c.montantVendeur)}
                     </td>
-                    <td className="px-3 sm:px-4 py-2.5 text-right text-gray-500 whitespace-nowrap tabular-nums">
+                    <td data-label="Versé" className="px-3 sm:px-4 py-2.5 text-right text-gray-500 whitespace-nowrap tabular-nums">
                       {fcfa(c.dejaReverse)}
                       {c.reversementsEnAttente > 0 && (
                         <span className="block text-[11px] text-orange-600">
@@ -164,7 +164,7 @@ export default function ComptesVendeursPage() {
                         </span>
                       )}
                     </td>
-                    <td className="px-3 sm:px-4 py-2.5 text-right whitespace-nowrap tabular-nums">
+                    <td data-label="Reste" className="px-3 sm:px-4 py-2.5 text-right whitespace-nowrap tabular-nums">
                       <span
                         className={
                           c.resteDu > 0
@@ -182,7 +182,7 @@ export default function ComptesVendeursPage() {
                         {fcfa(c.resteDu)}
                       </span>
                     </td>
-                    <td className="px-3 sm:px-4 py-2.5 text-right whitespace-nowrap">
+                    <td data-label="Actions" className="px-3 sm:px-4 py-2.5 text-right whitespace-nowrap">
                       <div className="inline-flex gap-1">
                         <button
                           type="button"

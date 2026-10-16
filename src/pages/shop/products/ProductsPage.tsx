@@ -10,6 +10,7 @@ import Icon from '@/shared/components/dashboard/Icon';
 import BadgeStock from '@/shared/components/dashboard/BadgeStock';
 import { etatRetour } from '@/shared/hooks/useRetour';
 import { lirePage, useParametresUrl } from '@/shared/hooks/useParametresUrl';
+import { useOuvrirLigne } from '@/shared/hooks/useOuvrirLigne';
 
 const api = {
   getProduits: (p: any) =>
@@ -45,6 +46,7 @@ function Tooltip({ label, children }: { label: string; children: React.ReactNode
 }
 
 export default function ProductsPage() {
+  const ouvrir = useOuvrirLigne();
   const navigate = useNavigate();
   const location = useLocation();
   const qc = useQueryClient();
@@ -181,7 +183,7 @@ export default function ProductsPage() {
               </thead>
               <tbody>
                 {produits.map((p: any) => (
-                  <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50">
+                  <tr key={p.id} {...ouvrir(`/boutique/produits/${p.id}/modifier`)} className="border-b border-gray-50">
                     <td className="p-4 tbl-primary">
                       <div className="flex items-center gap-3 min-w-0">
                         {p.images?.[0] ? (

@@ -5,6 +5,11 @@ export interface UserFilters {
   search?: string;
   role?: string;
   isActive?: boolean;
+  /** Segment d'activité : acheteurs, reachat, fideles, inactifs, sans_achat. */
+  segment?: string;
+  /** Ont commandé entre ces dates (AAAA-MM-JJ, incluses). */
+  commandeDebut?: string;
+  commandeFin?: string;
   page?: number;
   limit?: number;
 }

@@ -1,15 +1,22 @@
 import { useEffect, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { showSuccess, showError } from '@/shared/utils/alert';
+import { showSuccess, showError, showConfirm } from '@/shared/utils/alert';
 import shopClient from '@/infrastructure/http/shop.client';
 import { promotionsApi } from '@/domains/shop/api/promotions.api';
 import Icon from '@/shared/components/dashboard/Icon';
 import Modal, { BoutonPrincipal, BoutonSecondaire, Champ } from './Modal';
+import PromoExistante, {
+  LIBELLE_SECTION,
+  emplacementPromo,
+  promosEnCoursDuProduit,
+} from './PromoExistante';
 
 interface Props {
   section: string;
   /** Renseigné depuis la page d'une sous-section : le produit s'y rattache. */
   blocPromoId?: string;
+  /** Où le produit sera placé, pour les messages (« À ne pas rater › Ramadan »). */
+  cibleLibelle?: string;
   /** Null en création. */
   promotion: any | null;
   onFermer: () => void;
@@ -32,14 +39,22 @@ const formaterPrix = (v: any) => Number(v ?? 0).toLocaleString('fr-FR');
 export default function PromotionModal({
   section,
   blocPromoId,
+  cibleLibelle,
   promotion,
   onFermer,
   onEnregistre,
 }: Props) {
   const edition = Boolean(promotion);
+  const cible = cibleLibelle ?? LIBELLE_SECTION[section] ?? section;
 
   // En modification le produit est déjà connu : on ouvre directement le réglage.
-  const [etape, setEtape] = useState<'choix' | 'details'>(edition ? 'details' : 'choix');
+  const [etape, setEtape] = useState<'choix' | 'confirmation' | 'details'>(
+    edition ? 'details' : 'choix'
+  );
+  // Promotions du même produit dans d'autres sections : elles imposent la remise.
+  const [existantes, setExistantes] = useState<any[]>([]);
+  const [remiseImposee, setRemiseImposee] = useState(false);
+  const [verification, setVerification] = useState(false);
   const [produit, setProduit] = useState<any>(promotion?.produit ?? null);
 
   const [recherche, setRecherche] = useState('');
@@ -109,8 +124,9 @@ export default function PromotionModal({
   };
 
   const enregistrer = useMutation({
-    mutationFn: () => {
+    mutationFn: (appliquerPartout: boolean = false) => {
       const corps: any = {
+        ...(appliquerPartout ? { appliquerPartout: true } : {}),
         section,
         ...(blocPromoId ? { blocPromoId } : {}),
         ...(prixPromo ? { prixPromo: Number(prixPromo) } : {}),
@@ -130,9 +146,20 @@ export default function PromotionModal({
     onError: (e: any) => showError(e),
   });
 
-  const valider = () => {
+  // « Nos promos du moment » n'affiche que de vraies promotions.
+  const promoObligatoire = section === 'nos_promos_du_moment';
+
+  const valider = async () => {
     if (!edition && !produit) {
       showError('Choisissez un produit');
+      return;
+    }
+    if (promoObligatoire && !(Number(prixPromo) > 0)) {
+      showError('Indiquez la remise (en % ou en prix promo)');
+      return;
+    }
+    if (promoObligatoire && !dateFin) {
+      showError('Indiquez la date de fin de la promotion');
       return;
     }
     if (prixBase > 0 && Number(prixPromo) >= prixBase) {
@@ -143,16 +170,66 @@ export default function PromotionModal({
       showError('La date de fin précède la date de début');
       return;
     }
-    enregistrer.mutate();
+    // Modification de la remise d'un produit aussi en promo ailleurs : la
+    // remise est commune, l'admin confirme qu'elle change partout.
+    if (edition && produit?.id) {
+      const autres = await promosEnCoursDuProduit(produit.id, promotion.id);
+      const differentes = autres.filter(
+        (a) => Math.round(Number(a.prixPromo)) !== Math.round(Number(prixPromo))
+      );
+      if (differentes.length) {
+        const ok = await showConfirm({
+          titre: 'Remise commune à plusieurs sections',
+          message:
+            `Ce produit est aussi en promotion dans ${differentes
+              .map((a) => `« ${emplacementPromo(a)} »`)
+              .join(', ')} à ${Math.round(Number(differentes[0].prixPromo)).toLocaleString('fr-FR')} FCFA. ` +
+            `Un produit garde la même remise partout : appliquer la nouvelle remise ` +
+            `(${Number(prixPromo).toLocaleString('fr-FR')} FCFA) dans toutes ces sections ?`,
+          confirmText: 'Appliquer partout',
+        });
+        if (!ok) return;
+        enregistrer.mutate(true);
+        return;
+      }
+    }
+    enregistrer.mutate(false);
   };
 
-  const choisir = (p: any) => {
+  const choisir = async (p: any) => {
+    setVerification(true);
+    const autres = await promosEnCoursDuProduit(p.id);
+    setVerification(false);
     setProduit(p);
+    // Déjà en promotion ailleurs : mini fiche et confirmation d'abord.
+    if (autres.length) {
+      setExistantes(autres);
+      setEtape('confirmation');
+      return;
+    }
+    setRemiseImposee(false);
     setEtape('details');
     // Pré-remplit avec le prix promo déjà porté par la fiche produit, s'il existe.
     if (p.prixPromo && Number(p.prixPromo) > 0 && !prixPromo) {
       surPrix(String(Math.round(Number(p.prixPromo))));
     }
+  };
+
+  /** L'admin confirme : la remise existante est reprise telle quelle. */
+  const confirmerExistante = () => {
+    const ref = existantes[0];
+    setPrixPromo(String(Math.round(Number(ref.prixPromo))));
+    setReduction(String(Math.round(Number(ref.pourcentageReduction) || 0)));
+    if (!dateDebut && ref.dateDebut) setDateDebut(versInputDate(ref.dateDebut));
+    if (!dateFin && ref.dateFin) setDateFin(versInputDate(ref.dateFin));
+    setRemiseImposee(true);
+    setEtape('details');
+  };
+
+  const annulerExistante = () => {
+    setProduit(null);
+    setExistantes([]);
+    setEtape('choix');
   };
 
   return (
@@ -163,11 +240,13 @@ export default function PromotionModal({
           ? undefined
           : etape === 'choix'
             ? 'Étape 1 sur 2 — choisir le produit'
-            : 'Étape 2 sur 2 — définir la remise et la durée'
+            : etape === 'confirmation'
+              ? 'Produit déjà en promotion'
+              : 'Étape 2 sur 2 — définir la remise et la durée'
       }
       onFermer={onFermer}
       actions={
-        etape === 'choix' ? (
+        etape === 'confirmation' ? undefined : etape === 'choix' ? (
           <BoutonSecondaire onClick={onFermer}>Annuler</BoutonSecondaire>
         ) : (
           <>
@@ -203,6 +282,9 @@ export default function PromotionModal({
           </div>
 
           {chargement && <p className="text-xs text-gray-400">Chargement du catalogue…</p>}
+          {verification && (
+            <p className="text-xs text-gray-500">Vérification des promotions de ce produit…</p>
+          )}
 
           {!chargement && resultats.length === 0 && (
             <p className="text-sm text-gray-400 py-8 text-center">
@@ -216,6 +298,7 @@ export default function PromotionModal({
                 <li key={p.id}>
                   <button
                     onClick={() => choisir(p)}
+                    disabled={verification}
                     className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-yellow-50/60 transition-colors"
                   >
                     {p.images?.[0] ? (
@@ -244,6 +327,17 @@ export default function PromotionModal({
         </div>
       )}
 
+      {/* ── Produit déjà en promotion ailleurs : mini fiche ─────────────── */}
+      {etape === 'confirmation' && (
+        <PromoExistante
+          produit={produit}
+          promos={existantes}
+          cible={cible}
+          onConfirmer={confirmerExistante}
+          onAnnuler={annulerExistante}
+        />
+      )}
+
       {/* ── Étape 2 : conditions de la promotion ───────────────────────── */}
       {etape === 'details' && (
         <div className="space-y-4">
@@ -267,7 +361,7 @@ export default function PromotionModal({
             </div>
             {!edition && (
               <button
-                onClick={() => setEtape('choix')}
+                onClick={annulerExistante}
                 className="text-xs font-medium text-gray-500 hover:text-gray-900 shrink-0"
               >
                 Changer
@@ -276,24 +370,44 @@ export default function PromotionModal({
           </div>
 
           {/* ── Remise ─────────────────────────────────────────────────── */}
-          <div className="grid grid-cols-2 gap-3">
-            <Champ label="Prix promo (FCFA)" valeur={prixPromo} onChange={surPrix} type="number" />
-            <Champ label="Remise (%)" valeur={reduction} onChange={surReduction} type="number" />
-          </div>
-          <p className="text-xs text-gray-400 -mt-2">
-            Saisir l'un calcule l'autre automatiquement.
-          </p>
+          {remiseImposee ? (
+            // Remise reprise de l'autre section : un produit n'a qu'une remise.
+            <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-gray-50 border border-gray-100">
+              <Icon name="lock" size={15} className="text-gray-400 mt-0.5 shrink-0" />
+              <p className="text-sm text-gray-700">
+                Remise <strong>−{reduction} %</strong> · prix promo{' '}
+                <strong>{Number(prixPromo).toLocaleString('fr-FR')} FCFA</strong>, identique à{' '}
+                {existantes.map((e) => `« ${emplacementPromo(e)} »`).join(', ')}.
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <Champ label="Prix promo (FCFA)" valeur={prixPromo} onChange={surPrix} type="number" />
+                <Champ label="Remise (%)" valeur={reduction} onChange={surReduction} type="number" />
+              </div>
+              <p className="text-xs text-gray-400 -mt-2">
+                Saisir l'un calcule l'autre automatiquement.
+              </p>
+            </>
+          )}
 
           {/* ── Durée ──────────────────────────────────────────────────── */}
           <div className="grid grid-cols-2 gap-3">
             <Champ label="Début" valeur={dateDebut} onChange={setDateDebut} type="date" />
-            <Champ label="Fin" valeur={dateFin} onChange={setDateFin} type="date" />
+            <Champ
+              label={promoObligatoire ? 'Fin (obligatoire)' : 'Fin'}
+              valeur={dateFin}
+              onChange={setDateFin}
+              type="date"
+            />
           </div>
           <div className="flex items-start gap-2 px-3 py-2.5 bg-blue-50/60 rounded-lg">
             <Icon name="clock" size={15} className="text-blue-500 mt-0.5 shrink-0" />
             <p className="text-xs text-blue-800">
-              Passé la date de fin, le produit disparaît automatiquement de l'application.
-              Sans dates, la promotion reste affichée en permanence.
+              Passé la date de fin, le produit disparaît automatiquement de toutes les promos et
+              reprend son prix normal.
+              {!promoObligatoire && ' Sans dates, la promotion reste affichée en permanence.'}
             </p>
           </div>
         </div>

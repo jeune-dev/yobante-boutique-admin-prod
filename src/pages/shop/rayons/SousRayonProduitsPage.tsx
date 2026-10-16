@@ -8,6 +8,7 @@ import Modal, { BoutonSecondaire } from '@/pages/shop/accueil/components/Modal';
 import ErreurChargement from '@/shared/components/feedback/ErreurChargement';
 import AdminBackButton from '@/shared/components/AdminBackButton';
 import { etatRetour } from '@/shared/hooks/useRetour';
+import { useOuvrirLigne } from '@/shared/hooks/useOuvrirLigne';
 
 const api = {
   sousRayon: (id: string) => shopClient.get(`/admin/rayons/sous-rayons/${id}`),
@@ -28,6 +29,7 @@ const formaterPrix = (v: any) => Number(v ?? 0).toLocaleString('fr-FR');
  * liaison : un produit n'appartient qu'à un seul sous-rayon.
  */
 export default function SousRayonProduitsPage() {
+  const ouvrir = useOuvrirLigne();
   const { id = '' } = useParams();
   const location = useLocation();
   const qc = useQueryClient();
@@ -145,7 +147,7 @@ export default function SousRayonProduitsPage() {
             </thead>
             <tbody>
               {produits.map((p) => (
-                <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50">
+                <tr key={p.id} {...ouvrir(`/boutique/produits/${p.id}/modifier`)} className="border-b border-gray-50">
                   <td className="p-4 tbl-primary">
                     <div className="flex items-center gap-3 min-w-0">
                       {p.images?.[0] ? (

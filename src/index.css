@@ -8,8 +8,19 @@
        taille de base stable quel que soit l'écran. */
     -webkit-text-size-adjust: 100%;
   }
+  /* Sur mobile, rien ne doit faire glisser la page à gauche ou à droite. */
+  html,
+  body,
+  #root {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
   body {
     @apply bg-white text-gray-900;
+    overscroll-behavior-x: none;
+  }
+  select {
+    max-width: 100%;
   }
   img,
   svg,
@@ -237,4 +248,16 @@
   display: none !important;              /* Chrome, Edge, Safari */
   width: 0 !important;
   height: 0 !important;
+}
+
+/* Lignes de tableau ouvrant la fiche concernée (useOuvrirLigne). */
+[data-ligne-cliquable] {
+  cursor: pointer;
+}
+[data-ligne-cliquable]:hover {
+  background-color: rgb(249 250 251);
+}
+[data-ligne-cliquable]:focus-visible {
+  outline: 2px solid rgb(253 224 71);
+  outline-offset: -2px;
 }
