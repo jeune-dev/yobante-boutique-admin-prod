@@ -117,7 +117,8 @@ describe('Commandes : rejet depuis le dashboard', () => {
     commande = { ...COMMANDE, statut: 'rejetee', motifRejet: 'Stock insuffisant' };
     rendre('/boutique/commandes/c-42');
     expect(await screen.findByText('Stock insuffisant')).toBeInTheDocument();
-    expect(screen.getByText('rejetee')).toBeInTheDocument();
+    // Statut affiché avec son libellé lisible, plus le code brut.
+    expect(screen.getByText('Rejetée')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Rejeter' })).not.toBeInTheDocument();
   });
 

@@ -147,6 +147,11 @@ export default function OrderDetailPage() {
   }
 
   const items = commande.items || commande.CommandeItems || [];
+  // Réponse du vendeur pour chaque produit de la commande (V / X / en attente).
+  const reponseParProduit = new Map<string, any>();
+  for (const v of commande.disponibilitesVendeurs ?? []) {
+    for (const pid of v.produitIds ?? []) reponseParProduit.set(pid, v);
+  }
   const peutAgir = !STATUTS_CLOS.includes(commande.statut);
   // Étapes possibles : calculées ici, sans dépendre d'un serveur à jour.
   const etapes: string[] = statutsPossibles(commande.statut);
@@ -236,6 +241,9 @@ export default function OrderDetailPage() {
                     <span className={item.enRupture ? 'line-through text-gray-400' : ''}>
                       {item.produit?.nom || item.Produit?.nom || `Produit #${item.produitId}`}
                     </span>
+                    {!item.enRupture && reponseParProduit.has(item.produitId) && (
+                      <BadgeVendeur reponse={reponseParProduit.get(item.produitId)} />
+                    )}
                     {item.enRupture && (
                       <div className="mt-1">
                         <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-red-100 text-red-700">
@@ -766,6 +774,34 @@ const DISPO: Record<string, { libelle: string; classes: string }> = {
   refusee: { libelle: 'Indisponible', classes: 'bg-red-50 text-red-700' },
   en_attente: { libelle: 'En attente de réponse', classes: 'bg-amber-50 text-amber-700' },
 };
+
+/**
+ * Réponse du vendeur sur un produit de la commande : V (disponible),
+ * X (indisponible, avec le motif) ou « … » (pas encore répondu).
+ */
+function BadgeVendeur({ reponse }: { reponse: any }) {
+  const nom = reponse.boutique || reponse.vendeur || 'Vendeur';
+  const badge =
+    reponse.statut === 'acceptee'
+      ? { lettre: 'V', texte: 'Disponible', classes: 'bg-green-50 text-green-700 border-green-200' }
+      : reponse.statut === 'refusee'
+        ? { lettre: 'X', texte: 'Indisponible', classes: 'bg-red-50 text-red-700 border-red-200' }
+        : { lettre: '…', texte: 'En attente du vendeur', classes: 'bg-amber-50 text-amber-700 border-amber-200' };
+  return (
+    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+      <span
+        className={`inline-flex items-center gap-1 text-[11px] font-semibold px-1.5 py-0.5 rounded border ${badge.classes}`}
+        title={reponse.motifRefus ? `Motif : ${reponse.motifRefus}` : badge.texte}
+      >
+        <span className="font-bold">{badge.lettre}</span> {badge.texte}
+      </span>
+      <span className="text-[11px] text-gray-400 truncate">{nom}</span>
+      {reponse.statut === 'refusee' && reponse.motifRefus && (
+        <span className="basis-full text-[11px] text-red-700">Motif : {reponse.motifRefus}</span>
+      )}
+    </div>
+  );
+}
 
 function DisponibilitesVendeurs({
   liste,
