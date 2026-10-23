@@ -14,6 +14,7 @@ import SousRayonProduitsPage from '@/pages/shop/rayons/SousRayonProduitsPage';
 import ProductsPage from '@/pages/shop/products/ProductsPage';
 import ProductCreatePage from '@/pages/shop/products/ProductCreatePage';
 import ProductEditPage from '@/pages/shop/products/ProductEditPage';
+import ProductDetailPage from '@/pages/shop/products/ProductDetailPage';
 import OrdersPage from '@/pages/shop/orders/OrdersPage';
 import OrderCreatePage from '@/pages/shop/orders/OrderCreatePage';
 import OrderDetailPage from '@/pages/shop/orders/OrderDetailPage';
@@ -94,6 +95,7 @@ export const router = createBrowserRouter(
                 { path: 'produits', element: <ProductsPage /> },
                 { path: 'produits/nouveau', element: <ProductCreatePage /> },
                 { path: 'produits/:id/modifier', element: <ProductEditPage /> },
+                { path: 'produits/:id', element: <ProductDetailPage /> },
                 { path: 'commandes', element: <OrdersPage /> },
                 { path: 'commandes/nouveau', element: <OrderCreatePage /> },
                 { path: 'commandes/:id', element: <OrderDetailPage /> },

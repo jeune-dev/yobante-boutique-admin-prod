@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
 import { showSuccess, showError, showConfirm } from '@/shared/utils/alert';
@@ -9,6 +9,7 @@ import AdminBackButton from '@/shared/components/AdminBackButton';
 import Icon from '@/shared/components/dashboard/Icon';
 import { etatRetour } from '@/shared/hooks/useRetour';
 import { lirePage, useParametresUrl } from '@/shared/hooks/useParametresUrl';
+import StockModal, { type ProduitStock } from './components/StockModal';
 
 const api = {
   getProduits: (p: any) =>
@@ -54,6 +55,7 @@ export default function ProductsPage() {
   const page = lirePage(filtres.page);
   const filterRayonId = filtres.rayonId;
   const [promoModal, setPromoModal] = useState<{ produit: any; section: Section } | null>(null);
+  const [stockModal, setStockModal] = useState<ProduitStock | null>(null);
   const [pct, setPct] = useState('');
   const [dateDebut, setDateDebut] = useState('');
   const [dateFin, setDateFin] = useState('');
@@ -183,7 +185,14 @@ export default function ProductsPage() {
                           <div className="w-10 h-10 rounded-lg bg-gray-100 shrink-0" />
                         )}
                         <span className="min-w-0">
-                          <span className="font-medium line-clamp-2">{p.nom}</span>
+                          {/* Le nom ouvre la fiche détaillée du produit. */}
+                          <Link
+                            to={`/boutique/produits/${p.id}`}
+                            state={etatRetour(location)}
+                            className="font-medium line-clamp-2 hover:text-yellow-700 hover:underline"
+                          >
+                            {p.nom}
+                          </Link>
                           {p.etat === 'reconditionne' && (
                             <span className="inline-block px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700 align-middle">
                               Reconditionné
@@ -222,6 +231,17 @@ export default function ProductsPage() {
                     </td>
                     <td className="p-4 tbl-actions" data-label="Actions">
                       <div className="flex items-center justify-center gap-1">
+                        <Tooltip label="Voir les détails">
+                          <button
+                            onClick={() =>
+                              navigate(`/boutique/produits/${p.id}`, { state: etatRetour(location) })
+                            }
+                            aria-label="Voir les détails"
+                            className="btn-icon hover:bg-gray-100 text-gray-500 hover:text-gray-900"
+                          >
+                            <Icon name="eye" size={16} />
+                          </button>
+                        </Tooltip>
                         <Tooltip label="Modifier">
                           <button
                             onClick={() => navigate(`/boutique/produits/${p.id}/modifier`, { state: etatRetour(location) })}
@@ -231,6 +251,15 @@ export default function ProductsPage() {
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
+                          </button>
+                        </Tooltip>
+                        <Tooltip label="Modifier le stock">
+                          <button
+                            onClick={() => setStockModal(p)}
+                            aria-label="Modifier le stock"
+                            className="btn-icon hover:bg-yellow-50 text-gray-500 hover:text-yellow-600"
+                          >
+                            <Icon name="package" size={16} />
                           </button>
                         </Tooltip>
                         <Tooltip label="Supprimer">
@@ -304,6 +333,12 @@ export default function ProductsPage() {
 
         <Pagination page={page} totalPages={pagination?.totalPages ?? 1} onChange={(p) => setFiltres({ page: String(p) })} />
       </div>
+
+      {/* Ajustement de stock — la liste se rafraîchit via l'invalidation de
+          la query « admin-produits » faite par la modale elle-même. */}
+      {stockModal && (
+        <StockModal produit={stockModal} onFermer={() => setStockModal(null)} />
+      )}
 
       {/* Modal Promotion */}
       {promoModal && (
