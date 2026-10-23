@@ -226,3 +226,30 @@
     width: calc(100% - 2rem) !important;
   }
 }
+
+/* ── Navigation — panneaux de sous-menu ───────────────────────
+   Apparition courte du panneau flottant ouvert au survol : assez
+   rapide pour ne pas retarder la lecture du sous-menu. */
+.nav-flyout {
+  animation: nav-flyout-in 120ms ease-out;
+}
+@keyframes nav-flyout-in {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Mouvement réduit : plus d'animation ni de glissement, l'état final
+   s'affiche directement (barre latérale, chevrons, panneaux). */
+@media (prefers-reduced-motion: reduce) {
+  .nav-flyout,
+  .nav-transition {
+    animation: none !important;
+    transition: none !important;
+  }
+}

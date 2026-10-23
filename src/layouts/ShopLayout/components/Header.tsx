@@ -47,7 +47,7 @@ export default function ShopHeader({ onOuvrirMenu }: Props) {
         onClick={onOuvrirMenu}
         aria-label="Ouvrir le menu"
         aria-controls="menu-principal"
-        className="btn-icon -ml-1 text-gray-500 hover:bg-gray-50 hover:text-gray-900 lg:hidden"
+        className="btn-icon -ml-1 text-gray-500 hover:bg-gray-50 hover:text-gray-900 md:hidden"
       >
         <Icon name="menu" size={22} />
       </button>
