@@ -26,6 +26,7 @@ export const OrderDetailPage = lazy(() => import('@/pages/shop/orders/OrderDetai
 export const UsersPage = lazy(() => import('@/pages/shop/users/UsersPage'));
 export const UserDetailPage = lazy(() => import('@/pages/shop/users/UserDetailPage'));
 export const VendeursPage = lazy(() => import('@/pages/shop/vendeurs/VendeursPage'));
+export const VendeurDetailPage = lazy(() => import('@/pages/shop/vendeurs/VendeurDetailPage'));
 export const AdministrateursPage = lazy(() => import('@/pages/shop/administrateurs/AdministrateursPage'));
 export const DemandesPage = lazy(() => import('@/pages/shop/demandes/DemandesPage'));
 export const RetoursPage = lazy(() => import('@/pages/shop/retours/RetoursPage'));
@@ -130,6 +131,10 @@ export const router = createBrowserRouter(
                 { path: 'clients', element: <UsersPage /> },
                 { path: 'clients/:id', element: <UserDetailPage /> },
                 { path: 'vendeurs', element: <VendeursPage /> },
+                // Fiche d'un vendeur. Même page d'accès (`vendeurs`) que la
+                // liste : `cleDuChemin` retient le préfixe le plus long, donc
+                // les droits par rôle déjà en place s'appliquent tels quels.
+                { path: 'vendeurs/:id', element: <VendeurDetailPage /> },
                 { path: 'administrateurs', element: <AdministrateursPage /> },
                 { path: 'demandes', element: <DemandesPage /> },
                 { path: 'retours', element: <RetoursPage /> },

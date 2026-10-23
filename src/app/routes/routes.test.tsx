@@ -17,6 +17,7 @@ import {
   ProductCreatePage as RouteProductCreatePage,
   ProductEditPage as RouteProductEditPage,
   UserDetailPage as RouteUserDetailPage,
+  VendeurDetailPage as RouteVendeurDetailPage,
   SousRayonProduitsPage as RouteSousRayonProduitsPage,
   SousSectionPage as RouteSousSectionPage,
 } from './index';
@@ -40,6 +41,7 @@ describe('Table des routes du dashboard', () => {
     ['/boutique/produits/nouveau', RouteProductCreatePage],
     ['/boutique/produits/123/modifier', RouteProductEditPage],
     ['/boutique/clients/123', RouteUserDetailPage],
+    ['/boutique/vendeurs/123', RouteVendeurDetailPage],
     ['/boutique/rayons/sous-rayon/123', RouteSousRayonProduitsPage],
     ['/boutique/accueil/sous-section/123', RouteSousSectionPage],
   ])('%s → page attendue', (chemin, page) => {
@@ -53,6 +55,7 @@ describe('Table des routes du dashboard', () => {
       '/boutique/commandes/1',
       '/boutique/produits/1/modifier',
       '/boutique/clients/1',
+      '/boutique/vendeurs/1',
       '/boutique/rayons/sous-rayon/1',
       '/boutique/profil',
     ]) {
