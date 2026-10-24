@@ -4,9 +4,6 @@ import { etatRetour } from '@/shared/hooks/useRetour';
 import { useAuthStore } from '@/auth/store/auth.store';
 import { useAuth } from '@/auth/hooks/useAuth';
 import Icon from '@/shared/components/dashboard/Icon';
-import { PICTO } from '@/assets/images/logos';
-import ShopNavbar from './Navbar';
-import MenuMobile from './MenuMobile';
 import { libelleDuChemin } from '../navigation';
 
 /** Libellés des sections qui ne figurent pas dans la navigation. */
@@ -14,7 +11,13 @@ const TITRES_HORS_NAV: Record<string, string> = {
   profil: 'Mon profil',
 };
 
-export default function ShopHeader() {
+interface Props {
+  /** Ouvre le tiroir de navigation (sous `md`). */
+  onOuvrirMenu: () => void;
+  tiroirOuvert: boolean;
+}
+
+export default function ShopHeader({ onOuvrirMenu, tiroirOuvert }: Props) {
   const user = useAuthStore((s) => s.user);
   // `useAuth().logout` révoque le refresh token côté serveur avant de vider
   // la session locale ; le `logout` du store seul ne faisait que le second.
@@ -47,10 +50,8 @@ export default function ShopHeader() {
     };
   }, [menuOuvert]);
 
-  // Sur grand écran, l'onglet actif nomme déjà la page : le titre ferait
-  // doublon et n'apparaît que pour les pages absentes de la navigation (le
-  // profil). Sur mobile, la barre horizontale laisse place au tiroir : plus
-  // rien n'indiquerait où l'on se trouve, le titre s'affiche donc toujours.
+  // La navigation est passée en colonne à gauche : l'entête n'a plus
+  // d'onglets, le titre de la page y est donc affiché en permanence.
   const section = pathname.split('/')[2] ?? '';
   const libelleNav = libelleDuChemin(pathname);
   const titre = libelleNav ?? TITRES_HORS_NAV[section] ?? 'Boutique';
@@ -58,30 +59,23 @@ export default function ShopHeader() {
   const initiales = `${user?.prenom?.[0] ?? ''}${user?.nom?.[0] ?? ''}`.toUpperCase();
 
   return (
-    // `items-stretch` : les onglets occupent toute la hauteur, pour que leur
-    // soulignement vienne se poser sur la bordure basse de la barre.
-    <header className="h-16 xl:h-[4.5rem] shrink-0 bg-white border-b border-gray-100 flex items-stretch gap-1.5 sm:gap-3 lg:gap-4 px-2.5 sm:px-4 lg:px-5">
-      <MenuMobile />
-
-      <Link
-        to="/boutique/dashboard"
-        className="flex items-center shrink-0"
-        title="Yobante Boutique"
+    <header className="h-16 xl:h-[4.5rem] shrink-0 bg-white border-b border-gray-100 flex items-center gap-1.5 sm:gap-3 lg:gap-4 px-2.5 sm:px-4 lg:px-5">
+      {/* Sous `md`, la colonne de navigation devient un tiroir : ce bouton
+          l'ouvre. Le logo vit dans la colonne, y compris dans le tiroir. */}
+      <button
+        type="button"
+        onClick={onOuvrirMenu}
+        aria-label="Ouvrir le menu"
+        aria-controls="menu-principal"
+        aria-expanded={tiroirOuvert}
+        className="md:hidden flex items-center justify-center w-10 shrink-0 -ml-1 rounded-lg text-gray-600 hover:bg-gray-50"
       >
-        {/* Le logo grandit avec l'écran. Sur mobile, le hamburger a pris en
-            charge la navigation : la place libérée lui profite. */}
-        <img
-          src={PICTO}
-          alt="Yobante Boutique"
-          className="h-11 sm:h-12 lg:h-14 xl:h-16 w-auto transition-[height]"
-        />
-      </Link>
+        <Icon name="menu" size={22} />
+      </button>
 
-      <div className={`flex items-center min-w-0 ${libelleNav ? 'md:hidden flex-1' : 'shrink-0'}`}>
+      <div className="flex min-w-0 flex-1 items-center">
         <h1 className="text-[15px] font-bold text-gray-900 truncate">{titre}</h1>
       </div>
-
-      <ShopNavbar />
 
       <div className="relative shrink-0 flex items-center" ref={zoneMenu}>
         <button
