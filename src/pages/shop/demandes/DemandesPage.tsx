@@ -1,5 +1,17 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { vendeursApi } from '@/domains/shop/api/vendeurs.api';
+import { lirePage, useParametresUrl } from '@/shared/hooks/useParametresUrl';
+import { useListeFiltree } from '@/shared/hooks/useListeFiltree';
+import {
+  BarreFiltres,
+  BoutonExportExcel,
+  FiltreIntervalle,
+  FiltrePeriode,
+  FiltreSelect,
+} from '@/shared/components/filtres/BarreFiltres';
+import { dansIntervalle, dansPeriode, libelleIntervalle, libellePeriode } from '@/shared/utils/filtres';
+import { enDate, enNombre, type ColonneExport } from '@/shared/utils/exportExcel';
 import shopClient from '@/infrastructure/http/shop.client';
 import Icon from '@/shared/components/dashboard/Icon';
 import DemandeDetailModal from './DemandeDetailModal';
@@ -20,27 +32,87 @@ const api = {
 
 const formaterPrix = (v: any) => Number(v ?? 0).toLocaleString('fr-FR');
 
+const nomVendeur = (p: any) =>
+  p.vendeur?.profilVendeur?.nomBoutique ||
+  [p.vendeur?.prenom, p.vendeur?.nom].filter(Boolean).join(' ') ||
+  '—';
+
+const OPTIONS_MESSAGE = [
+  { valeur: 'avec', libelle: 'Avec message du vendeur' },
+  { valeur: 'sans', libelle: 'Sans message' },
+] as const;
+
+/** Colonnes du fichier Excel des demandes de publication. */
+const COLONNES_EXPORT: ColonneExport<any>[] = [
+  { titre: 'Produit', valeur: (p) => p.nom, largeur: 32 },
+  { titre: 'Boutique', valeur: (p) => p.vendeur?.profilVendeur?.nomBoutique, largeur: 22 },
+  { titre: 'Vendeur', valeur: (p) => [p.vendeur?.prenom, p.vendeur?.nom].filter(Boolean).join(' '), largeur: 22 },
+  { titre: 'Email vendeur', valeur: (p) => p.vendeur?.email, largeur: 28 },
+  { titre: 'Téléphone vendeur', valeur: (p) => p.vendeur?.telephone, largeur: 17 },
+  { titre: 'Prix (FCFA)', valeur: (p) => enNombre(p.prix), montant: true, largeur: 13 },
+  { titre: 'Stock souhaité', valeur: (p) => enNombre(p.stockAlloue), largeur: 10 },
+  { titre: 'Stock', valeur: (p) => enNombre(p.stock) ?? 0, largeur: 8 },
+  { titre: 'Statut', valeur: (p) => STATUTS.find((s) => s.cle === p.statutValidation)?.libelle ?? p.statutValidation, largeur: 20 },
+  { titre: 'Motif du rejet', valeur: (p) => p.motifRejet, largeur: 34 },
+  { titre: 'Message du vendeur', valeur: (p) => p.messageVendeur, largeur: 40 },
+  { titre: 'Photos', valeur: (p) => (Array.isArray(p.images) ? p.images.length : 0), largeur: 8 },
+  { titre: 'Soumise le', valeur: (p) => enDate(p.createdAt), largeur: 17 },
+  { titre: 'Mise à jour le', valeur: (p) => enDate(p.updatedAt), largeur: 17 },
+];
+
 export default function DemandesPage() {
   const qc = useQueryClient();
-  const [statut, setStatut] = useState<string>('en_attente');
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
+  // Statut et recherche sont filtrés par le serveur ; vendeur, période,
+  // prix et message le sont dans le navigateur. Tout vit dans l'URL.
+  const [filtres, setFiltres] = useParametresUrl({
+    statut: 'en_attente',
+    q: '',
+    page: '1',
+    vendeur: '',
+    du: '',
+    au: '',
+    prixMin: '',
+    prixMax: '',
+    message: '',
+  });
+  const statut = STATUTS.some((s) => s.cle === filtres.statut) ? filtres.statut : 'en_attente';
+  const search = filtres.q;
+  const page = lirePage(filtres.page);
   const [demandeOuverte, setDemandeOuverte] = useState<any>(null);
 
-  const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: ['demandes', statut, search, page],
-    queryFn: () => api.getDemandes({ statutValidation: statut, search, page, limit: 20 }),
-  });
+  const filtresLocaux = [filtres.vendeur, filtres.du, filtres.au, filtres.prixMin, filtres.prixMax, filtres.message];
+  const nbActifs = filtresLocaux.filter(Boolean).length;
 
-  const produits: any[] = (data as any)?.produits ?? [];
-  const pagination = (data as any)?.pagination;
+  const { data: vendeursData } = useQuery({
+    queryKey: ['vendeurs', 'options-filtre'],
+    queryFn: () => vendeursApi.lister({ limit: 100 }),
+    staleTime: 5 * 60_000,
+  });
+  const optionsVendeurs = (vendeursData?.vendeurs ?? []).map((v) => ({
+    valeur: v.id,
+    libelle: v.nomBoutique || v.boutique?.nom || [v.prenom, v.nom].filter(Boolean).join(' ') || v.email || v.id,
+  }));
+
+  const liste = useListeFiltree<any>({
+    cle: ['demandes', { statut, search }],
+    chargerPage: async (p, limit) => {
+      const r: any = await api.getDemandes({ statutValidation: statut, search, page: p, limit });
+      return { lignes: r?.produits ?? [], totalPages: r?.pagination?.totalPages ?? 1, total: r?.pagination?.total };
+    },
+    page,
+    parPage: 20,
+    filtresLocauxActifs: filtresLocaux.some(Boolean),
+    filtreLocal: (p) =>
+      (!filtres.vendeur || (p.vendeurId ?? p.vendeur?.id) === filtres.vendeur) &&
+      dansPeriode(p.createdAt, filtres.du, filtres.au) &&
+      dansIntervalle(p.prix, filtres.prixMin, filtres.prixMax) &&
+      (!filtres.message || !!String(p.messageVendeur ?? '').trim() === (filtres.message === 'avec')),
+  });
+  const { isLoading, isError, error, refetch } = liste;
+
+  const produits: any[] = liste.lignes;
 
   const rafraichir = () => qc.invalidateQueries({ queryKey: ['demandes'] });
-
-  const nomVendeur = (p: any) =>
-    p.vendeur?.profilVendeur?.nomBoutique ||
-    [p.vendeur?.prenom, p.vendeur?.nom].filter(Boolean).join(' ') ||
-    '—';
 
   return (
     <div>
@@ -56,10 +128,7 @@ export default function DemandesPage() {
         {STATUTS.map((s) => (
           <button
             key={s.cle}
-            onClick={() => {
-              setStatut(s.cle);
-              setPage(1);
-            }}
+            onClick={() => setFiltres({ statut: s.cle, page: '1' })}
             className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               statut === s.cle
                 ? 'bg-gray-900 text-white'
@@ -72,18 +141,62 @@ export default function DemandesPage() {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-        <div className="p-4 border-b border-gray-100">
-          <input
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            placeholder="Rechercher un produit…"
-            aria-label="Rechercher un produit"
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+        <BarreFiltres
+          nbActifs={nbActifs}
+          onReinitialiser={() =>
+            setFiltres({ vendeur: '', du: '', au: '', prixMin: '', prixMax: '', message: '', page: '1' })
+          }
+          recherche={
+            <input
+              value={search}
+              onChange={(e) => setFiltres({ q: e.target.value, page: '1' })}
+              placeholder="Rechercher un produit…"
+              aria-label="Rechercher un produit"
+              className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+            />
+          }
+          actions={
+            <BoutonExportExcel
+              charger={liste.chargerPourExport}
+              nomFichier={`demandes-publication_${statut}`}
+              colonnes={COLONNES_EXPORT}
+              filtres={{
+                Statut: STATUTS.find((s) => s.cle === statut)?.libelle,
+                Recherche: search,
+                Vendeur: optionsVendeurs.find((o) => o.valeur === filtres.vendeur)?.libelle ?? filtres.vendeur,
+                'Date de soumission': libellePeriode(filtres.du, filtres.au),
+                'Prix (FCFA)': libelleIntervalle(filtres.prixMin, filtres.prixMax),
+                Message: OPTIONS_MESSAGE.find((o) => o.valeur === filtres.message)?.libelle,
+              }}
+            />
+          }
+        >
+          <FiltreSelect
+            libelle="Vendeur"
+            valeur={filtres.vendeur}
+            onChange={(v) => setFiltres({ vendeur: v, page: '1' })}
+            tous="Tous les vendeurs"
+            options={optionsVendeurs}
           />
-        </div>
+          <FiltrePeriode
+            libelle="Date de soumission"
+            du={filtres.du}
+            au={filtres.au}
+            onChange={(du, au) => setFiltres({ du, au, page: '1' })}
+          />
+          <FiltreIntervalle
+            libelle="Prix (FCFA)"
+            min={filtres.prixMin}
+            max={filtres.prixMax}
+            onChange={(prixMin, prixMax) => setFiltres({ prixMin, prixMax, page: '1' })}
+          />
+          <FiltreSelect
+            libelle="Message du vendeur"
+            valeur={filtres.message}
+            onChange={(v) => setFiltres({ message: v, page: '1' })}
+            options={OPTIONS_MESSAGE}
+          />
+        </BarreFiltres>
 
         {isLoading ? (
           <div className="p-8 text-center text-gray-400">Chargement…</div>
@@ -91,7 +204,7 @@ export default function DemandesPage() {
           <ErreurChargement erreur={error} onReessayer={() => refetch()} />
         ) : produits.length === 0 ? (
           <div className="p-10 text-center text-gray-400">
-            Aucune demande dans cette catégorie.
+            {nbActifs > 0 ? 'Aucune demande ne correspond aux filtres.' : 'Aucune demande dans cette catégorie.'}
           </div>
         ) : (
           <div className="tbl-wrap">
@@ -169,7 +282,7 @@ export default function DemandesPage() {
           </div>
         )}
 
-        <Pagination page={page} totalPages={pagination?.totalPages ?? 1} onChange={setPage} />
+        <Pagination page={page} totalPages={liste.totalPages} onChange={(p) => setFiltres({ page: String(p) })} />
       </div>
 
       {demandeOuverte && (

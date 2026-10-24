@@ -12,6 +12,25 @@ import { etatRetour } from '@/shared/hooks/useRetour';
 import { lirePage, useParametresUrl } from '@/shared/hooks/useParametresUrl';
 import { useOuvrirLigne } from '@/shared/hooks/useOuvrirLigne';
 import StockModal, { type ProduitStock } from './components/StockModal';
+import { useListeFiltree } from '@/shared/hooks/useListeFiltree';
+import {
+  BarreFiltres,
+  BoutonExportExcel,
+  FiltreIntervalle,
+  FiltrePeriode,
+  FiltreSelect,
+} from '@/shared/components/filtres/BarreFiltres';
+import { dansIntervalle, dansPeriode, libelleIntervalle, libellePeriode } from '@/shared/utils/filtres';
+import { enDate, enNombre, type ColonneExport } from '@/shared/utils/exportExcel';
+import {
+  CLASSE_ETAT_PRODUIT,
+  ETATS_PRODUIT,
+  LIBELLE_ETAT_PRODUIT,
+  estEtatProduit,
+  libelleEtat,
+  type EtatProduit,
+} from '@/domains/shop/etatProduit';
+import { LIBELLE_NIVEAU_STOCK, type NiveauStock } from '@/domains/shop/types/indicateurs';
 
 const api = {
   getProduits: (p: any) =>
@@ -28,6 +47,77 @@ const SECTIONS = {
 } as const;
 
 type Section = keyof typeof SECTIONS;
+
+const LIBELLE_STATUT_VALIDATION: Record<string, string> = {
+  en_attente: 'En attente',
+  valide_step1: 'En cours de validation',
+  valide: 'Publié',
+  rejete: 'Rejeté',
+};
+
+const OPTIONS_STATUT_VALIDATION = Object.entries(LIBELLE_STATUT_VALIDATION).map(([valeur, libelle]) => ({
+  valeur,
+  libelle,
+}));
+
+const OPTIONS_ETAT = [
+  ...ETATS_PRODUIT.map((e) => ({ valeur: e, libelle: LIBELLE_ETAT_PRODUIT[e] })),
+  { valeur: 'non_precise', libelle: 'Non précisé' },
+];
+
+const OPTIONS_VISIBILITE = [
+  { valeur: 'visible', libelle: 'En vente (visible)' },
+  { valeur: 'masque', libelle: 'Masqué' },
+] as const;
+
+const OPTIONS_MIS_EN_AVANT = [
+  { valeur: 'oui', libelle: 'Mis en avant' },
+  { valeur: 'non', libelle: 'Non mis en avant' },
+] as const;
+
+const OPTIONS_STOCK = (Object.keys(LIBELLE_NIVEAU_STOCK) as NiveauStock[]).map((n) => ({
+  valeur: n,
+  libelle: LIBELLE_NIVEAU_STOCK[n],
+}));
+
+/**
+ * Niveau de stock d'un produit : celui calculé par le backend, sinon déduit
+ * du seul stock (0 = rupture) pour que le filtre fonctionne sans indicateurs.
+ */
+const niveauStock = (p: any): string =>
+  p.indicateurs?.niveauStock ?? (Number(p.stock ?? 0) <= 0 ? 'rupture' : 'normal');
+
+const nomVendeur = (p: any) =>
+  p.vendeur?.profilVendeur?.nomBoutique ||
+  [p.vendeur?.prenom, p.vendeur?.nom].filter(Boolean).join(' ') ||
+  '';
+
+/** Colonnes du fichier Excel des produits. */
+const COLONNES_EXPORT: ColonneExport<any>[] = [
+  { titre: 'Nom', valeur: (p) => p.nom, largeur: 32 },
+  { titre: 'Référence', valeur: (p) => p.reference, largeur: 14 },
+  { titre: 'Rayon', valeur: (p) => p.rayon?.nom, largeur: 18 },
+  { titre: 'Sous-rayon', valeur: (p) => p.sousRayon?.nom, largeur: 18 },
+  { titre: 'Vendeur', valeur: nomVendeur, largeur: 22 },
+  { titre: 'Prix (FCFA)', valeur: (p) => enNombre(p.prix), montant: true, largeur: 13 },
+  { titre: 'Prix promo (FCFA)', valeur: (p) => enNombre(p.prixPromo), montant: true, largeur: 13 },
+  { titre: 'Vendu au poids', valeur: (p) => !!p.venduAuPoids, largeur: 10 },
+  { titre: "Prix d'achat (FCFA)", valeur: (p) => enNombre(p.prixAchat), montant: true, largeur: 13 },
+  { titre: 'Marge unitaire (FCFA)', valeur: (p) => enNombre(p.indicateurs?.margeUnitaire), montant: true, largeur: 13 },
+  { titre: 'Taux de marge (%)', valeur: (p) => enNombre(p.indicateurs?.tauxMarge), largeur: 10 },
+  { titre: 'Marge brute (FCFA)', valeur: (p) => enNombre(p.indicateurs?.margeBrute), montant: true, largeur: 13 },
+  { titre: 'Quantité vendue', valeur: (p) => enNombre(p.indicateurs?.quantiteVendue) ?? 0, largeur: 10 },
+  { titre: "Chiffre d'affaires (FCFA)", valeur: (p) => enNombre(p.indicateurs?.chiffreAffaires) ?? 0, montant: true, largeur: 15 },
+  { titre: 'Stock', valeur: (p) => enNombre(p.stock) ?? 0, largeur: 8 },
+  { titre: 'Niveau de stock', valeur: (p) => LIBELLE_NIVEAU_STOCK[niveauStock(p) as NiveauStock], largeur: 16 },
+  { titre: 'Couverture (jours)', valeur: (p) => enNombre(p.indicateurs?.joursCouverture), largeur: 10 },
+  { titre: 'Taux de retour (%)', valeur: (p) => enNombre(p.indicateurs?.tauxRetour), largeur: 10 },
+  { titre: 'État', valeur: (p) => libelleEtat(p.etat) || 'Non précisé', largeur: 13 },
+  { titre: 'Statut', valeur: (p) => LIBELLE_STATUT_VALIDATION[p.statutValidation] ?? p.statutValidation, largeur: 16 },
+  { titre: 'En vente', valeur: (p) => p.isActive !== false, largeur: 9 },
+  { titre: 'Mis en avant', valeur: (p) => !!p.isFeatured, largeur: 10 },
+  { titre: 'Créé le', valeur: (p) => enDate(p.createdAt), largeur: 17 },
+];
 
 /**
  * Infobulle au survol (souris uniquement : au doigt, `aria-label` et `title`
@@ -53,20 +143,96 @@ export default function ProductsPage() {
   const qc = useQueryClient();
   // Recherche, page et rayon (lien « Voir les produits » de la page Rayons)
   // vivent dans l'URL : ils survivent à l'aller-retour vers la modification.
-  const [filtres, setFiltres] = useParametresUrl({ q: '', page: '1', rayonId: '' });
+  // Recherche et rayon sont filtrés par le serveur ; les autres critères le
+  // sont dans le navigateur (et transmis au serveur quand la route les
+  // connaît, ce qui allège le chargement sans changer le résultat).
+  const [filtres, setFiltres] = useParametresUrl({
+    q: '',
+    page: '1',
+    rayonId: '',
+    sousRayonId: '',
+    statut: '',
+    etat: '',
+    visibilite: '',
+    enAvant: '',
+    stock: '',
+    prixMin: '',
+    prixMax: '',
+    creeDu: '',
+    creeAu: '',
+  });
   const search = filtres.q;
   const page = lirePage(filtres.page);
   const filterRayonId = filtres.rayonId;
+  const filtresLocaux = [
+    filtres.sousRayonId,
+    filtres.statut,
+    filtres.etat,
+    filtres.visibilite,
+    filtres.enAvant,
+    filtres.stock,
+    filtres.prixMin,
+    filtres.prixMax,
+    filtres.creeDu,
+    filtres.creeAu,
+  ];
+  const nbActifs = [filterRayonId, ...filtresLocaux].filter(Boolean).length;
   const [promoModal, setPromoModal] = useState<{ produit: any; section: Section } | null>(null);
   const [stockModal, setStockModal] = useState<ProduitStock | null>(null);
   const [pct, setPct] = useState('');
   const [dateDebut, setDateDebut] = useState('');
   const [dateFin, setDateFin] = useState('');
 
-  const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: ['admin-produits', search, page, filterRayonId],
-    queryFn: () => api.getProduits({ search, page, limit: 20, rayonId: filterRayonId || undefined }),
+  const { data: rayonsData } = useQuery({
+    queryKey: ['rayons-select'],
+    queryFn: () =>
+      shopClient
+        .get('/admin/rayons', { params: { actif: true, limit: 100 } })
+        .then((r: any) => r.rayons ?? []),
+    staleTime: 5 * 60_000,
   });
+  const { data: sousRayonsData } = useQuery({
+    queryKey: ['sous-rayons-select', filterRayonId],
+    queryFn: () =>
+      shopClient
+        .get(`/admin/rayons/${filterRayonId}/sous-rayons`)
+        .then((r: any) => r.sousRayons ?? []),
+    enabled: !!filterRayonId,
+    staleTime: 5 * 60_000,
+  });
+  const optionsRayons = ((rayonsData as any[]) ?? []).map((r: any) => ({ valeur: r.id, libelle: r.nom }));
+  const optionsSousRayons = ((sousRayonsData as any[]) ?? []).map((r: any) => ({ valeur: r.id, libelle: r.nom }));
+
+  const paramsServeur = {
+    search,
+    rayonId: filterRayonId || undefined,
+    sousRayonId: filtres.sousRayonId || undefined,
+    statutValidation: filtres.statut || undefined,
+    isActive: filtres.visibilite ? filtres.visibilite === 'visible' : undefined,
+    isFeatured: filtres.enAvant ? filtres.enAvant === 'oui' : undefined,
+  };
+
+  const liste = useListeFiltree<any>({
+    cle: ['admin-produits', paramsServeur],
+    chargerPage: async (p, limit) => {
+      const r: any = await api.getProduits({ ...paramsServeur, page: p, limit });
+      return { lignes: r?.produits ?? [], totalPages: r?.pagination?.totalPages ?? 1, total: r?.pagination?.total };
+    },
+    page,
+    parPage: 20,
+    filtresLocauxActifs: filtresLocaux.some(Boolean),
+    filtreLocal: (p) =>
+      (!filtres.sousRayonId || (p.sousRayonId ?? p.sousRayon?.id) === filtres.sousRayonId) &&
+      (!filtres.statut || p.statutValidation === filtres.statut) &&
+      (!filtres.etat ||
+        (filtres.etat === 'non_precise' ? !estEtatProduit(p.etat) : p.etat === filtres.etat)) &&
+      (!filtres.visibilite || (p.isActive !== false) === (filtres.visibilite === 'visible')) &&
+      (!filtres.enAvant || !!p.isFeatured === (filtres.enAvant === 'oui')) &&
+      (!filtres.stock || niveauStock(p) === filtres.stock) &&
+      dansIntervalle(p.prix, filtres.prixMin, filtres.prixMax) &&
+      dansPeriode(p.createdAt, filtres.creeDu, filtres.creeAu),
+  });
+  const { isLoading, isError, error, refetch } = liste;
 
   const supprimerMutation = useMutation({
     mutationFn: (id: string) => api.supprimerProduit(id),
@@ -86,11 +252,7 @@ export default function ProductsPage() {
     onError: (e: any) => showError(e),
   });
 
-  const produits = data?.produits || [];
-  const pagination = data?.pagination;
-  const nomRayonFiltre: string | undefined = produits.find(
-    (p: { rayon?: { nom?: string } }) => p.rayon?.nom
-  )?.rayon?.nom;
+  const produits = liste.lignes;
   const prixActuel = promoModal?.produit?.prix || 0;
   const prixPromo = pct
     ? parseFloat((prixActuel * (1 - parseFloat(pct) / 100)).toFixed(2))
@@ -132,29 +294,121 @@ export default function ProductsPage() {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 border-b border-gray-100">
-          <input
-            value={search}
-            onChange={(e) => setFiltres({ q: e.target.value, page: '1' })}
-            placeholder="Rechercher un produit…"
-            aria-label="Rechercher un produit"
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-72 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+        <BarreFiltres
+          nbActifs={nbActifs}
+          onReinitialiser={() =>
+            setFiltres({
+              rayonId: '',
+              sousRayonId: '',
+              statut: '',
+              etat: '',
+              visibilite: '',
+              enAvant: '',
+              stock: '',
+              prixMin: '',
+              prixMax: '',
+              creeDu: '',
+              creeAu: '',
+              page: '1',
+            })
+          }
+          recherche={
+            <input
+              value={search}
+              onChange={(e) => setFiltres({ q: e.target.value, page: '1' })}
+              placeholder="Rechercher un produit…"
+              aria-label="Rechercher un produit"
+              className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-72 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+            />
+          }
+          actions={
+            <BoutonExportExcel
+              charger={liste.chargerPourExport}
+              nomFichier="produits"
+              colonnes={COLONNES_EXPORT}
+              filtres={{
+                Recherche: search,
+                Rayon: optionsRayons.find((o) => o.valeur === filterRayonId)?.libelle ?? filterRayonId,
+                'Sous-rayon':
+                  optionsSousRayons.find((o) => o.valeur === filtres.sousRayonId)?.libelle ?? filtres.sousRayonId,
+                Statut: LIBELLE_STATUT_VALIDATION[filtres.statut],
+                État: OPTIONS_ETAT.find((o) => o.valeur === filtres.etat)?.libelle,
+                Visibilité: OPTIONS_VISIBILITE.find((o) => o.valeur === filtres.visibilite)?.libelle,
+                'Mise en avant': OPTIONS_MIS_EN_AVANT.find((o) => o.valeur === filtres.enAvant)?.libelle,
+                'Niveau de stock': LIBELLE_NIVEAU_STOCK[filtres.stock as NiveauStock],
+                'Prix (FCFA)': libelleIntervalle(filtres.prixMin, filtres.prixMax),
+                'Date de création': libellePeriode(filtres.creeDu, filtres.creeAu),
+              }}
+            />
+          }
+        >
+          <FiltreSelect
+            libelle="Rayon"
+            valeur={filterRayonId}
+            // Le sous-rayon retenu appartient à l'ancien rayon : on le vide.
+            onChange={(v) => setFiltres({ rayonId: v, sousRayonId: '', page: '1' })}
+            options={
+              filterRayonId && !optionsRayons.some((o) => o.valeur === filterRayonId)
+                ? [...optionsRayons, { valeur: filterRayonId, libelle: 'Rayon sélectionné' }]
+                : optionsRayons
+            }
           />
-          {filterRayonId && (
-            <span className="inline-flex items-center gap-1 self-start sm:self-auto pl-3 pr-1 py-1 rounded-full bg-yellow-50 text-yellow-800 text-xs font-medium">
-              Rayon : {nomRayonFiltre ?? 'sélectionné'}
-              <button
-                type="button"
-                onClick={() => setFiltres({ rayonId: '', page: '1' })}
-                aria-label="Retirer le filtre rayon"
-                title="Retirer le filtre rayon"
-                className="p-1 rounded-full hover:bg-yellow-100"
-              >
-                <Icon name="x" size={12} />
-              </button>
-            </span>
-          )}
-        </div>
+          <FiltreSelect
+            libelle="Sous-rayon"
+            valeur={filtres.sousRayonId}
+            onChange={(v) => setFiltres({ sousRayonId: v, page: '1' })}
+            tous={filterRayonId ? 'Tous' : "Choisir d'abord un rayon"}
+            options={optionsSousRayons}
+          />
+          <FiltreSelect
+            libelle="Statut de publication"
+            valeur={filtres.statut}
+            onChange={(v) => setFiltres({ statut: v, page: '1' })}
+            options={OPTIONS_STATUT_VALIDATION}
+          />
+          <FiltreSelect
+            libelle="État"
+            valeur={filtres.etat}
+            onChange={(v) => setFiltres({ etat: v, page: '1' })}
+            options={OPTIONS_ETAT}
+          />
+          <FiltreSelect
+            libelle="Visibilité"
+            valeur={filtres.visibilite}
+            onChange={(v) => setFiltres({ visibilite: v, page: '1' })}
+            tous="Toutes"
+            options={OPTIONS_VISIBILITE}
+          />
+          <FiltreSelect
+            libelle="Mise en avant"
+            valeur={filtres.enAvant}
+            onChange={(v) => setFiltres({ enAvant: v, page: '1' })}
+            options={OPTIONS_MIS_EN_AVANT}
+          />
+          <FiltreSelect
+            libelle="Niveau de stock"
+            valeur={filtres.stock}
+            onChange={(v) => setFiltres({ stock: v, page: '1' })}
+            options={OPTIONS_STOCK}
+          />
+          <FiltreIntervalle
+            libelle="Prix (FCFA)"
+            min={filtres.prixMin}
+            max={filtres.prixMax}
+            onChange={(prixMin, prixMax) => setFiltres({ prixMin, prixMax, page: '1' })}
+          />
+          <FiltrePeriode
+            libelle="Date de création"
+            du={filtres.creeDu}
+            au={filtres.creeAu}
+            onChange={(creeDu, creeAu) => setFiltres({ creeDu, creeAu, page: '1' })}
+          />
+        </BarreFiltres>
+        {liste.tronque && (
+          <p className="px-4 py-2 text-xs text-amber-700 bg-amber-50 border-b border-amber-100">
+            Seuls les 10 000 premiers produits ont été filtrés : affinez la recherche ou le rayon.
+          </p>
+        )}
 
         {isLoading ? (
           <div className="p-8 text-center text-gray-400">Chargement…</div>
@@ -206,9 +460,11 @@ export default function ProductsPage() {
                           >
                             {p.nom}
                           </Link>
-                          {p.etat === 'reconditionne' && (
-                            <span className="inline-block px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700 align-middle">
-                              Reconditionné
+                          {estEtatProduit(p.etat) && (
+                            <span
+                              className={`inline-block px-2 py-0.5 rounded-full text-xs align-middle ${CLASSE_ETAT_PRODUIT[p.etat as EtatProduit]}`}
+                            >
+                              {LIBELLE_ETAT_PRODUIT[p.etat as EtatProduit]}
                             </span>
                           )}
                           {/* Sous 1280 px, la colonne Rayon est masquée : on
@@ -324,7 +580,7 @@ export default function ProductsPage() {
                             : 'bg-red-100 text-red-700'
                         }`}
                       >
-                        {p.statutValidation}
+                        {LIBELLE_STATUT_VALIDATION[p.statutValidation] ?? p.statutValidation}
                       </span>
                     </td>
                     <td className="p-4 tbl-actions" data-label="Actions">
@@ -429,7 +685,7 @@ export default function ProductsPage() {
           </div>
         )}
 
-        <Pagination page={page} totalPages={pagination?.totalPages ?? 1} onChange={(p) => setFiltres({ page: String(p) })} />
+        <Pagination page={page} totalPages={liste.totalPages} onChange={(p) => setFiltres({ page: String(p) })} />
       </div>
 
       {/* Ajustement de stock — la liste se rafraîchit via l'invalidation de

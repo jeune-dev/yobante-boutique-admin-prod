@@ -1,3 +1,4 @@
+import type { EtatProduit } from '@/domains/shop/etatProduit';
 // ── Types Shop Admin — synchronisés avec yobante-boutique-back ──────────────
 
 export type StatutCommande = 'en_attente' | 'en_modification' | 'validee' | 'en_preparation' | 'expediee' | 'livree' | 'annulee' | 'rejetee';
@@ -42,7 +43,7 @@ export interface Produit {
   isFeatured: boolean;
   statutValidation: StatutValidationProduit;
   reference?: string;
-  etat?: 'neuf' | 'reconditionne' | null;
+  etat?: EtatProduit | null;
   noteMoyenne?: number;
   nombreAvis?: number;
   categorie?: Categorie;

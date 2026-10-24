@@ -13,6 +13,17 @@ import ErreurChargement from '@/shared/components/feedback/ErreurChargement';
 import { etatRetour } from '@/shared/hooks/useRetour';
 import { lirePage, useParametresUrl } from '@/shared/hooks/useParametresUrl';
 import { useOuvrirLigne } from '@/shared/hooks/useOuvrirLigne';
+import { useListeFiltree } from '@/shared/hooks/useListeFiltree';
+import { vendeursApi } from '@/domains/shop/api/vendeurs.api';
+import {
+  BarreFiltres,
+  BoutonExportExcel,
+  FiltreIntervalle,
+  FiltrePeriode,
+  FiltreSelect,
+} from '@/shared/components/filtres/BarreFiltres';
+import { dansIntervalle, dansPeriode, libelleIntervalle, libellePeriode } from '@/shared/utils/filtres';
+import { enDate, enNombre, type ColonneExport } from '@/shared/utils/exportExcel';
 
 const api = {
   getCommandes: (p: any) =>
@@ -22,6 +33,60 @@ const api = {
   rejeter: (id: string, motif?: string) =>
     shopClient.patch(`/admin/commandes/${id}/rejeter`, { motif }),
 };
+
+/** Réponse des vendeurs d'une commande (filtre « Réponse vendeurs »). */
+const REPONSES_VENDEURS = [
+  { valeur: 'refus', libelle: 'Au moins un refus (indisponible)' },
+  { valeur: 'attente', libelle: 'Réponse vendeur en attente' },
+  { valeur: 'acceptee', libelle: 'Tous les vendeurs ont accepté' },
+] as const;
+
+const reponseVendeursOk = (c: any, reponse: string) => {
+  if (!reponse) return true;
+  const vendeurs: any[] = c.vendeurs ?? [];
+  if (reponse === 'refus') return c.refusVendeurs > 0 || vendeurs.some((v) => v.statut === 'refusee');
+  if (reponse === 'attente') return vendeurs.some((v) => v.statut !== 'acceptee' && v.statut !== 'refusee');
+  return vendeurs.length > 0 && vendeurs.every((v) => v.statut === 'acceptee');
+};
+
+const LIBELLE_REPONSE: Record<string, string> = {
+  acceptee: 'disponible',
+  refusee: 'refusée',
+};
+
+/** Colonnes du fichier Excel des commandes. */
+const COLONNES_EXPORT: ColonneExport<any>[] = [
+  { titre: 'Référence', valeur: (c) => c.reference, largeur: 20 },
+  { titre: 'Date', valeur: (c) => enDate(c.createdAt), largeur: 17 },
+  { titre: 'Statut', valeur: (c) => libelleStatut(c.statut), largeur: 16 },
+  { titre: 'Client', valeur: (c) => [c.user?.prenom, c.user?.nom].filter(Boolean).join(' '), largeur: 24 },
+  { titre: 'Email client', valeur: (c) => c.user?.email, largeur: 28 },
+  { titre: 'Téléphone client', valeur: (c) => c.user?.telephone, largeur: 17 },
+  { titre: 'Montant total (FCFA)', valeur: (c) => enNombre(c.montantTotal), montant: true, largeur: 18 },
+  { titre: 'Nombre d’articles', valeur: (c) => enNombre(c.items?.length), largeur: 10 },
+  {
+    titre: 'Vendeurs',
+    valeur: (c) => (c.vendeurs ?? []).map((v: any) => v.boutique || v.vendeur).filter(Boolean).join(', '),
+    largeur: 30,
+  },
+  {
+    titre: 'Réponses vendeurs',
+    valeur: (c) =>
+      (c.vendeurs ?? [])
+        .map((v: any) => {
+          const r = LIBELLE_REPONSE[v.statut] ?? 'en attente';
+          const motif = v.statut === 'refusee' && v.motifRefus ? ` (${v.motifRefus})` : '';
+          return `${v.boutique || v.vendeur || 'Vendeur'} : ${r}${motif}`;
+        })
+        .join(' ; '),
+    largeur: 40,
+  },
+  { titre: 'Mode de paiement', valeur: (c) => c.methodePaiement || c.paiement?.methode, largeur: 16 },
+  { titre: 'Statut paiement', valeur: (c) => c.paiement?.statut, largeur: 14 },
+  { titre: 'Ville de livraison', valeur: (c) => c.adresse?.ville, largeur: 16 },
+  { titre: 'Livraison souhaitée', valeur: (c) => enDate(c.dateLivraisonSouhaitee), dateSeule: true, largeur: 14 },
+  { titre: 'Motif rejet / annulation', valeur: (c) => c.motifRejet || c.motifAnnulation, largeur: 30 },
+];
 
 const STATUT_COLORS: Record<string, string> = {
   en_attente: 'bg-yellow-100 text-yellow-700',
@@ -41,17 +106,61 @@ export default function OrdersPage() {
   const qc = useQueryClient();
   // Recherche, statut et page vivent dans l'URL : le retour depuis le détail
   // d'une commande restitue la liste telle qu'on l'avait laissée.
-  const [filtres, setFiltres] = useParametresUrl({ q: '', statut: '', page: '1' });
+  // Recherche et statut sont filtrés par le serveur ; période, montant,
+  // vendeur et réponse des vendeurs le sont dans le navigateur, sur toutes
+  // les commandes correspondant aux premiers.
+  const [filtres, setFiltres] = useParametresUrl({
+    q: '',
+    statut: '',
+    page: '1',
+    du: '',
+    au: '',
+    montantMin: '',
+    montantMax: '',
+    vendeur: '',
+    reponse: '',
+  });
   const search = filtres.q;
   const statut = filtres.statut;
   const page = lirePage(filtres.page);
   const [showRejectModal, setShowRejectModal] = useState<string | null>(null);
   const [rejectMotif, setRejectMotif] = useState('');
 
-  const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: ['commandes', search, statut, page],
-    queryFn: () => api.getCommandes({ search, statut, page, limit: 20 }),
+  const filtresLocaux = [filtres.du, filtres.au, filtres.montantMin, filtres.montantMax, filtres.vendeur, filtres.reponse];
+  // Le statut reste visible à côté de la recherche ; le compteur ne porte que
+  // sur les filtres du panneau.
+  const nbActifs = filtresLocaux.filter(Boolean).length;
+
+  const { data: vendeursData } = useQuery({
+    queryKey: ['vendeurs', 'options-filtre'],
+    queryFn: () => vendeursApi.lister({ limit: 100 }),
+    staleTime: 5 * 60_000,
   });
+  const optionsVendeurs = (vendeursData?.vendeurs ?? []).map((v) => ({
+    valeur: v.id,
+    libelle: v.nomBoutique || v.boutique?.nom || [v.prenom, v.nom].filter(Boolean).join(' ') || v.email || v.id,
+  }));
+
+  const liste = useListeFiltree<any>({
+    cle: ['commandes', { search, statut }],
+    chargerPage: async (p, limit) => {
+      const r: any = await api.getCommandes({ search, statut, page: p, limit });
+      return {
+        lignes: r?.commandes ?? [],
+        totalPages: r?.pagination?.totalPages ?? 1,
+        total: r?.pagination?.total,
+      };
+    },
+    page,
+    parPage: 20,
+    filtresLocauxActifs: filtresLocaux.some(Boolean),
+    filtreLocal: (c) =>
+      dansPeriode(c.createdAt, filtres.du, filtres.au) &&
+      dansIntervalle(c.montantTotal, filtres.montantMin, filtres.montantMax) &&
+      (!filtres.vendeur || (c.vendeurs ?? []).some((v: any) => v.vendeurId === filtres.vendeur)) &&
+      reponseVendeursOk(c, filtres.reponse),
+  });
+  const { isLoading, isError, error, refetch } = liste;
 
   const { data: kpi } = useQuery({
     queryKey: ['commandes-kpi'],
@@ -81,8 +190,7 @@ export default function OrdersPage() {
     onError: (e: any) => showError(e),
   });
 
-  const commandes = data?.commandes || [];
-  const pagination = data?.pagination;
+  const commandes = liste.lignes;
 
   return (
     <div>
@@ -119,32 +227,87 @@ export default function OrdersPage() {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-        <div className="flex flex-col sm:flex-row gap-3 p-4 border-b border-gray-100">
-          <input
-            value={search}
-            onChange={(e) => {
-              setFiltres({ q: e.target.value, page: '1' });
-            }}
-            placeholder="Rechercher…"
-            aria-label="Rechercher une commande"
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-56 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+        <BarreFiltres
+          nbActifs={nbActifs}
+          onReinitialiser={() =>
+            setFiltres({ du: '', au: '', montantMin: '', montantMax: '', vendeur: '', reponse: '', page: '1' })
+          }
+          recherche={
+            <>
+              <input
+                value={search}
+                onChange={(e) => {
+                  setFiltres({ q: e.target.value, page: '1' });
+                }}
+                placeholder="Rechercher…"
+                aria-label="Rechercher une commande"
+                className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-56 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              />
+              <select
+                value={statut}
+                onChange={(e) => {
+                  setFiltres({ statut: e.target.value, page: '1' });
+                }}
+                aria-label="Filtrer par statut"
+                className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-auto bg-white focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              >
+                <option value="">Tous les statuts</option>
+                {ORDRE_STATUTS_COMMANDE.map((s) => (
+                  <option key={s} value={s}>
+                    {LIBELLE_STATUT_COMMANDE[s]}
+                  </option>
+                ))}
+              </select>
+            </>
+          }
+          actions={
+            <BoutonExportExcel
+              charger={liste.chargerPourExport}
+              nomFichier="commandes"
+              colonnes={COLONNES_EXPORT}
+              filtres={{
+                Recherche: search,
+                Statut: statut ? libelleStatut(statut) : '',
+                'Période de commande': libellePeriode(filtres.du, filtres.au),
+                'Montant (FCFA)': libelleIntervalle(filtres.montantMin, filtres.montantMax),
+                Vendeur: optionsVendeurs.find((o) => o.valeur === filtres.vendeur)?.libelle ?? filtres.vendeur,
+                'Réponse vendeurs': REPONSES_VENDEURS.find((r) => r.valeur === filtres.reponse)?.libelle,
+              }}
+            />
+          }
+        >
+          <FiltrePeriode
+            libelle="Date de commande"
+            du={filtres.du}
+            au={filtres.au}
+            onChange={(du, au) => setFiltres({ du, au, page: '1' })}
           />
-          <select
-            value={statut}
-            onChange={(e) => {
-              setFiltres({ statut: e.target.value, page: '1' });
-            }}
-            aria-label="Filtrer par statut"
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-auto bg-white focus:outline-none focus:ring-2 focus:ring-yellow-300"
-          >
-            <option value="">Tous les statuts</option>
-            {ORDRE_STATUTS_COMMANDE.map((s) => (
-              <option key={s} value={s}>
-                {LIBELLE_STATUT_COMMANDE[s]}
-              </option>
-            ))}
-          </select>
-        </div>
+          <FiltreIntervalle
+            libelle="Montant total (FCFA)"
+            min={filtres.montantMin}
+            max={filtres.montantMax}
+            onChange={(montantMin, montantMax) => setFiltres({ montantMin, montantMax, page: '1' })}
+          />
+          <FiltreSelect
+            libelle="Vendeur"
+            valeur={filtres.vendeur}
+            onChange={(v) => setFiltres({ vendeur: v, page: '1' })}
+            tous="Tous les vendeurs"
+            options={optionsVendeurs}
+          />
+          <FiltreSelect
+            libelle="Réponse des vendeurs"
+            valeur={filtres.reponse}
+            onChange={(v) => setFiltres({ reponse: v, page: '1' })}
+            tous="Toutes"
+            options={REPONSES_VENDEURS}
+          />
+        </BarreFiltres>
+        {liste.tronque && (
+          <p className="px-4 py-2 text-xs text-amber-700 bg-amber-50 border-b border-amber-100">
+            Seules les 10 000 commandes les plus récentes ont été filtrées : affinez la recherche ou le statut.
+          </p>
+        )}
         {isLoading ? (
           <div className="p-8 text-center text-gray-400">Chargement…</div>
         ) : isError ? (
@@ -243,7 +406,7 @@ export default function OrdersPage() {
               ))}
               {commandes.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-gray-400 tbl-empty">
+                  <td colSpan={8} className="p-8 text-center text-gray-400 tbl-empty">
                     Aucune commande trouvée
                   </td>
                 </tr>
@@ -252,7 +415,7 @@ export default function OrdersPage() {
           </table>
         </div>
         )}
-        <Pagination page={page} totalPages={pagination?.totalPages ?? 1} onChange={(p) => setFiltres({ page: String(p) })} />
+        <Pagination page={page} totalPages={liste.totalPages} onChange={(p) => setFiltres({ page: String(p) })} />
       </div>
 
       {/* Modal de rejet */}

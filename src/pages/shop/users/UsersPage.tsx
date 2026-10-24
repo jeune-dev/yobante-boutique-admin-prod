@@ -1,12 +1,22 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useUsers, useToggleUserActive, useSupprimerClient } from '@/domains/shop/hooks/useUsers';
-import { ShopUser } from '@/domains/shop/api/users.api';
+import { useToggleUserActive, useSupprimerClient } from '@/domains/shop/hooks/useUsers';
+import { ShopUser, usersApi } from '@/domains/shop/api/users.api';
 import { showSuccess, showError, showConfirm } from '@/shared/utils/alert';
 import Pagination from '@/shared/components/tables/Pagination';
 import { etatRetour } from '@/shared/hooks/useRetour';
 import { lirePage, useParametresUrl } from '@/shared/hooks/useParametresUrl';
 import { useOuvrirLigne } from '@/shared/hooks/useOuvrirLigne';
+import { useListeFiltree } from '@/shared/hooks/useListeFiltree';
+import {
+  BarreFiltres,
+  BoutonExportExcel,
+  FiltreIntervalle,
+  FiltrePeriode,
+  FiltreSelect,
+} from '@/shared/components/filtres/BarreFiltres';
+import { dansIntervalle, dansPeriode, libelleIntervalle, libellePeriode } from '@/shared/utils/filtres';
+import { enDate, enNombre, type ColonneExport } from '@/shared/utils/exportExcel';
 
 /** Filtre de statut ↔ valeur conservée dans l'URL. */
 const FILTRES_STATUT = [
@@ -34,6 +44,27 @@ const SEGMENTS: Record<string, string> = {
 
 const nomComplet = (u: ShopUser) => `${u.prenom ?? ''} ${u.nom ?? ''}`.trim();
 
+const OPTIONS_VERIFIE = [
+  { valeur: 'oui', libelle: 'Email vérifié' },
+  { valeur: 'non', libelle: 'Email non vérifié' },
+] as const;
+
+/** Colonnes du fichier Excel des clients. */
+const COLONNES_EXPORT: ColonneExport<ShopUser>[] = [
+  { titre: 'Prénom', valeur: (u) => u.prenom, largeur: 16 },
+  { titre: 'Nom', valeur: (u) => u.nom, largeur: 16 },
+  { titre: 'Email', valeur: (u) => u.email, largeur: 30 },
+  { titre: 'Téléphone', valeur: (u) => u.telephone, largeur: 17 },
+  { titre: 'Email vérifié', valeur: (u) => !!u.isVerified, largeur: 12 },
+  { titre: 'Statut', valeur: (u) => (u.isActive ? 'Actif' : 'Bloqué'), largeur: 10 },
+  { titre: 'Commandes', valeur: (u) => u.activite?.nbCommandes ?? 0, largeur: 11 },
+  { titre: 'Commandes livrées', valeur: (u) => u.activite?.nbCommandesLivrees ?? 0, largeur: 11 },
+  { titre: 'Commandes annulées', valeur: (u) => u.activite?.nbCommandesAnnulees ?? 0, largeur: 11 },
+  { titre: 'Montant dépensé (FCFA)', valeur: (u) => enNombre(u.activite?.montantDepense) ?? 0, montant: true, largeur: 18 },
+  { titre: 'Dernière commande', valeur: (u) => enDate(u.activite?.derniereCommande), largeur: 17 },
+  { titre: 'Inscrit le', valeur: (u) => enDate(u.createdAt), largeur: 17 },
+];
+
 /**
  * Clients de la boutique : recherche, filtre actif / bloqué, activité
  * commerciale, blocage et suppression du compte.
@@ -43,7 +74,24 @@ export default function UsersPage() {
   const location = useLocation();
   // Recherche validée, statut et page vivent dans l'URL : le retour depuis la
   // fiche d'un client restitue la liste telle qu'on l'avait laissée.
-  const [filtres, setFiltres] = useParametresUrl({ q: '', statut: '', page: '1', segment: '', du: '', au: '' });
+  // Recherche, statut, segment et période de commande sont filtrés par le
+  // serveur ; inscription, vérification, nombre de commandes et montant
+  // dépensé le sont dans le navigateur.
+  const [filtres, setFiltres] = useParametresUrl({
+    q: '',
+    statut: '',
+    page: '1',
+    segment: '',
+    du: '',
+    au: '',
+    inscritDu: '',
+    inscritAu: '',
+    verifie: '',
+    commandesMin: '',
+    commandesMax: '',
+    depenseMin: '',
+    depenseMax: '',
+  });
   const segment = SEGMENTS[filtres.segment] ? filtres.segment : '';
   const ouvrir = useOuvrirLigne();
   const search = filtres.q;
@@ -51,22 +99,47 @@ export default function UsersPage() {
   const activeFilter = FILTRES_STATUT.find((f) => f.url === filtres.statut)?.val;
   const [searchInput, setSearchInput] = useState(search);
 
-  const { data, isLoading, isError } = useUsers({
-    page,
-    limit: 15,
+  const filtresServeur = {
     search,
     isActive: activeFilter,
     segment: segment || undefined,
     commandeDebut: filtres.du || undefined,
     commandeFin: filtres.au || undefined,
+  };
+  const filtresLocaux = [
+    filtres.inscritDu,
+    filtres.inscritAu,
+    filtres.verifie,
+    filtres.commandesMin,
+    filtres.commandesMax,
+    filtres.depenseMin,
+    filtres.depenseMax,
+  ];
+  const nbActifs = [filtres.statut, segment, filtres.du || filtres.au, ...filtresLocaux].filter(Boolean).length;
+
+  // Le backend renvoie { users, pagination: { total, totalPages, page, limit } }.
+  const liste = useListeFiltree<ShopUser>({
+    cle: ['shop-users', filtresServeur],
+    chargerPage: async (p, limit) => {
+      const r: any = await usersApi.getAll({ ...filtresServeur, page: p, limit });
+      return { lignes: r?.users ?? [], totalPages: r?.pagination?.totalPages ?? 1, total: r?.pagination?.total };
+    },
+    page,
+    parPage: 15,
+    filtresLocauxActifs: filtresLocaux.some(Boolean),
+    filtreLocal: (u) =>
+      dansPeriode(u.createdAt, filtres.inscritDu, filtres.inscritAu) &&
+      (!filtres.verifie || !!u.isVerified === (filtres.verifie === 'oui')) &&
+      dansIntervalle(u.activite?.nbCommandes ?? 0, filtres.commandesMin, filtres.commandesMax) &&
+      dansIntervalle(u.activite?.montantDepense ?? 0, filtres.depenseMin, filtres.depenseMax),
   });
+  const { isLoading, isError } = liste;
   const toggleMut = useToggleUserActive();
   const supprimerMut = useSupprimerClient();
 
-  // Le backend renvoie { users, pagination: { total, totalPages, page, limit } }.
-  const users: ShopUser[] = (data as any)?.users ?? [];
-  const totalPages = (data as any)?.pagination?.totalPages ?? 1;
-  const count = (data as any)?.pagination?.total ?? users.length;
+  const users = liste.lignes;
+  const totalPages = liste.totalPages;
+  const count = liste.total;
 
   const handleToggle = async (u: ShopUser) => {
     const bloquer = u.isActive;
@@ -140,44 +213,113 @@ export default function UsersPage() {
       )}
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-        <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center gap-3">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              setFiltres({ q: searchInput.trim(), page: '1' });
-            }}
-            className="flex gap-2 w-full sm:w-auto"
-          >
-            <input
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Rechercher un client (nom, email)…"
-              aria-label="Rechercher un client"
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-72 focus:outline-none focus:ring-2 focus:ring-yellow-300"
-            />
-            <button
-              type="submit"
-              className="bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-600"
+        <BarreFiltres
+          nbActifs={nbActifs}
+          onReinitialiser={() =>
+            setFiltres({
+              statut: '',
+              segment: '',
+              du: '',
+              au: '',
+              inscritDu: '',
+              inscritAu: '',
+              verifie: '',
+              commandesMin: '',
+              commandesMax: '',
+              depenseMin: '',
+              depenseMax: '',
+              page: '1',
+            })
+          }
+          recherche={
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setFiltres({ q: searchInput.trim(), page: '1' });
+              }}
+              className="flex gap-2 w-full sm:w-auto"
             >
-              Rechercher
-            </button>
-          </form>
-          <div className="flex flex-wrap gap-1.5 sm:ml-auto">
-            {FILTRES_STATUT.map((f) => (
+              <input
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Rechercher un client (nom, email)…"
+                aria-label="Rechercher un client"
+                className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-72 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              />
               <button
-                key={f.url || 'tous'}
-                onClick={() => setFiltres({ statut: f.url, page: '1' })}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                  activeFilter === f.val
-                    ? 'bg-yellow-50 border-yellow-300 text-yellow-800'
-                    : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
-                }`}
+                type="submit"
+                className="bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-600"
               >
-                {f.label}
+                Rechercher
               </button>
-            ))}
-          </div>
-        </div>
+            </form>
+          }
+          actions={
+            <BoutonExportExcel
+              charger={liste.chargerPourExport}
+              nomFichier="clients"
+              colonnes={COLONNES_EXPORT}
+              filtres={{
+                Recherche: search,
+                Statut: FILTRES_STATUT.find((f) => f.url === filtres.statut && f.url)?.label,
+                Segment: SEGMENTS[segment],
+                'Période de commande': libellePeriode(filtres.du, filtres.au),
+                'Date d’inscription': libellePeriode(filtres.inscritDu, filtres.inscritAu),
+                'Email vérifié': OPTIONS_VERIFIE.find((o) => o.valeur === filtres.verifie)?.libelle,
+                'Nombre de commandes': libelleIntervalle(filtres.commandesMin, filtres.commandesMax),
+                'Montant dépensé (FCFA)': libelleIntervalle(filtres.depenseMin, filtres.depenseMax),
+              }}
+            />
+          }
+        >
+          <FiltreSelect
+            libelle="Statut du compte"
+            valeur={filtres.statut}
+            onChange={(v) => setFiltres({ statut: v, page: '1' })}
+            options={FILTRES_STATUT.filter((f) => f.url).map((f) => ({ valeur: f.url, libelle: f.label }))}
+          />
+          <FiltreSelect
+            libelle="Vérification de l'email"
+            valeur={filtres.verifie}
+            onChange={(v) => setFiltres({ verifie: v, page: '1' })}
+            options={OPTIONS_VERIFIE}
+          />
+          <FiltreSelect
+            libelle="Segment d'activité"
+            valeur={segment}
+            onChange={(v) => setFiltres({ segment: v, page: '1' })}
+            options={Object.entries(SEGMENTS).map(([valeur, libelle]) => ({ valeur, libelle }))}
+          />
+          <FiltrePeriode
+            libelle="Date d'inscription"
+            du={filtres.inscritDu}
+            au={filtres.inscritAu}
+            onChange={(inscritDu, inscritAu) => setFiltres({ inscritDu, inscritAu, page: '1' })}
+          />
+          <FiltrePeriode
+            libelle="A commandé entre"
+            du={filtres.du}
+            au={filtres.au}
+            onChange={(du, au) => setFiltres({ du, au, page: '1' })}
+          />
+          <FiltreIntervalle
+            libelle="Nombre de commandes"
+            min={filtres.commandesMin}
+            max={filtres.commandesMax}
+            onChange={(commandesMin, commandesMax) => setFiltres({ commandesMin, commandesMax, page: '1' })}
+          />
+          <FiltreIntervalle
+            libelle="Montant dépensé (FCFA)"
+            min={filtres.depenseMin}
+            max={filtres.depenseMax}
+            onChange={(depenseMin, depenseMax) => setFiltres({ depenseMin, depenseMax, page: '1' })}
+          />
+        </BarreFiltres>
+        {liste.tronque && (
+          <p className="px-4 py-2 text-xs text-amber-700 bg-amber-50 border-b border-amber-100">
+            Seuls les 10 000 premiers clients ont été filtrés : affinez la recherche.
+          </p>
+        )}
 
         {isLoading ? (
           <div className="p-8 text-center text-gray-400">Chargement…</div>

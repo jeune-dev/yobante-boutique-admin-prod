@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import ChoixImagesProduit from './components/ChoixImagesProduit';
+import ChoixEtatProduit from './components/ChoixEtatProduit';
+import { estEtatProduit, type EtatProduit } from '@/domains/shop/etatProduit';
 import { useParams } from 'react-router-dom';
 import AdminBackButton from '@/shared/components/AdminBackButton';
 import { useRetour } from '@/shared/hooks/useRetour';
@@ -22,7 +24,7 @@ export default function ProductEditPage() {
   const [poids, setPoids] = useState('');
   const [reference, setReference] = useState('');
   const [avecEtat, setAvecEtat] = useState(false);
-  const [etat, setEtat] = useState<'neuf' | 'reconditionne'>('neuf');
+  const [etat, setEtat] = useState<EtatProduit>('neuf');
   const [rayonId, setRayonId] = useState('');
   const [sousRayonId, setSousRayonId] = useState('');
   const [images, setImages] = useState<File[]>([]);
@@ -49,9 +51,10 @@ export default function ProductEditPage() {
         stock: String(produit.stock || '0'),
         poids: String(produit.poids || ''),
         reference: produit.reference || '',
-        // État précisé (neuf ou reconditionné) : case cochée. null = non précisé.
-        avecEtat: produit.etat === 'neuf' || produit.etat === 'reconditionne',
-        etat: (produit.etat === 'reconditionne' ? 'reconditionne' : 'neuf') as 'neuf' | 'reconditionne',
+        // État précisé (neuf, reconditionné ou en l'état) : case cochée.
+        // null = non précisé.
+        avecEtat: estEtatProduit(produit.etat),
+        etat: (estEtatProduit(produit.etat) ? produit.etat : 'neuf') as EtatProduit,
         rayonId: produit.rayonId || produit.rayon?.id || '',
         sousRayonId: produit.sousRayonId || produit.sousRayon?.id || '',
       };
@@ -317,27 +320,7 @@ export default function ProductEditPage() {
             </div>
           </div>
 
-          <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              <input
-                type="checkbox"
-                checked={avecEtat}
-                onChange={(e) => setAvecEtat(e.target.checked)}
-                className="rounded border-gray-300 text-yellow-500 focus:ring-yellow-300"
-              />
-              Préciser l'état du produit (neuf / reconditionné)
-            </label>
-            {avecEtat && (
-              <select
-                value={etat}
-                onChange={(e) => setEtat(e.target.value as 'neuf' | 'reconditionne')}
-                className="mt-2 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
-              >
-                <option value="neuf">Neuf</option>
-                <option value="reconditionne">Reconditionné</option>
-              </select>
-            )}
-          </div>
+          <ChoixEtatProduit avecEtat={avecEtat} onAvecEtat={setAvecEtat} etat={etat} onEtat={setEtat} />
 
           <div>
             <label className="text-sm font-medium text-gray-700">Photos du produit</label>

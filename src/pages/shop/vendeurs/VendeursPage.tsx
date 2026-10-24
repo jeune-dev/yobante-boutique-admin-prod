@@ -1,14 +1,25 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { showSuccess, showError, showConfirm } from '@/shared/utils/alert';
 import Pagination from '@/shared/components/tables/Pagination';
 import { PhoneInput } from '@/shared/components/PhoneInput';
 import { useFiabiliteVendeurs } from '@/domains/shop/hooks/useIndicateurs';
 import { useOuvrirLigne } from '@/shared/hooks/useOuvrirLigne';
+import { lirePage, useParametresUrl } from '@/shared/hooks/useParametresUrl';
+import { useListeFiltree } from '@/shared/hooks/useListeFiltree';
+import {
+  BarreFiltres,
+  BoutonExportExcel,
+  FiltrePeriode,
+  FiltreSelect,
+} from '@/shared/components/filtres/BarreFiltres';
+import { dansPeriode, libellePeriode } from '@/shared/utils/filtres';
+import { enDate, enNombre, type ColonneExport } from '@/shared/utils/exportExcel';
 import {
   adresseBoutique,
   estBloque,
   nomBoutique,
+  telephoneVendeur,
   vendeursApi,
   type Vendeur,
 } from '@/domains/shop/api/vendeurs.api';
@@ -34,6 +45,31 @@ function IconeBlocage() {
     </span>
   );
 }
+
+const OPTIONS_STATUT = [
+  { valeur: 'actif', libelle: 'Actifs' },
+  { valeur: 'bloque', libelle: 'Bloqués' },
+] as const;
+
+/** Tranches du score de fiabilité (mêmes seuils que les pastilles). */
+const OPTIONS_FIABILITE = [
+  { valeur: 'bonne', libelle: 'Bonne (≥ 95 %)' },
+  { valeur: 'moyenne', libelle: 'À surveiller (80 à 95 %)' },
+  { valeur: 'faible', libelle: 'Faible (< 80 %)' },
+  { valeur: 'aucune', libelle: 'Aucune vente' },
+] as const;
+
+const trancheFiabilite = (f?: any) => {
+  if (!f || !f.commandesTotal) return 'aucune';
+  if (f.scoreFiabilite >= 95) return 'bonne';
+  if (f.scoreFiabilite >= 80) return 'moyenne';
+  return 'faible';
+};
+
+const OPTIONS_ACCES = [
+  { valeur: 'temporaire', libelle: 'Mot de passe temporaire (jamais connecté)' },
+  { valeur: 'definitif', libelle: 'Mot de passe personnel' },
+] as const;
 
 const CHAMPS_VIDES = { nom: '', prenom: '', email: '', telephone: '', phoneCountryCode: '', phoneNationalNumber: '', nomBoutique: '', adresseBoutique: '', password: '' };
 
@@ -83,8 +119,23 @@ const genererMotDePasse = () => {
 export default function VendeursPage() {
   const qc = useQueryClient();
   const ouvrir = useOuvrirLigne();
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
+  // Recherche, statut et page vivent dans l'URL (comme Clients et
+  // Commandes). Statut et recherche sont filtrés par le serveur ; date de
+  // création, fiabilité et accès le sont dans le navigateur.
+  const [filtres, setFiltres] = useParametresUrl({
+    q: '',
+    page: '1',
+    statut: '',
+    creeDu: '',
+    creeAu: '',
+    fiabilite: '',
+    acces: '',
+  });
+  const search = filtres.q;
+  const page = lirePage(filtres.page);
+  const statut = OPTIONS_STATUT.some((o) => o.valeur === filtres.statut)
+    ? (filtres.statut as 'actif' | 'bloque')
+    : undefined;
   const [showModal, setShowModal] = useState(false);
   const [editingVendeur, setEditingVendeur] = useState<Vendeur | null>(null);
   const [form, setForm] = useState(CHAMPS_VIDES);
@@ -94,17 +145,60 @@ export default function VendeursPage() {
   // confirmations et mêmes invalidations de cache que sur la fiche vendeur.
   const actions = useActionsVendeur();
 
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['vendeurs', search, page],
-    queryFn: () => vendeursApi.lister({ search, page, limit: 20 }),
-  });
-
   // Un seul appel pour toute la page : la fiabilité est indexée par vendeur
   // plutôt que demandée ligne par ligne.
   const { data: fiabiliteData } = useFiabiliteVendeurs({ limit: 200 });
-  const fiabiliteParVendeur = new Map(
+  const fiabiliteParVendeur = new Map<string, any>(
     ((fiabiliteData as any)?.vendeurs ?? []).map((f: any) => [f.id, f])
   );
+
+  const filtresLocaux = [filtres.creeDu, filtres.creeAu, filtres.fiabilite, filtres.acces];
+  const nbActifs = [statut, ...filtresLocaux].filter(Boolean).length;
+
+  const liste = useListeFiltree<Vendeur>({
+    cle: ['vendeurs', { search, statut }],
+    chargerPage: async (p, limit) => {
+      const r = await vendeursApi.lister({ search, statut, page: p, limit });
+      return {
+        lignes: r?.vendeurs ?? [],
+        totalPages: r?.pagination?.totalPages ?? 1,
+        total: (r?.pagination as any)?.total,
+      };
+    },
+    page,
+    parPage: 20,
+    filtresLocauxActifs: filtresLocaux.some(Boolean),
+    filtreLocal: (v) =>
+      dansPeriode(v.createdAt, filtres.creeDu, filtres.creeAu) &&
+      (!filtres.fiabilite || trancheFiabilite(fiabiliteParVendeur.get(v.id)) === filtres.fiabilite) &&
+      (!filtres.acces || !!v.mustChangePassword === (filtres.acces === 'temporaire')),
+  });
+  const { isLoading, isError, error } = liste;
+
+  /** Colonnes du fichier Excel des vendeurs (la fiabilité vient de l'indicateur). */
+  const colonnesExport: ColonneExport<Vendeur>[] = [
+    { titre: 'Prénom', valeur: (v) => v.prenom, largeur: 16 },
+    { titre: 'Nom', valeur: (v) => v.nom, largeur: 16 },
+    { titre: 'Boutique', valeur: (v) => nomBoutique(v), largeur: 24 },
+    { titre: 'Adresse de la boutique', valeur: (v) => adresseBoutique(v), largeur: 30 },
+    { titre: 'Email', valeur: (v) => v.email, largeur: 30 },
+    { titre: 'Téléphone', valeur: (v) => telephoneVendeur(v), largeur: 17 },
+    { titre: 'Statut', valeur: (v) => (estBloque(v) ? 'Bloqué' : 'Actif'), largeur: 10 },
+    { titre: 'Mot de passe temporaire', valeur: (v) => !!v.mustChangePassword, largeur: 14 },
+    {
+      titre: 'Fiabilité (%)',
+      valeur: (v) => {
+        const f = fiabiliteParVendeur.get(v.id);
+        return f?.commandesTotal ? enNombre(f.scoreFiabilite) : null;
+      },
+      largeur: 11,
+    },
+    { titre: 'Commandes', valeur: (v) => enNombre(fiabiliteParVendeur.get(v.id)?.commandesTotal) ?? 0, largeur: 11 },
+    { titre: 'Incidents', valeur: (v) => enNombre(fiabiliteParVendeur.get(v.id)?.incidents) ?? 0, largeur: 10 },
+    { titre: 'Annulations imputables', valeur: (v) => enNombre(fiabiliteParVendeur.get(v.id)?.annulationsImputables) ?? 0, largeur: 13 },
+    { titre: 'Retours imputables', valeur: (v) => enNombre(fiabiliteParVendeur.get(v.id)?.retoursImputables) ?? 0, largeur: 13 },
+    { titre: 'Créé le', valeur: (v) => enDate(v.createdAt), largeur: 17 },
+  ];
 
   const rafraichir = () => qc.invalidateQueries({ queryKey: ['vendeurs'] });
 
@@ -122,8 +216,7 @@ export default function VendeursPage() {
     onError: (e: any) => showError(e),
   });
 
-  const vendeurs: Vendeur[] = data?.vendeurs || [];
-  const pagination = data?.pagination;
+  const vendeurs: Vendeur[] = liste.lignes;
 
   const handleCreer = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -173,18 +266,61 @@ export default function VendeursPage() {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-        <div className="p-4 border-b border-gray-100">
-          <input
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            placeholder="Rechercher un vendeur…"
-            aria-label="Rechercher un vendeur"
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+        <BarreFiltres
+          nbActifs={nbActifs}
+          onReinitialiser={() =>
+            setFiltres({ statut: '', creeDu: '', creeAu: '', fiabilite: '', acces: '', page: '1' })
+          }
+          recherche={
+            <input
+              value={search}
+              onChange={(e) => setFiltres({ q: e.target.value, page: '1' })}
+              placeholder="Rechercher un vendeur…"
+              aria-label="Rechercher un vendeur"
+              className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+            />
+          }
+          actions={
+            <BoutonExportExcel
+              charger={liste.chargerPourExport}
+              nomFichier="vendeurs"
+              colonnes={colonnesExport}
+              filtres={{
+                Recherche: search,
+                Statut: OPTIONS_STATUT.find((o) => o.valeur === statut)?.libelle,
+                'Date de création': libellePeriode(filtres.creeDu, filtres.creeAu),
+                Fiabilité: OPTIONS_FIABILITE.find((o) => o.valeur === filtres.fiabilite)?.libelle,
+                Accès: OPTIONS_ACCES.find((o) => o.valeur === filtres.acces)?.libelle,
+              }}
+            />
+          }
+        >
+          <FiltreSelect
+            libelle="Statut"
+            valeur={statut ?? ''}
+            onChange={(v) => setFiltres({ statut: v, page: '1' })}
+            options={OPTIONS_STATUT}
           />
-        </div>
+          <FiltreSelect
+            libelle="Fiabilité"
+            valeur={filtres.fiabilite}
+            onChange={(v) => setFiltres({ fiabilite: v, page: '1' })}
+            tous="Toutes"
+            options={OPTIONS_FIABILITE}
+          />
+          <FiltreSelect
+            libelle="Accès au compte"
+            valeur={filtres.acces}
+            onChange={(v) => setFiltres({ acces: v, page: '1' })}
+            options={OPTIONS_ACCES}
+          />
+          <FiltrePeriode
+            libelle="Date de création"
+            du={filtres.creeDu}
+            au={filtres.creeAu}
+            onChange={(creeDu, creeAu) => setFiltres({ creeDu, creeAu, page: '1' })}
+          />
+        </BarreFiltres>
 
         {isLoading ? (
           <div className="p-8 text-center text-gray-400">Chargement…</div>
@@ -303,7 +439,7 @@ export default function VendeursPage() {
           </div>
         )}
 
-        <Pagination page={page} totalPages={pagination?.totalPages ?? 1} onChange={setPage} />
+        <Pagination page={page} totalPages={liste.totalPages} onChange={(p) => setFiltres({ page: String(p) })} />
       </div>
 
       {/* Modal Créer vendeur — l'administrateur choisit le mot de passe ; le

@@ -15,6 +15,7 @@ import HistoriqueStock, { type IndicateursStock } from './components/HistoriqueS
 import AjustementsManuels from './components/AjustementsManuels';
 import CommandesDuProduit from './components/CommandesDuProduit';
 import { nomUtilisateur } from './stock.labels';
+import { CLASSE_ETAT_PRODUIT, LIBELLE_ETAT_PRODUIT, estEtatProduit } from '@/domains/shop/etatProduit';
 
 interface Produit {
   id: string;
@@ -161,9 +162,9 @@ export default function ProductDetailPage() {
                       {produit.statutValidation}
                     </span>
                   )}
-                  {produit.etat === 'reconditionne' && (
-                    <span className="px-2 py-0.5 rounded-full text-[11px] bg-blue-100 text-blue-700">
-                      Reconditionné
+                  {estEtatProduit(produit.etat) && (
+                    <span className={`px-2 py-0.5 rounded-full text-[11px] ${CLASSE_ETAT_PRODUIT[produit.etat]}`}>
+                      {LIBELLE_ETAT_PRODUIT[produit.etat]}
                     </span>
                   )}
                   {produit.isActive === false && (

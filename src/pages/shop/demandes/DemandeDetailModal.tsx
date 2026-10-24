@@ -4,6 +4,7 @@ import { showSuccess, showError } from '@/shared/utils/alert';
 import shopClient from '@/infrastructure/http/shop.client';
 import Icon from '@/shared/components/dashboard/Icon';
 import Modal, { BoutonPrincipal, BoutonSecondaire, Champ } from '@/pages/shop/accueil/components/Modal';
+import { libelleEtat } from '@/domains/shop/etatProduit';
 
 interface Props {
   demande: any;
@@ -308,6 +309,7 @@ export default function DemandeDetailModal({ demande, onFermer, onTraitee }: Pro
               }
             />
             <Ligne label="Prix demandé" valeur={`${formaterPrix(demande.prix)} FCFA`} />
+            <Ligne label="État" valeur={libelleEtat(demande.etat) || 'Non précisé'} />
             <Ligne
               label="Soumise le"
               valeur={new Date(demande.createdAt).toLocaleDateString('fr-FR')}
