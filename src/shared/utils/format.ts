@@ -45,6 +45,27 @@ export const dateCourte = (iso?: string | null): string =>
   iso ? new Date(iso).toLocaleDateString(FR, { day: '2-digit', month: '2-digit' }) : '—';
 
 /**
+ * Date ET heure, dans le fuseau de la boutique.
+ *
+ * Les journaux (mouvements de stock, historique d'une commande) se lisent à
+ * la minute : sans le fuseau, deux administrateurs sur deux postes différents
+ * ne verraient pas la même heure pour le même évènement.
+ */
+export const dateHeure = (iso?: string | null): string => {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleString(FR, {
+    timeZone: 'Africa/Dakar',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
+/**
  * Libellé des bornes renvoyées par le backend.
  *
  * On affiche les bornes effectivement appliquées plutôt que de reconstituer

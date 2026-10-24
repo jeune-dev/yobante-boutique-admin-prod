@@ -20,6 +20,7 @@ export const SousRayonProduitsPage = lazy(() => import('@/pages/shop/rayons/Sous
 export const ProductsPage = lazy(() => import('@/pages/shop/products/ProductsPage'));
 export const ProductCreatePage = lazy(() => import('@/pages/shop/products/ProductCreatePage'));
 export const ProductEditPage = lazy(() => import('@/pages/shop/products/ProductEditPage'));
+export const ProductDetailPage = lazy(() => import('@/pages/shop/products/ProductDetailPage'));
 export const OrdersPage = lazy(() => import('@/pages/shop/orders/OrdersPage'));
 export const OrderCreatePage = lazy(() => import('@/pages/shop/orders/OrderCreatePage'));
 export const OrderDetailPage = lazy(() => import('@/pages/shop/orders/OrderDetailPage'));
@@ -125,6 +126,10 @@ export const router = createBrowserRouter(
                 { path: 'produits', element: <ProductsPage /> },
                 { path: 'produits/nouveau', element: <ProductCreatePage /> },
                 { path: 'produits/:id/modifier', element: <ProductEditPage /> },
+                // Après `/modifier` : une route statique ne doit pas être
+                // avalée par le paramètre. Couverte par la clé d'accès
+                // « produits », qui porte déjà le préfixe /boutique/produits.
+                { path: 'produits/:id', element: <ProductDetailPage /> },
                 { path: 'commandes', element: <OrdersPage /> },
                 { path: 'commandes/nouveau', element: <OrderCreatePage /> },
                 { path: 'commandes/:id', element: <OrderDetailPage /> },
