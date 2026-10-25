@@ -195,9 +195,10 @@ describe('Fiche produit', () => {
   it('affiche les totaux de mouvements calculés par le backend', async () => {
     rendre();
 
-    const sorties = (await screen.findByText('Sorties')).closest('div')!;
+    // La carte d'indicateur entière : le libellé est dans sa ligne d'entête.
+    const sorties = (await screen.findByText('Sorties')).closest('.rounded-xl') as HTMLElement;
     await waitFor(() => expect(within(sorties).getByText('12')).toBeInTheDocument());
-    const commandes = screen.getByText('Commandes').closest('div')!;
+    const commandes = screen.getByText('Commandes').closest('.rounded-xl') as HTMLElement;
     expect(within(commandes).getByText('2')).toBeInTheDocument();
   });
 

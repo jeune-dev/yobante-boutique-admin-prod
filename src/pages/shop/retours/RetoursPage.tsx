@@ -84,7 +84,7 @@ export default function RetoursPage() {
     <div className="space-y-3 sm:space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-base sm:text-lg font-bold text-gray-900">Retours produits</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Retours produits</h1>
           <p className="text-sm text-gray-500 mt-0.5">
             {nombre(total)} retour(s) · taux et motifs sur la période choisie.
           </p>
@@ -352,7 +352,7 @@ export default function RetoursPage() {
 
 function Bloc({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`bg-white rounded-xl border border-gray-100 shadow-sm ${className}`}>
+    <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm ${className}`}>
       {children}
     </div>
   );

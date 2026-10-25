@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import Icon from '@/shared/components/dashboard/Icon';
+import MenuActions from '@/shared/components/MenuActions';
 import { Link, useLocation } from 'react-router-dom';
 import { useToggleUserActive, useSupprimerClient } from '@/domains/shop/hooks/useUsers';
 import { ShopUser, usersApi } from '@/domains/shop/api/users.api';
@@ -212,7 +214,7 @@ export default function UsersPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
         <BarreFiltres
           nbActifs={nbActifs}
           onReinitialiser={() =>
@@ -335,7 +337,7 @@ export default function UsersPage() {
                   <th className="p-4 font-medium text-gray-500">Commandes</th>
                   <th className="p-4 font-medium text-gray-500 hidden lg:table-cell">Inscrit le</th>
                   <th className="p-4 font-medium text-gray-500">Statut</th>
-                  <th className="p-4 font-medium text-gray-500 text-center">Actions</th>
+                  <th className="p-4 font-medium text-gray-500 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -349,7 +351,7 @@ export default function UsersPage() {
                         <div className="min-w-0">
                           <p className="font-medium text-gray-900 truncate">{nomComplet(u)}</p>
                           <span
-                            className={`inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                            className={`inline-block mt-0.5 px-1.5 py-0.5 rounded text-xs font-medium ${
                               u.isVerified ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-500'
                             }`}
                           >
@@ -368,7 +370,7 @@ export default function UsersPage() {
                       <p className="font-semibold text-gray-900">
                         {u.activite?.nbCommandes ?? 0}
                         {!!u.activite?.nbCommandes && (
-                          <span className="font-normal text-xs text-gray-400">
+                          <span className="font-normal text-[13px] text-gray-500">
                             {' '}
                             · {u.activite.nbCommandesLivrees} livrée
                             {u.activite.nbCommandesLivrees > 1 ? 's' : ''}
@@ -376,7 +378,7 @@ export default function UsersPage() {
                         )}
                       </p>
                       {!!u.activite?.montantDepense && (
-                        <p className="text-xs text-gray-400">
+                        <p className="text-[13px] text-gray-500">
                           {Number(u.activite.montantDepense).toLocaleString('fr-FR')} FCFA
                         </p>
                       )}
@@ -394,34 +396,38 @@ export default function UsersPage() {
                       </span>
                     </td>
                     <td className="p-4 tbl-actions" data-label="Actions">
-                      <div className="flex flex-wrap items-center justify-center gap-1.5">
+                      <div className="flex items-center justify-end gap-1">
                         <Link
                           to={`/boutique/clients/${u.id}`}
                           state={etatRetour(location)}
                           aria-label={`Voir la fiche de ${nomComplet(u)}`}
-                          className="px-2.5 py-1.5 sm:py-1 rounded text-[11px] font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
+                          title="Voir la fiche"
+                          className="btn-icon text-gray-500 hover:bg-gray-100 hover:text-gray-900"
                         >
-                          Voir
+                          <Icon name="eye" size={17} />
                         </Link>
-                        <button
-                          onClick={() => handleToggle(u)}
-                          disabled={toggleMut.isPending}
-                          className={`px-2.5 py-1.5 sm:py-1 rounded text-[11px] font-medium disabled:opacity-50 transition-colors ${
-                            u.isActive
-                              ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                              : 'bg-green-50 text-green-700 hover:bg-green-100'
-                          }`}
-                        >
-                          {u.isActive ? 'Bloquer' : 'Débloquer'}
-                        </button>
-                        <button
-                          onClick={() => handleSupprimer(u)}
-                          disabled={supprimerMut.isPending}
-                          title="Supprimer ce compte client"
-                          className="px-2.5 py-1.5 sm:py-1 rounded text-[11px] font-medium bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
-                        >
-                          Supprimer
-                        </button>
+                        {/* Blocage et suppression, moins fréquents, passent dans
+                            le menu : trois boutons de couleur par ligne
+                            surchargeaient la liste. */}
+                        <MenuActions
+                          actions={[
+                            {
+                              libelle: u.isActive ? 'Bloquer le compte' : 'Débloquer le compte',
+                              icone: u.isActive ? 'ban' : 'check-circle',
+                              onClick: () => {
+                                if (!toggleMut.isPending) handleToggle(u);
+                              },
+                            },
+                            {
+                              libelle: 'Supprimer le compte',
+                              icone: 'trash',
+                              danger: true,
+                              onClick: () => {
+                                if (!supprimerMut.isPending) handleSupprimer(u);
+                              },
+                            },
+                          ]}
+                        />
                       </div>
                     </td>
                   </tr>

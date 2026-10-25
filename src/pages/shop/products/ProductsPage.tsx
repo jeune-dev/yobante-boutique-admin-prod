@@ -7,6 +7,7 @@ import Pagination from '@/shared/components/tables/Pagination';
 import ErreurChargement from '@/shared/components/feedback/ErreurChargement';
 import AdminBackButton from '@/shared/components/AdminBackButton';
 import Icon from '@/shared/components/dashboard/Icon';
+import MenuActions from '@/shared/components/MenuActions';
 import BadgeStock from '@/shared/components/dashboard/BadgeStock';
 import { etatRetour } from '@/shared/hooks/useRetour';
 import { lirePage, useParametresUrl } from '@/shared/hooks/useParametresUrl';
@@ -293,7 +294,7 @@ export default function ProductsPage() {
         </button>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
         <BarreFiltres
           nbActifs={nbActifs}
           onReinitialiser={() =>
@@ -418,161 +419,149 @@ export default function ProductsPage() {
           <div className="tbl-wrap">
             <table className="w-full text-sm tbl-cards">
               <thead>
-                <tr className="border-b border-gray-100 text-left">
-                  <th className="p-4 font-medium text-gray-500">Produit</th>
-                  <th className="p-4 font-medium text-gray-500 hidden xl:table-cell">Rayon</th>
-                  <th className="p-4 font-medium text-gray-500">Prix</th>
-                  {/* Colonnes d'analyse : masquées sous `lg`, où la largeur ne
-                      permet pas de les lire sans écraser le reste. */}
-                  <th className="p-4 font-medium text-gray-500 hidden lg:table-cell">Marge</th>
-                  <th className="p-4 font-medium text-gray-500 hidden lg:table-cell text-center">
-                    Vendus
-                  </th>
-                  <th className="p-4 font-medium text-gray-500 hidden xl:table-cell">CA</th>
-                  <th className="p-4 font-medium text-gray-500">Stock</th>
-                  <th className="p-4 font-medium text-gray-500 hidden lg:table-cell text-center">
-                    Couverture
-                  </th>
-                  <th className="p-4 font-medium text-gray-500">Statut</th>
-                  <th className="p-4 font-medium text-gray-500 text-center">Actions</th>
+                <tr className="text-left">
+                  <th className="px-4">Produit</th>
+                  <th className="px-4">Prix &amp; marge</th>
+                  <th className="px-4 hidden lg:table-cell">Ventes</th>
+                  <th className="px-4">Stock</th>
+                  <th className="px-4">Statut</th>
+                  <th className="px-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {produits.map((p: any) => (
-                  <tr key={p.id} {...ouvrir(`/boutique/produits/${p.id}`)} className="border-b border-gray-50">
-                    <td className="p-4 tbl-primary">
+                  <tr key={p.id} {...ouvrir(`/boutique/produits/${p.id}`)} className="border-b border-gray-50 last:border-0">
+                    {/* Nom, rayon et état regroupés : une colonne par
+                        information écrasait le nom et repliait le rayon sur
+                        quatre lignes. */}
+                    <td className="px-4 tbl-primary min-w-[16rem]">
                       <div className="flex items-center gap-3 min-w-0">
                         {p.images?.[0] ? (
                           <img
                             src={p.images[0]}
-                            className="w-10 h-10 rounded-lg object-contain bg-white border border-gray-100 shrink-0"
+                            className="w-12 h-12 rounded-xl object-contain bg-white border border-gray-100 shrink-0"
                             alt=""
                           />
                         ) : (
-                          <div className="w-10 h-10 rounded-lg bg-gray-100 shrink-0" />
+                          <div className="w-12 h-12 rounded-xl bg-gray-100 text-gray-300 flex items-center justify-center shrink-0">
+                            <Icon name="image" size={18} />
+                          </div>
                         )}
-                        <span className="min-w-0">
+                        <div className="min-w-0">
                           {/* Le nom ouvre la fiche détaillée du produit. */}
                           <Link
                             to={`/boutique/produits/${p.id}`}
                             state={etatRetour(location)}
-                            className="font-medium line-clamp-2 hover:underline"
+                            className="font-semibold text-gray-900 line-clamp-2 hover:underline"
                           >
                             {p.nom}
                           </Link>
-                          {estEtatProduit(p.etat) && (
-                            <span
-                              className={`inline-block px-2 py-0.5 rounded-full text-xs align-middle ${CLASSE_ETAT_PRODUIT[p.etat as EtatProduit]}`}
-                            >
-                              {LIBELLE_ETAT_PRODUIT[p.etat as EtatProduit]}
+                          <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-gray-500">
+                            <span>
+                              {p.rayon?.nom || 'Sans rayon'}
+                              {p.sousRayon ? ` › ${p.sousRayon.nom}` : ''}
                             </span>
-                          )}
-                          {/* Sous 1280 px, la colonne Rayon est masquée : on
-                              rappelle l'information sous le nom. */}
-                          <span className="hidden md:block xl:hidden text-xs text-gray-400">
-                            {p.rayon?.nom || '—'}
-                            {p.sousRayon ? ` / ${p.sousRayon.nom}` : ''}
-                          </span>
-                        </span>
+                            {estEtatProduit(p.etat) && (
+                              <span
+                                className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${CLASSE_ETAT_PRODUIT[p.etat as EtatProduit]}`}
+                              >
+                                {LIBELLE_ETAT_PRODUIT[p.etat as EtatProduit]}
+                              </span>
+                            )}
+                          </p>
+                        </div>
                       </div>
                     </td>
-                    <td className="p-4 text-gray-500 hidden xl:table-cell" data-label="Rayon">
-                      {p.rayon?.nom || '—'}
-                      {p.sousRayon ? ` / ${p.sousRayon.nom}` : ''}
-                    </td>
-                    <td className="p-4 font-medium whitespace-nowrap" data-label="Prix">
-                      {p.prix?.toLocaleString('fr-FR')} FCFA
-                      {p.venduAuPoids ? ' / kg' : ''}
-                      {p.prixAchat != null && (
-                        <span className="block text-xs font-normal text-gray-400">
-                          achat {Number(p.prixAchat).toLocaleString('fr-FR')}
-                        </span>
-                      )}
-                    </td>
                     <td
-                      className="p-4 whitespace-nowrap hidden lg:table-cell"
-                      data-label="Marge"
+                      className="px-4 whitespace-nowrap"
+                      data-label="Prix & marge"
                       title={
                         p.indicateurs?.margeBrute == null
                           ? "Renseignez le prix d'achat pour obtenir la marge"
                           : `Marge brute cumulée sur ${p.indicateurs.quantiteVendue} vente(s)`
                       }
                     >
-                      {/* Prix d'achat absent : on le dit, plutôt que d'afficher
-                          un 0 qui se lirait comme une marge nulle. */}
-                      {p.indicateurs?.margeUnitaire == null ? (
-                        <span className="text-gray-300">—</span>
-                      ) : (
-                        <>
-                          <span className="font-medium text-gray-900">
-                            {Number(p.indicateurs.margeUnitaire).toLocaleString('fr-FR')}
-                          </span>
-                          <span className="text-xs text-gray-400">
-                            {' '}
-                            ({p.indicateurs.tauxMarge}%)
-                          </span>
-                          {!!p.indicateurs.margeBrute && (
-                            <span className="block text-xs text-gray-400">
-                              brute {Number(p.indicateurs.margeBrute).toLocaleString('fr-FR')}
-                            </span>
-                          )}
-                        </>
-                      )}
+                      <div className="text-right md:text-left">
+                        <p className="font-semibold text-gray-900 tabular-nums">
+                          {p.prix?.toLocaleString('fr-FR')} FCFA
+                          {p.venduAuPoids ? ' / kg' : ''}
+                        </p>
+                        {p.prixAchat != null && (
+                          <p className="text-[13px] text-gray-500 tabular-nums">
+                            achat {Number(p.prixAchat).toLocaleString('fr-FR')}
+                          </p>
+                        )}
+                        {/* Prix d'achat absent : on le dit, plutôt que d'afficher
+                            un 0 qui se lirait comme une marge nulle. */}
+                        {p.indicateurs?.margeUnitaire == null ? (
+                          <p className="text-[13px] text-gray-400">marge —</p>
+                        ) : (
+                          <p className="text-[13px] font-medium text-emerald-700 tabular-nums">
+                            marge {Number(p.indicateurs.margeUnitaire).toLocaleString('fr-FR')} ({p.indicateurs.tauxMarge}%)
+                          </p>
+                        )}
+                      </div>
                     </td>
-                    <td className="p-4 text-center hidden lg:table-cell" data-label="Vendus">
-                      <span className="font-medium text-gray-900">
-                        {p.indicateurs?.quantiteVendue ?? 0}
-                      </span>
-                      {!!p.indicateurs?.nombreRetours && (
-                        <span
-                          className="block text-xs text-orange-500"
-                          title={`${p.indicateurs.quantiteRetournee} article(s) retourné(s)`}
-                        >
-                          {p.indicateurs.tauxRetour}% retour
-                        </span>
-                      )}
+                    <td className="px-4 whitespace-nowrap hidden lg:table-cell" data-label="Ventes">
+                      <div className="text-right md:text-left">
+                        <p className="font-semibold text-gray-900 tabular-nums">
+                          {p.indicateurs?.quantiteVendue ?? 0}{' '}
+                          <span className="font-normal text-gray-500">vendu(s)</span>
+                        </p>
+                        <p className="text-[13px] text-gray-500 tabular-nums">
+                          CA {Number(p.indicateurs?.chiffreAffaires ?? 0).toLocaleString('fr-FR')}
+                        </p>
+                        {!!p.indicateurs?.margeBrute && (
+                          <p className="text-[13px] text-gray-500 tabular-nums">
+                            brute {Number(p.indicateurs.margeBrute).toLocaleString('fr-FR')}
+                          </p>
+                        )}
+                        {!!p.indicateurs?.nombreRetours && (
+                          <p
+                            className="text-[13px] text-orange-600"
+                            title={`${p.indicateurs.quantiteRetournee} article(s) retourné(s)`}
+                          >
+                            {p.indicateurs.tauxRetour}% retour
+                          </p>
+                        )}
+                      </div>
                     </td>
-                    <td
-                      className="p-4 whitespace-nowrap hidden xl:table-cell text-gray-700"
-                      data-label="CA"
-                    >
-                      {Number(p.indicateurs?.chiffreAffaires ?? 0).toLocaleString('fr-FR')}
-                    </td>
-                    <td className="p-4 text-center" data-label="Stock">
-                      {p.indicateurs?.niveauStock ? (
-                        <BadgeStock niveau={p.indicateurs.niveauStock} stock={p.stock} compact />
-                      ) : (
-                        p.stock
-                      )}
-                    </td>
-                    <td
-                      className="p-4 text-center hidden lg:table-cell"
-                      data-label="Couverture"
-                      title={
-                        p.indicateurs?.joursCouverture == null
-                          ? 'Aucune vente sur la fenêtre : rythme d’écoulement inconnu'
-                          : `Au rythme des ${p.indicateurs.fenetreCouvertureJours} derniers jours`
-                      }
-                    >
-                      {p.indicateurs?.joursCouverture == null ? (
-                        <span className="text-gray-300">—</span>
-                      ) : (
-                        <span
-                          className={
-                            p.indicateurs.joursCouverture <= 7
-                              ? 'font-semibold text-red-600'
-                              : p.indicateurs.joursCouverture <= 21
-                                ? 'font-medium text-orange-600'
-                                : 'text-gray-700'
+                    <td className="px-4 whitespace-nowrap" data-label="Stock">
+                      <div className="text-right md:text-left">
+                        {p.indicateurs?.niveauStock ? (
+                          <BadgeStock niveau={p.indicateurs.niveauStock} stock={p.stock} compact />
+                        ) : (
+                          <span className="font-semibold text-gray-900">{p.stock}</span>
+                        )}
+                        <p
+                          className="mt-1 text-[13px]"
+                          title={
+                            p.indicateurs?.joursCouverture == null
+                              ? 'Aucune vente sur la fenêtre : rythme d’écoulement inconnu'
+                              : `Au rythme des ${p.indicateurs.fenetreCouvertureJours} derniers jours`
                           }
                         >
-                          {p.indicateurs.joursCouverture} j
-                        </span>
-                      )}
+                          {p.indicateurs?.joursCouverture == null ? (
+                            <span className="text-gray-400">couverture —</span>
+                          ) : (
+                            <span
+                              className={
+                                p.indicateurs.joursCouverture <= 7
+                                  ? 'font-semibold text-red-600'
+                                  : p.indicateurs.joursCouverture <= 21
+                                    ? 'font-medium text-orange-600'
+                                    : 'text-gray-500'
+                              }
+                            >
+                              {p.indicateurs.joursCouverture} j de couverture
+                            </span>
+                          )}
+                        </p>
+                      </div>
                     </td>
-                    <td className="p-4 text-center" data-label="Statut">
+                    <td className="px-4" data-label="Statut">
                       <span
-                        className={`px-2 py-1 rounded-full text-xs ${
+                        className={`inline-block whitespace-nowrap px-2.5 py-1 rounded-full text-xs font-semibold ${
                           p.statutValidation === 'valide'
                             ? 'bg-green-100 text-green-700'
                             : p.statutValidation === 'en_attente'
@@ -583,8 +572,10 @@ export default function ProductsPage() {
                         {LIBELLE_STATUT_VALIDATION[p.statutValidation] ?? p.statutValidation}
                       </span>
                     </td>
-                    <td className="p-4 tbl-actions" data-label="Actions">
-                      <div className="flex items-center justify-center gap-1">
+                    <td className="px-4 tbl-actions" data-label="Actions">
+                      {/* Les actions courantes restent visibles ; promotions et
+                          suppression passent dans le menu « ⋯ ». */}
+                      <div className="flex items-center justify-end gap-1">
                         <Tooltip label="Voir les détails">
                           <button
                             onClick={() =>
@@ -593,7 +584,7 @@ export default function ProductsPage() {
                             aria-label="Voir les détails"
                             className="btn-icon hover:bg-gray-100 text-gray-500 hover:text-gray-900"
                           >
-                            <Icon name="eye" size={16} />
+                            <Icon name="eye" size={17} />
                           </button>
                         </Tooltip>
                         <Tooltip label="Modifier le stock">
@@ -602,7 +593,7 @@ export default function ProductsPage() {
                             aria-label="Modifier le stock"
                             className="btn-icon hover:bg-yellow-50 text-gray-500 hover:text-yellow-600"
                           >
-                            <Icon name="package" size={16} />
+                            <Icon name="package" size={17} />
                           </button>
                         </Tooltip>
                         <Tooltip label="Modifier">
@@ -611,71 +602,37 @@ export default function ProductsPage() {
                             aria-label="Modifier"
                             className="btn-icon hover:bg-yellow-50 text-gray-500 hover:text-yellow-600"
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
+                            <Icon name="pencil" size={17} />
                           </button>
                         </Tooltip>
-                        <Tooltip label="Supprimer">
-                          <button
-                            onClick={async () => {
-                              const confirme = await showConfirm({
-                                titre: 'Supprimer le produit',
-                                message: `Êtes-vous sûr de vouloir supprimer « ${p.nom} » ? Cette action est irréversible.`,
-                                confirmText: 'Supprimer',
-                                danger: true,
-                              });
-                              if (confirme) supprimerMutation.mutate(p.id);
-                            }}
-                            aria-label="Supprimer"
-                            className="btn-icon hover:bg-red-50 text-gray-500 hover:text-red-500"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        </Tooltip>
-                        <Tooltip label="Promo du moment">
-                          <button
-                            onClick={() => openPromo(p, 'nos_promos_du_moment')}
-                            aria-label="Promo du moment"
-                            className="btn-icon hover:bg-orange-50 text-gray-500 hover:text-orange-500"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
-                          </button>
-                        </Tooltip>
-                        <Tooltip label="À ne pas rater">
-                          <button
-                            onClick={() => openPromo(p, 'a_ne_pas_rater')}
-                            aria-label="À ne pas rater"
-                            className="btn-icon hover:bg-red-50 text-gray-500 hover:text-red-500"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" />
-                            </svg>
-                          </button>
-                        </Tooltip>
-                        <Tooltip label="Promo à venir">
-                          <button
-                            onClick={() => openPromo(p, 'nos_promos_a_venir')}
-                            aria-label="Promo à venir"
-                            className="btn-icon hover:bg-blue-50 text-gray-500 hover:text-blue-500"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                          </button>
-                        </Tooltip>
+                        <MenuActions
+                          actions={[
+                            { libelle: 'Promo du moment', icone: 'zap', onClick: () => openPromo(p, 'nos_promos_du_moment') },
+                            { libelle: 'À ne pas rater', icone: 'flame', onClick: () => openPromo(p, 'a_ne_pas_rater') },
+                            { libelle: 'Promo à venir', icone: 'calendar', onClick: () => openPromo(p, 'nos_promos_a_venir') },
+                            {
+                              libelle: 'Supprimer',
+                              icone: 'trash',
+                              danger: true,
+                              onClick: async () => {
+                                const confirme = await showConfirm({
+                                  titre: 'Supprimer le produit',
+                                  message: `Êtes-vous sûr de vouloir supprimer « ${p.nom} » ? Cette action est irréversible.`,
+                                  confirmText: 'Supprimer',
+                                  danger: true,
+                                });
+                                if (confirme) supprimerMutation.mutate(p.id);
+                              },
+                            },
+                          ]}
+                        />
                       </div>
                     </td>
                   </tr>
                 ))}
                 {produits.length === 0 && (
                   <tr>
-                    <td colSpan={10} className="p-8 text-center text-gray-400 tbl-empty">
+                    <td colSpan={6} className="p-8 text-center text-gray-400 tbl-empty">
                       Aucun produit trouvé
                     </td>
                   </tr>

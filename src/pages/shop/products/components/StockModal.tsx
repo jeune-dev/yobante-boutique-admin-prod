@@ -279,7 +279,7 @@ export default function StockModal({ produit, onFermer }: Props) {
               {mouvements.map((m) => (
                 <li
                   key={m.id}
-                  className="rounded-xl border border-gray-100 shadow-sm px-3 py-2.5 bg-white"
+                  className="rounded-2xl border border-gray-100 shadow-sm px-3 py-2.5 bg-white"
                 >
                   <div className="flex items-center gap-2 flex-wrap">
                     <span

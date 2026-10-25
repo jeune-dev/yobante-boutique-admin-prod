@@ -166,348 +166,363 @@ export default function OrderDetailPage() {
     });
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-6xl mx-auto">
       <AdminBackButton parent="/boutique/commandes" className="mb-3" />
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 min-w-0">
-          Commande {commande.reference}
-        </h1>
-        <span
-          className={`px-3 py-1 rounded-full text-sm font-medium ${
-            STATUT_COLORS[commande.statut] || 'bg-gray-100'
-          }`}
-        >
-          {libelleStatut(commande.statut)}
-        </span>
-        {STATUTS_INTERNES.includes(commande.statut) && (
-          <span className="text-xs text-gray-500">
-            Statut interne : le client et le vendeur voient « En attente ».
-          </span>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-        <div className="bg-white rounded-xl border border-gray-100 p-4">
-          <p className="text-xs font-semibold text-gray-400 uppercase mb-2">Client</p>
-          <p className="font-semibold">
-            {commande.user?.prenom} {commande.user?.nom}
-          </p>
-          <p className="text-sm text-gray-500">{commande.user?.email}</p>
-          <p className="text-sm text-gray-500">{commande.user?.telephone}</p>
-        </div>
-        <div className="bg-white rounded-xl border border-gray-100 p-4">
-          <p className="text-xs font-semibold text-gray-400 uppercase mb-2">Livraison</p>
-          <p className="font-semibold">{commande.adresse?.ville || '—'}</p>
-          <p className="text-sm text-gray-500">{commande.adresse?.rue || ''}</p>
-          <p className="text-sm text-gray-500 mt-1">
-            {/* Le backend renvoie le paiement comme association (`paiement.methode`). */}
-            Paiement : {commande.paiement?.methode ?? commande.methodePaiement ?? '—'}
-            {commande.paiement?.statut ? ` (${commande.paiement.statut})` : ''}
-          </p>
-        </div>
-      </div>
-
-      <DisponibilitesVendeurs
-        liste={commande.disponibilitesVendeurs ?? []}
-        onRupture={
-          peutAgir
-            ? (v: any) => ouvrirRupture(v.produitIds ?? [], v.motifRefus ?? '')
-            : undefined
-        }
-      />
-
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm mb-6">
-        <div className="p-4 border-b border-gray-100">
-          <h2 className="font-semibold text-gray-900">Articles</h2>
-        </div>
-        <div className="tbl-wrap">
-          <table className="w-full text-sm tbl-cards">
-            <thead>
-              <tr className="border-b border-gray-100 text-left">
-                <th className="p-4 font-medium text-gray-500">Produit</th>
-                <th className="p-4 font-medium text-gray-500">Qté</th>
-                <th className="p-4 font-medium text-gray-500">Prix unit.</th>
-                <th className="p-4 font-medium text-gray-500">Sous-total</th>
-                {peutAgir && !modeEdition && <th className="p-4" />}
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item: any) => (
-                <tr
-                  key={item.id}
-                  className={`border-b border-gray-50 ${item.enRupture ? 'bg-red-50/40' : ''}`}
-                >
-                  <td className="p-4 tbl-primary">
-                    <span className={item.enRupture ? 'line-through text-gray-400' : ''}>
-                      {item.produit?.nom || item.Produit?.nom || `Produit #${item.produitId}`}
-                    </span>
-                    {!item.enRupture && reponseParProduit.has(item.produitId) && (
-                      <BadgeVendeur reponse={reponseParProduit.get(item.produitId)} />
-                    )}
-                    {item.enRupture && (
-                      <div className="mt-1">
-                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-red-100 text-red-700">
-                          Rupture de stock
-                        </span>
-                        {item.motifRupture && (
-                          <p className="text-xs text-red-700 mt-1">Motif : {item.motifRupture}</p>
-                        )}
-                      </div>
-                    )}
-                  </td>
-                  <td className="p-4" data-label="Qté">
-                    {modeEdition ? (
-                      <input
-                        type="number"
-                        min={0}
-                        value={quantites[item.produitId] ?? item.quantite}
-                        onChange={(e) =>
-                          setQuantites((q) => ({
-                            ...q,
-                            [item.produitId]: Math.max(0, Number(e.target.value)),
-                          }))
-                        }
-                        aria-label={`Quantité pour ${item.produit?.nom ?? 'cet article'}`}
-                        className="w-20 border border-gray-200 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
-                      />
-                    ) : (
-                      item.quantite
-                    )}
-                  </td>
-                  <td className="p-4 whitespace-nowrap" data-label="Prix unit.">{item.prixUnitaire?.toLocaleString('fr-FR')} FCFA</td>
-                  <td className="p-4 font-medium whitespace-nowrap" data-label="Sous-total">
-                    {item.enRupture ? (
-                      <span className="text-gray-400 line-through">
-                        {item.sousTotal?.toLocaleString('fr-FR')} FCFA
-                      </span>
-                    ) : (
-                      <>{item.sousTotal?.toLocaleString('fr-FR')} FCFA</>
-                    )}
-                  </td>
-                  {peutAgir && !modeEdition && (
-                    <td className="p-4 text-right">
-                      {!item.enRupture && (
-                        // Action, pas un état : la quantité de cette ligne a été
-                        // réservée au moment de la commande, le produit est donc
-                        // dû au client même si le stock est à zéro aujourd'hui.
-                        // « Rupture de stock » ne s'affiche que si l'admin la déclare.
-                        <button
-                          onClick={() => ouvrirRupture([item.produitId])}
-                          title="Déclarer ce produit indisponible pour cette commande : le client est prévenu"
-                          className="text-xs font-medium text-gray-500 border border-gray-200 rounded-lg px-2.5 py-1 hover:text-red-600 hover:border-red-200 hover:bg-red-50 whitespace-nowrap transition-colors"
-                        >
-                          Signaler une rupture
-                        </button>
-                      )}
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="flex justify-end p-4 border-t border-gray-100">
-          <span className="font-bold text-lg">
-            Total : {commande.montantTotal?.toLocaleString('fr-FR')} FCFA
-          </span>
-        </div>
-      </div>
-
-      {rupture && (
-        <ModaleRuptureStock
-          items={items}
-          valeur={rupture}
-          onChange={setRupture}
-          onAnnuler={() => setRupture(null)}
-          onConfirmer={() => ruptureMutation.mutate(rupture)}
-          enCours={ruptureMutation.isPending}
-        />
-      )}
-
-      {commande.motifRejet && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <p className="text-sm font-medium text-red-900 mb-2">Motif du rejet :</p>
-          <p className="text-sm text-red-700 whitespace-pre-wrap">{commande.motifRejet}</p>
-        </div>
-      )}
-
-      {commande.motifAnnulation && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <p className="text-sm font-medium text-red-900 mb-2">
-            Commande annulée
-            {commande.annulePar ? ` par l'${commande.annulePar}` : ''}
-            {commande.annuleeAt
-              ? ` le ${new Date(commande.annuleeAt).toLocaleDateString('fr-FR')}`
-              : ''}
-          </p>
-          <p className="text-sm text-red-700 whitespace-pre-wrap">{commande.motifAnnulation}</p>
-          {commande.responsabiliteAnnulation && (
-            <p className="text-xs text-red-600 mt-2">
-              Imputée à :{' '}
-              <strong>
-                {LIBELLE_RESPONSABILITE[commande.responsabiliteAnnulation as Responsabilite]}
-              </strong>
-              {commande.vendeurResponsable
-                ? ` — ${commande.vendeurResponsable.prenom} ${commande.vendeurResponsable.nom}`
-                : ''}
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Journal des retouches : c'est lui qui permet de justifier un écart de
-          montant auprès du client et d'alimenter le suivi des vendeurs. */}
-      {Array.isArray(commande.historiqueModifications) &&
-        commande.historiqueModifications.length > 0 && (
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm mb-6">
-            <div className="p-4 border-b border-gray-100">
-              <h2 className="font-semibold text-gray-900">
-                Historique ({commande.historiqueModifications.length})
-              </h2>
-            </div>
-            <ul className="divide-y divide-gray-50">
-              {(commande.historiqueModifications as EntreeHistorique[])
-                .slice()
-                .reverse()
-                .map((entree, i) => (
-                  <li key={`${entree.date}-${i}`} className="p-4">
-                    <div className="flex flex-wrap items-baseline justify-between gap-2">
-                      <p className="text-sm font-medium text-gray-900">{entree.motif}</p>
-                      <p className="text-xs text-gray-400">
-                        {new Date(entree.date).toLocaleString('fr-FR')}
-                      </p>
-                    </div>
-                    {entree.responsabilite && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        Imputé à {LIBELLE_RESPONSABILITE[entree.responsabilite]}
-                      </p>
-                    )}
-                    {!!entree.changements?.length && (
-                      <ul className="mt-2 space-y-0.5">
-                        {entree.changements.map((c, j) => (
-                          <li key={j} className="text-xs text-gray-600">
-                            <span className="text-gray-400">{c.champ}</span>
-                            {c.produit ? ` · ${c.produit}` : ''} : {String(c.avant ?? '—')} →{' '}
-                            <strong>{String(c.apres ?? '—')}</strong>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </li>
-                ))}
-            </ul>
-          </div>
-        )}
-
-      {/* Changement de statut : seules les étapes possibles sont proposées. */}
-      {etapes.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-6">
-          <h2 className="font-semibold text-gray-900 mb-3">Statut de la commande</h2>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <select
-              value={nouveauStatut}
-              onChange={(e) => setNouveauStatut(e.target.value)}
-              aria-label="Nouveau statut"
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-yellow-300 sm:w-60"
+      {/* Entête : référence, statut et actions principales, visibles sans
+          défiler jusqu'en bas de la page. */}
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-5">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 min-w-0">
+              Commande {commande.reference}
+            </h1>
+            <span
+              className={`px-3 py-1 rounded-full text-sm font-medium ${
+                STATUT_COLORS[commande.statut] || 'bg-gray-100'
+              }`}
             >
-              <option value="">Choisir un statut…</option>
-              {etapes.map((s) => (
-                <option key={s} value={s}>
-                  {libelleStatut(s)}
-                </option>
-              ))}
-            </select>
-            <input
-              value={noteStatut}
-              onChange={(e) => setNoteStatut(e.target.value)}
-              placeholder="Note interne (facultatif)"
-              className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
-            />
-            <button
-              onClick={() => statutMutation.mutate()}
-              disabled={!nouveauStatut || statutMutation.isPending}
-              className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
-            >
-              {statutMutation.isPending ? 'Mise à jour…' : 'Mettre à jour'}
-            </button>
-          </div>
-          {nouveauStatut && (
-            <p className="text-xs text-gray-500 mt-2">
-              {changementInterne(commande.statut, nouveauStatut)
-                ? "Statut interne : le client n'est pas prévenu, il voit toujours « En attente »."
-                : 'Le client sera prévenu par e-mail, notification push et dans son application.'}
-            </p>
-          )}
-        </div>
-      )}
-
-      <div className="flex flex-col sm:flex-row flex-wrap gap-3">
-        {(commande.statut === 'en_attente' || commande.statut === 'en_modification') && (
-          <>
-            <button
-              onClick={() => validerMutation.mutate()}
-              disabled={validerMutation.isPending}
-              className="px-4 py-2.5 sm:py-2 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600 disabled:opacity-60"
-            >
-              Valider la commande
-            </button>
-            <button
-              onClick={() => setShowRejectModal(true)}
-              disabled={rejeterMutation.isPending}
-              className="px-4 py-2.5 sm:py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 disabled:opacity-60"
-            >
-              Rejeter
-            </button>
-          </>
-        )}
-
-        {/* Modifier et annuler restent ouverts tant que la commande n'est pas
-            clôturée : une commande déjà expédiée peut encore être interrompue.
-            Une commande livrée relève du retour produit, pas de l'annulation. */}
-        {!STATUTS_CLOS.includes(commande.statut) && (
-          <>
-            {modeEdition ? (
-              <>
-                <button
-                  onClick={() => setModaleModification(true)}
-                  disabled={modifier.isPending}
-                  className="px-4 py-2.5 sm:py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 disabled:opacity-60"
-                >
-                  Enregistrer les quantités
-                </button>
-                <button
-                  onClick={() => {
-                    setModeEdition(false);
-                    setQuantites({});
-                  }}
-                  className="px-4 py-2.5 sm:py-2 border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50"
-                >
-                  Abandonner la modification
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={() => setModeEdition(true)}
-                className="px-4 py-2.5 sm:py-2 border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50"
-              >
-                Modifier les quantités
-              </button>
+              {libelleStatut(commande.statut)}
+            </span>
+            {STATUTS_INTERNES.includes(commande.statut) && (
+              <span className="text-xs text-gray-500">
+                Statut interne : le client et le vendeur voient « En attente ».
+              </span>
             )}
-            <button
-              onClick={() => setModaleAnnulation(true)}
-              disabled={annuler.isPending}
-              className="px-4 py-2.5 sm:py-2 border border-red-200 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50 disabled:opacity-60"
-            >
-              Annuler la commande
-            </button>
-          </>
-        )}
+          </div>
+          {commande.createdAt && (
+            <p className="text-sm text-gray-500 mt-1">
+              Passée le {new Date(commande.createdAt).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' })}
+            </p>
+          )}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {(commande.statut === 'en_attente' || commande.statut === 'en_modification') && (
+            <>
+              <button
+                onClick={() => validerMutation.mutate()}
+                disabled={validerMutation.isPending}
+                className="px-4 py-2 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600 disabled:opacity-60"
+              >
+                Valider la commande
+              </button>
+              <button
+                onClick={() => setShowRejectModal(true)}
+                disabled={rejeterMutation.isPending}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 disabled:opacity-60"
+              >
+                Rejeter
+              </button>
+            </>
+          )}
 
-        {commande.statut === 'livree' && (
-          <p className="text-sm text-gray-500 self-center">
-            Commande livrée : un problème se traite désormais par un retour produit.
-          </p>
-        )}
+          {/* Modifier et annuler restent ouverts tant que la commande n'est pas
+              clôturée : une commande déjà expédiée peut encore être interrompue.
+              Une commande livrée relève du retour produit, pas de l'annulation. */}
+          {!STATUTS_CLOS.includes(commande.statut) && (
+            <>
+              {modeEdition ? (
+                <>
+                  <button
+                    onClick={() => setModaleModification(true)}
+                    disabled={modifier.isPending}
+                    className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 disabled:opacity-60"
+                  >
+                    Enregistrer les quantités
+                  </button>
+                  <button
+                    onClick={() => {
+                      setModeEdition(false);
+                      setQuantites({});
+                    }}
+                    className="px-4 py-2 border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50"
+                  >
+                    Abandonner la modification
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setModeEdition(true)}
+                  className="px-4 py-2 border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50"
+                >
+                  Modifier les quantités
+                </button>
+              )}
+              <button
+                onClick={() => setModaleAnnulation(true)}
+                disabled={annuler.isPending}
+                className="px-4 py-2 border border-red-200 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50 disabled:opacity-60"
+              >
+                Annuler la commande
+              </button>
+            </>
+          )}
+
+          {commande.statut === 'livree' && (
+            <p className="text-sm text-gray-500 self-center">
+              Commande livrée : un problème se traite désormais par un retour produit.
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
+        {/* Colonne principale : ce qui a été commandé et ce qui s'est passé. */}
+        <div className="lg:col-span-2 space-y-5 min-w-0">
+          <DisponibilitesVendeurs
+            liste={commande.disponibilitesVendeurs ?? []}
+            onRupture={
+              peutAgir
+                ? (v: any) => ouvrirRupture(v.produitIds ?? [], v.motifRefus ?? '')
+                : undefined
+            }
+          />
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+            <div className="p-4 border-b border-gray-100">
+              <h2 className="font-semibold text-gray-900">Articles</h2>
+            </div>
+            <div className="tbl-wrap">
+              <table className="w-full text-sm tbl-cards">
+                <thead>
+                  <tr className="border-b border-gray-100 text-left">
+                    <th className="p-4 font-medium text-gray-500">Produit</th>
+                    <th className="p-4 font-medium text-gray-500">Qté</th>
+                    <th className="p-4 font-medium text-gray-500">Prix unit.</th>
+                    <th className="p-4 font-medium text-gray-500">Sous-total</th>
+                    {peutAgir && !modeEdition && <th className="p-4" />}
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((item: any) => (
+                    <tr
+                      key={item.id}
+                      className={`border-b border-gray-50 ${item.enRupture ? 'bg-red-50/40' : ''}`}
+                    >
+                      <td className="p-4 tbl-primary">
+                        <span className={item.enRupture ? 'line-through text-gray-400' : ''}>
+                          {item.produit?.nom || item.Produit?.nom || `Produit #${item.produitId}`}
+                        </span>
+                        {!item.enRupture && reponseParProduit.has(item.produitId) && (
+                          <BadgeVendeur reponse={reponseParProduit.get(item.produitId)} />
+                        )}
+                        {item.enRupture && (
+                          <div className="mt-1">
+                            <span className="text-xs font-semibold px-2 py-0.5 rounded bg-red-100 text-red-700">
+                              Rupture de stock
+                            </span>
+                            {item.motifRupture && (
+                              <p className="text-xs text-red-700 mt-1">Motif : {item.motifRupture}</p>
+                            )}
+                          </div>
+                        )}
+                      </td>
+                      <td className="p-4" data-label="Qté">
+                        {modeEdition ? (
+                          <input
+                            type="number"
+                            min={0}
+                            value={quantites[item.produitId] ?? item.quantite}
+                            onChange={(e) =>
+                              setQuantites((q) => ({
+                                ...q,
+                                [item.produitId]: Math.max(0, Number(e.target.value)),
+                              }))
+                            }
+                            aria-label={`Quantité pour ${item.produit?.nom ?? 'cet article'}`}
+                            className="w-20 border border-gray-200 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                          />
+                        ) : (
+                          item.quantite
+                        )}
+                      </td>
+                      <td className="p-4 whitespace-nowrap" data-label="Prix unit.">{item.prixUnitaire?.toLocaleString('fr-FR')} FCFA</td>
+                      <td className="p-4 font-medium whitespace-nowrap" data-label="Sous-total">
+                        {item.enRupture ? (
+                          <span className="text-gray-400 line-through">
+                            {item.sousTotal?.toLocaleString('fr-FR')} FCFA
+                          </span>
+                        ) : (
+                          <>{item.sousTotal?.toLocaleString('fr-FR')} FCFA</>
+                        )}
+                      </td>
+                      {peutAgir && !modeEdition && (
+                        <td className="p-4 text-right">
+                          {!item.enRupture && (
+                            // Action, pas un état : la quantité de cette ligne a été
+                            // réservée au moment de la commande, le produit est donc
+                            // dû au client même si le stock est à zéro aujourd'hui.
+                            // « Rupture de stock » ne s'affiche que si l'admin la déclare.
+                            <button
+                              onClick={() => ouvrirRupture([item.produitId])}
+                              title="Déclarer ce produit indisponible pour cette commande : le client est prévenu"
+                              className="text-xs font-medium text-gray-500 border border-gray-200 rounded-lg px-2.5 py-1 hover:text-red-600 hover:border-red-200 hover:bg-red-50 whitespace-nowrap transition-colors"
+                            >
+                              Signaler une rupture
+                            </button>
+                          )}
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex justify-end p-4 border-t border-gray-100">
+              <span className="font-bold text-lg">
+                Total : {commande.montantTotal?.toLocaleString('fr-FR')} FCFA
+              </span>
+            </div>
+          </div>
+          {rupture && (
+            <ModaleRuptureStock
+              items={items}
+              valeur={rupture}
+              onChange={setRupture}
+              onAnnuler={() => setRupture(null)}
+              onConfirmer={() => ruptureMutation.mutate(rupture)}
+              enCours={ruptureMutation.isPending}
+            />
+          )}
+
+          {commande.motifRejet && (
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
+              <p className="text-sm font-medium text-red-900 mb-2">Motif du rejet :</p>
+              <p className="text-sm text-red-700 whitespace-pre-wrap">{commande.motifRejet}</p>
+            </div>
+          )}
+
+          {commande.motifAnnulation && (
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
+              <p className="text-sm font-medium text-red-900 mb-2">
+                Commande annulée
+                {commande.annulePar ? ` par l'${commande.annulePar}` : ''}
+                {commande.annuleeAt
+                  ? ` le ${new Date(commande.annuleeAt).toLocaleDateString('fr-FR')}`
+                  : ''}
+              </p>
+              <p className="text-sm text-red-700 whitespace-pre-wrap">{commande.motifAnnulation}</p>
+              {commande.responsabiliteAnnulation && (
+                <p className="text-xs text-red-600 mt-2">
+                  Imputée à :{' '}
+                  <strong>
+                    {LIBELLE_RESPONSABILITE[commande.responsabiliteAnnulation as Responsabilite]}
+                  </strong>
+                  {commande.vendeurResponsable
+                    ? ` — ${commande.vendeurResponsable.prenom} ${commande.vendeurResponsable.nom}`
+                    : ''}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Journal des retouches : c'est lui qui permet de justifier un écart de
+              montant auprès du client et d'alimenter le suivi des vendeurs. */}
+          {Array.isArray(commande.historiqueModifications) &&
+            commande.historiqueModifications.length > 0 && (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+                <div className="p-4 border-b border-gray-100">
+                  <h2 className="font-semibold text-gray-900">
+                    Historique ({commande.historiqueModifications.length})
+                  </h2>
+                </div>
+                <ul className="divide-y divide-gray-50">
+                  {(commande.historiqueModifications as EntreeHistorique[])
+                    .slice()
+                    .reverse()
+                    .map((entree, i) => (
+                      <li key={`${entree.date}-${i}`} className="p-4">
+                        <div className="flex flex-wrap items-baseline justify-between gap-2">
+                          <p className="text-sm font-medium text-gray-900">{entree.motif}</p>
+                          <p className="text-xs text-gray-400">
+                            {new Date(entree.date).toLocaleString('fr-FR')}
+                          </p>
+                        </div>
+                        {entree.responsabilite && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Imputé à {LIBELLE_RESPONSABILITE[entree.responsabilite]}
+                          </p>
+                        )}
+                        {!!entree.changements?.length && (
+                          <ul className="mt-2 space-y-0.5">
+                            {entree.changements.map((c, j) => (
+                              <li key={j} className="text-xs text-gray-600">
+                                <span className="text-gray-400">{c.champ}</span>
+                                {c.produit ? ` · ${c.produit}` : ''} : {String(c.avant ?? '—')} →{' '}
+                                <strong>{String(c.apres ?? '—')}</strong>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            )}
+        </div>
+
+        {/* Colonne latérale : qui, où, et le changement de statut. */}
+        <aside className="space-y-5 min-w-0 lg:sticky lg:top-0">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-5">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Client</p>
+              <p className="font-semibold text-gray-900">
+                {commande.user?.prenom} {commande.user?.nom}
+              </p>
+              <p className="text-sm text-gray-500">{commande.user?.email}</p>
+              <p className="text-sm text-gray-500">{commande.user?.telephone}</p>
+            </div>
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Livraison</p>
+              <p className="font-semibold text-gray-900">{commande.adresse?.ville || '—'}</p>
+              <p className="text-sm text-gray-500">{commande.adresse?.rue || ''}</p>
+              <p className="text-sm text-gray-500 mt-1">
+                {/* Le backend renvoie le paiement comme association (`paiement.methode`). */}
+                Paiement : {commande.paiement?.methode ?? commande.methodePaiement ?? '—'}
+                {commande.paiement?.statut ? ` (${commande.paiement.statut})` : ''}
+              </p>
+            </div>
+          </div>
+          {/* Changement de statut : seules les étapes possibles sont proposées. */}
+          {etapes.length > 0 && (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+              <h2 className="font-semibold text-gray-900 mb-3">Statut de la commande</h2>
+              <div className="flex flex-col gap-3">
+                <select
+                  value={nouveauStatut}
+                  onChange={(e) => setNouveauStatut(e.target.value)}
+                  aria-label="Nouveau statut"
+                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-yellow-300 w-full"
+                >
+                  <option value="">Choisir un statut…</option>
+                  {etapes.map((s) => (
+                    <option key={s} value={s}>
+                      {libelleStatut(s)}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  value={noteStatut}
+                  onChange={(e) => setNoteStatut(e.target.value)}
+                  placeholder="Note interne (facultatif)"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                />
+                <button
+                  onClick={() => statutMutation.mutate()}
+                  disabled={!nouveauStatut || statutMutation.isPending}
+                  className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
+                >
+                  {statutMutation.isPending ? 'Mise à jour…' : 'Mettre à jour'}
+                </button>
+              </div>
+              {nouveauStatut && (
+                <p className="text-xs text-gray-500 mt-2">
+                  {changementInterne(commande.statut, nouveauStatut)
+                    ? "Statut interne : le client n'est pas prévenu, il voit toujours « En attente »."
+                    : 'Le client sera prévenu par e-mail, notification push et dans son application.'}
+                </p>
+              )}
+            </div>
+          )}
+        </aside>
       </div>
 
       {/* Modal de rejet */}
@@ -790,14 +805,14 @@ function BadgeVendeur({ reponse }: { reponse: any }) {
   return (
     <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
       <span
-        className={`inline-flex items-center gap-1 text-[11px] font-semibold px-1.5 py-0.5 rounded border ${badge.classes}`}
+        className={`inline-flex items-center gap-1 text-xs font-semibold px-1.5 py-0.5 rounded border ${badge.classes}`}
         title={reponse.motifRefus ? `Motif : ${reponse.motifRefus}` : badge.texte}
       >
         <span className="font-bold">{badge.lettre}</span> {badge.texte}
       </span>
-      <span className="text-[11px] text-gray-400 truncate">{nom}</span>
+      <span className="text-xs text-gray-400 truncate">{nom}</span>
       {reponse.statut === 'refusee' && reponse.motifRefus && (
-        <span className="basis-full text-[11px] text-red-700">Motif : {reponse.motifRefus}</span>
+        <span className="basis-full text-xs text-red-700">Motif : {reponse.motifRefus}</span>
       )}
     </div>
   );
@@ -815,7 +830,7 @@ function DisponibilitesVendeurs({
   const refus = liste.filter((v) => v.statut === 'refusee').length;
   return (
     <div
-      className={`bg-white rounded-xl border shadow-sm mb-6 ${
+      className={`bg-white rounded-2xl border shadow-sm ${
         refus ? 'border-red-200' : 'border-gray-100'
       }`}
     >
@@ -854,7 +869,7 @@ function DisponibilitesVendeurs({
                 </p>
               )}
               {v.decideLe && (
-                <p className="mt-1 text-[11px] text-gray-400">
+                <p className="mt-1 text-xs text-gray-400">
                   Répondu le {new Date(v.decideLe).toLocaleString('fr-FR')}
                 </p>
               )}

@@ -1,4 +1,8 @@
 import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { etatRetour } from '@/shared/hooks/useRetour';
+import Icon from '@/shared/components/dashboard/Icon';
+import MenuActions from '@/shared/components/MenuActions';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { showSuccess, showError, showConfirm } from '@/shared/utils/alert';
 import Pagination from '@/shared/components/tables/Pagination';
@@ -117,6 +121,7 @@ const genererMotDePasse = () => {
 };
 
 export default function VendeursPage() {
+  const location = useLocation();
   const qc = useQueryClient();
   const ouvrir = useOuvrirLigne();
   // Recherche, statut et page vivent dans l'URL (comme Clients et
@@ -265,7 +270,7 @@ export default function VendeursPage() {
         </button>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
         <BarreFiltres
           nbActifs={nbActifs}
           onReinitialiser={() =>
@@ -338,7 +343,7 @@ export default function VendeursPage() {
                   <th className="p-4 font-medium text-gray-500">Contact</th>
                   <th className="p-4 font-medium text-gray-500 hidden lg:table-cell">Fiabilité</th>
                   <th className="p-4 font-medium text-gray-500">Statut</th>
-                  <th className="p-4 font-medium text-gray-500 text-center">Actions</th>
+                  <th className="p-4 font-medium text-gray-500 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -388,40 +393,52 @@ export default function VendeursPage() {
                         </span>
                       </td>
                       <td className="p-4 tbl-actions" data-label="Actions">
-                        <div className="flex flex-wrap items-center justify-center gap-1.5">
+                        <div className="flex items-center justify-end gap-1">
+                          <Link
+                            to={`/boutique/vendeurs/${v.id}`}
+                            state={etatRetour(location)}
+                            title="Voir la fiche"
+                            aria-label="Voir la fiche du vendeur"
+                            className="btn-icon text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                          >
+                            <Icon name="eye" size={17} />
+                          </Link>
                           <button
                             onClick={() => setEditingVendeur(v)}
-                            className="px-2.5 py-1.5 sm:py-1 rounded text-[11px] font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
+                            title="Modifier"
+                            aria-label="Modifier le vendeur"
+                            className="btn-icon text-gray-500 hover:bg-yellow-50 hover:text-yellow-600"
                           >
-                            Modifier
+                            <Icon name="pencil" size={17} />
                           </button>
-                          <button
-                            onClick={() => actions.demanderRenvoi(v)}
-                            disabled={actions.renvoyer.isPending}
-                            title="Renvoyer les identifiants par email"
-                            className="px-2.5 py-1.5 sm:py-1 rounded text-[11px] font-medium bg-yellow-50 text-yellow-700 hover:bg-yellow-100 transition-colors disabled:opacity-50"
-                          >
-                            Renvoyer ID
-                          </button>
-                          <button
-                            onClick={() => actions.demanderStatut(v)}
-                            disabled={actions.statut.isPending}
-                            className={`px-2.5 py-1.5 sm:py-1 rounded text-[11px] font-medium disabled:opacity-50 transition-colors ${
-                              bloque
-                                ? 'bg-green-50 text-green-700 hover:bg-green-100'
-                                : 'bg-red-50 text-red-600 hover:bg-red-100'
-                            }`}
-                          >
-                            {bloque ? 'Débloquer' : 'Bloquer'}
-                          </button>
-                          <button
-                            onClick={() => actions.demanderSuppression(v)}
-                            disabled={actions.supprimer.isPending}
-                            title="Supprimer ce compte vendeur"
-                            className="px-2.5 py-1.5 sm:py-1 rounded text-[11px] font-medium bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
-                          >
-                            Supprimer
-                          </button>
+                          {/* Actions moins fréquentes : dans le menu, plutôt que
+                              quatre boutons de couleur par ligne. */}
+                          <MenuActions
+                            actions={[
+                              {
+                                libelle: 'Renvoyer les identifiants',
+                                icone: 'mail',
+                                onClick: () => {
+                                  if (!actions.renvoyer.isPending) actions.demanderRenvoi(v);
+                                },
+                              },
+                              {
+                                libelle: bloque ? 'Débloquer le vendeur' : 'Bloquer le vendeur',
+                                icone: bloque ? 'check-circle' : 'ban',
+                                onClick: () => {
+                                  if (!actions.statut.isPending) actions.demanderStatut(v);
+                                },
+                              },
+                              {
+                                libelle: 'Supprimer le vendeur',
+                                icone: 'trash',
+                                danger: true,
+                                onClick: () => {
+                                  if (!actions.supprimer.isPending) actions.demanderSuppression(v);
+                                },
+                              },
+                            ]}
+                          />
                         </div>
                       </td>
                     </tr>

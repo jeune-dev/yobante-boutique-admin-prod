@@ -124,7 +124,7 @@ export default function HistoriqueStock({ produitId, onIndicateurs }: Props) {
     setSaisie((precedent) => ({ ...precedent, [cle]: valeur }));
 
   const champ =
-    'w-full px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400';
+    'w-full px-2.5 py-2 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400';
 
   return (
     <Bloc>
@@ -140,7 +140,7 @@ export default function HistoriqueStock({ produitId, onIndicateurs }: Props) {
       <div className="px-3 sm:px-4 py-3 border-b border-gray-100 space-y-2.5">
         <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-5 gap-2.5">
           <div>
-            <label htmlFor="filtre-debut" className="block text-[11px] text-gray-500 mb-1">
+            <label htmlFor="filtre-debut" className="block text-xs text-gray-500 mb-1">
               Date de début
             </label>
             <input
@@ -152,7 +152,7 @@ export default function HistoriqueStock({ produitId, onIndicateurs }: Props) {
             />
           </div>
           <div>
-            <label htmlFor="filtre-fin" className="block text-[11px] text-gray-500 mb-1">
+            <label htmlFor="filtre-fin" className="block text-xs text-gray-500 mb-1">
               Date de fin
             </label>
             <input
@@ -164,7 +164,7 @@ export default function HistoriqueStock({ produitId, onIndicateurs }: Props) {
             />
           </div>
           <div>
-            <label htmlFor="filtre-type" className="block text-[11px] text-gray-500 mb-1">
+            <label htmlFor="filtre-type" className="block text-xs text-gray-500 mb-1">
               Type de mouvement
             </label>
             <select
@@ -182,7 +182,7 @@ export default function HistoriqueStock({ produitId, onIndicateurs }: Props) {
             </select>
           </div>
           <div>
-            <label htmlFor="filtre-source" className="block text-[11px] text-gray-500 mb-1">
+            <label htmlFor="filtre-source" className="block text-xs text-gray-500 mb-1">
               Origine
             </label>
             <select
@@ -200,7 +200,7 @@ export default function HistoriqueStock({ produitId, onIndicateurs }: Props) {
             </select>
           </div>
           <div>
-            <label htmlFor="filtre-motif" className="block text-[11px] text-gray-500 mb-1">
+            <label htmlFor="filtre-motif" className="block text-xs text-gray-500 mb-1">
               Motif
             </label>
             <select
@@ -221,7 +221,7 @@ export default function HistoriqueStock({ produitId, onIndicateurs }: Props) {
 
         <div className="flex flex-col sm:flex-row sm:items-end gap-2.5">
           <div className="flex-1">
-            <label htmlFor="filtre-recherche" className="block text-[11px] text-gray-500 mb-1">
+            <label htmlFor="filtre-recherche" className="block text-xs text-gray-500 mb-1">
               Numéro de commande ou nom du client
             </label>
             <input
@@ -252,7 +252,7 @@ export default function HistoriqueStock({ produitId, onIndicateurs }: Props) {
         </div>
 
         {/* Période retenue et volume : l'utilisateur sait sur quoi il lit. */}
-        <p className="text-[11px] text-gray-500">
+        <p className="text-xs text-gray-500">
           {filtreActif ? 'Période retenue : ' : 'Période : '}
           <span className="font-medium text-gray-700">
             {appliques.dateDebut || appliques.dateFin
@@ -288,7 +288,7 @@ export default function HistoriqueStock({ produitId, onIndicateurs }: Props) {
         <div className="tbl-wrap">
           <table className="w-full text-sm tbl-cards">
             <thead>
-              <tr className="text-left text-[11px] uppercase tracking-wide text-gray-400 border-b border-gray-100">
+              <tr className="text-left text-xs uppercase tracking-wide text-gray-400 border-b border-gray-100">
                 <th className="px-3 sm:px-4 py-2.5 font-medium">Date</th>
                 <th className="px-3 sm:px-4 py-2.5 font-medium">Type</th>
                 <th className="px-3 sm:px-4 py-2.5 font-medium text-right">Quantité</th>
@@ -309,13 +309,13 @@ export default function HistoriqueStock({ produitId, onIndicateurs }: Props) {
                   </td>
                   <td data-label="Type" className="px-3 sm:px-4 py-2.5">
                     <span
-                      className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-full border ${
+                      className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${
                         COULEUR_TYPE[m.type] ?? 'bg-gray-50 text-gray-600 border-gray-200'
                       }`}
                     >
                       {libelleType(m.type)}
                     </span>
-                    <span className="block text-[11px] text-gray-400 mt-1">
+                    <span className="block text-xs text-gray-400 mt-1">
                       {libelleSource(m.source)}
                     </span>
                   </td>
@@ -334,7 +334,7 @@ export default function HistoriqueStock({ produitId, onIndicateurs }: Props) {
                   <td data-label="Motif" className="px-3 sm:px-4 py-2.5 text-gray-600">
                     {libelleMotif(m.motif, m.source)}
                     {m.commentaire && (
-                      <span className="block text-[11px] text-gray-400 mt-0.5 break-words">
+                      <span className="block text-xs text-gray-400 mt-0.5 break-words">
                         {m.commentaire}
                       </span>
                     )}
@@ -351,7 +351,7 @@ export default function HistoriqueStock({ produitId, onIndicateurs }: Props) {
                       <span className="text-gray-300">—</span>
                     )}
                     {m.client && (
-                      <span className="block text-[11px] text-gray-400 mt-0.5">
+                      <span className="block text-xs text-gray-400 mt-0.5">
                         {nomUtilisateur(m.client)}
                       </span>
                     )}
@@ -359,7 +359,7 @@ export default function HistoriqueStock({ produitId, onIndicateurs }: Props) {
                   <td data-label="Responsable" className="px-3 sm:px-4 py-2.5 text-gray-600">
                     {nomUtilisateur(m.auteur, 'Inconnu')}
                     {m.auteur?.role && (
-                      <span className="block text-[11px] text-gray-400 mt-0.5">
+                      <span className="block text-xs text-gray-400 mt-0.5">
                         {libelleRole(m.auteur.role)}
                       </span>
                     )}

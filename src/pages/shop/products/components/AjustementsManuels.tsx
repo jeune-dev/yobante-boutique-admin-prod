@@ -64,7 +64,7 @@ export default function AjustementsManuels({ produitId }: { produitId: string })
         <div className="tbl-wrap">
           <table className="w-full text-sm tbl-cards">
             <thead>
-              <tr className="text-left text-[11px] uppercase tracking-wide text-gray-400 border-b border-gray-100">
+              <tr className="text-left text-xs uppercase tracking-wide text-gray-400 border-b border-gray-100">
                 <th className="px-3 sm:px-4 py-2.5 font-medium">Date</th>
                 <th className="px-3 sm:px-4 py-2.5 font-medium text-right">Avant</th>
                 <th className="px-3 sm:px-4 py-2.5 font-medium text-right">Après</th>
@@ -81,7 +81,7 @@ export default function AjustementsManuels({ produitId }: { produitId: string })
                     className="px-3 sm:px-4 py-2.5 whitespace-nowrap tbl-primary"
                   >
                     {dateHeure(a.createdAt)}
-                    <span className="block text-[11px] text-gray-400 mt-0.5">
+                    <span className="block text-xs text-gray-400 mt-0.5">
                       {libelleSource(a.source)}
                     </span>
                   </td>
@@ -106,14 +106,14 @@ export default function AjustementsManuels({ produitId }: { produitId: string })
                   <td data-label="Motif" className="px-3 sm:px-4 py-2.5 text-gray-600">
                     {libelleMotif(a.motif, a.source)}
                     {a.commentaire && (
-                      <span className="block text-[11px] text-gray-400 mt-0.5 break-words">
+                      <span className="block text-xs text-gray-400 mt-0.5 break-words">
                         {a.commentaire}
                       </span>
                     )}
                   </td>
                   <td data-label="Utilisateur" className="px-3 sm:px-4 py-2.5 text-gray-600">
                     {nomUtilisateur(a.auteur, 'Inconnu')}
-                    <span className="block text-[11px] text-gray-400 mt-0.5 break-all">
+                    <span className="block text-xs text-gray-400 mt-0.5 break-all">
                       {libelleRole(a.auteur?.role)}
                     </span>
                   </td>

@@ -156,7 +156,7 @@ export default function VendeursAnalyticsPage() {
                 type="button"
                 onClick={() => setTri(cle)}
                 aria-pressed={tri === cle}
-                className={`px-2.5 py-1.5 text-xs font-medium border-r border-gray-200 last:border-r-0 transition-colors ${
+                className={`px-3 py-2 text-sm font-medium border-r border-gray-200 last:border-r-0 transition-colors ${
                   tri === cle ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
                 }`}
               >
@@ -190,7 +190,7 @@ export default function VendeursAnalyticsPage() {
           <div className="tbl-wrap">
             <table className="w-full text-sm tbl-cards">
               <thead>
-                <tr className="text-left text-[11px] uppercase tracking-wide text-gray-400 border-b border-gray-100">
+                <tr className="text-left text-xs uppercase tracking-wide text-gray-400 border-b border-gray-100">
                   <th className="px-3 sm:px-4 py-2.5 font-medium">Vendeur</th>
                   <th className="px-3 sm:px-4 py-2.5 font-medium text-right">CA</th>
                   <th className="px-3 sm:px-4 py-2.5 font-medium text-right">Cdes</th>
@@ -219,7 +219,7 @@ export default function VendeursAnalyticsPage() {
                     </td>
                     <td data-label="Cdes" className="px-3 sm:px-4 py-2.5 text-right text-gray-700 tabular-nums">
                       {nombre(v.commandes)}
-                      <span className="block text-[11px] text-gray-400">
+                      <span className="block text-xs text-gray-400">
                         {nombre(v.commandesLivrees)} livrée(s)
                       </span>
                     </td>
@@ -233,7 +233,7 @@ export default function VendeursAnalyticsPage() {
                       <Taux valeur={v.tauxAcceptation} sensInverse />
                       {v.commandesSansReponse > 0 && (
                         <span
-                          className="block text-[11px] text-orange-600"
+                          className="block text-xs text-orange-600"
                           title="Commandes soumises sans réponse du vendeur : elles pèsent dans le dénominateur"
                         >
                           {nombre(v.commandesSansReponse)} sans réponse
@@ -245,7 +245,7 @@ export default function VendeursAnalyticsPage() {
                     </td>
                     <td data-label="Retour" className="px-3 sm:px-4 py-2.5 text-right tabular-nums">
                       <Taux valeur={v.tauxRetour} seuilAttention={5} seuilCritique={10} />
-                      <span className="block text-[11px] text-gray-400">
+                      <span className="block text-xs text-gray-400">
                         {nombre(v.articlesRetournes)} art.
                       </span>
                     </td>
@@ -258,7 +258,7 @@ export default function VendeursAnalyticsPage() {
                         <span className="inline-flex items-center gap-1 text-gray-800">
                           <Icon name="star" size={12} className="text-yellow-500" />
                           {decimal(v.noteClient, 1)}
-                          <span className="text-[11px] text-gray-400">({v.nombreAvis})</span>
+                          <span className="text-xs text-gray-400">({v.nombreAvis})</span>
                         </span>
                       )}
                     </td>
@@ -271,7 +271,7 @@ export default function VendeursAnalyticsPage() {
                     </td>
                     <td data-label="Commission" className="px-3 sm:px-4 py-2.5 text-right text-gray-700 whitespace-nowrap tabular-nums">
                       {fcfa(v.commission)}
-                      <span className="block text-[11px] text-gray-400">
+                      <span className="block text-xs text-gray-400">
                         {v.tauxCommission === null ? '—' : pourcent(v.tauxCommission, 2)}
                         {v.tauxParDefaut && ' (défaut)'}
                       </span>

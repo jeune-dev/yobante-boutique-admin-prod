@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import Icon from '@/shared/components/dashboard/Icon';
+import MenuActions from '@/shared/components/MenuActions';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import shopClient from '@/infrastructure/http/shop.client';
 import { useAuthStore } from '@/auth/store/auth.store';
@@ -250,7 +252,7 @@ export default function AdministrateursPage() {
         </button>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
         <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-3">
           <input
             value={search}
@@ -301,7 +303,7 @@ export default function AdministrateursPage() {
                   <th className="p-4 font-medium text-gray-500">Contact</th>
                   <th className="p-4 font-medium text-gray-500">Accès</th>
                   <th className="p-4 font-medium text-gray-500">Statut</th>
-                  <th className="p-4 font-medium text-gray-500 text-center">Actions</th>
+                  <th className="p-4 font-medium text-gray-500 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -314,7 +316,7 @@ export default function AdministrateursPage() {
                         <span className="inline-flex flex-wrap items-center gap-2">
                           {nomComplet(a) || '—'}
                           {estMoi && (
-                            <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-gray-600">
+                            <span className="px-1.5 py-0.5 rounded text-xs font-semibold bg-gray-100 text-gray-600">
                               Vous
                             </span>
                           )}
@@ -338,7 +340,7 @@ export default function AdministrateursPage() {
                           </span>
                         )}
                         {Array.isArray(a.permissions) && a.permissions.length > 0 && (
-                          <p className="text-[11px] text-gray-400 mt-1 max-w-[220px] truncate">
+                          <p className="text-xs text-gray-400 mt-1 max-w-[220px] truncate">
                             {libellesPages(a.permissions).join(', ')}
                           </p>
                         )}
@@ -363,45 +365,44 @@ export default function AdministrateursPage() {
                         </div>
                       </td>
                       <td className="p-4 tbl-actions" data-label="Actions">
-                        <div className="flex flex-wrap items-center justify-center gap-1.5">
+                        <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => ouvrirModification(a)}
-                            className="px-2.5 py-1.5 sm:py-1 rounded text-[11px] font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
+                            title="Modifier"
+                            aria-label="Modifier l'administrateur"
+                            className="btn-icon text-gray-500 hover:bg-yellow-50 hover:text-yellow-600"
                           >
-                            Modifier
+                            <Icon name="pencil" size={17} />
                           </button>
                           {/* Sur son propre compte : le mot de passe se change
                               depuis le profil, et on ne peut pas se bloquer. */}
                           {!estMoi && (
-                            <>
-                              <button
-                                onClick={() => handleRenvoyer(a)}
-                                disabled={renvoyerMutation.isPending}
-                                title="Renvoyer les identifiants par email"
-                                className="px-2.5 py-1.5 sm:py-1 rounded text-[11px] font-medium bg-yellow-50 text-yellow-700 hover:bg-yellow-100 transition-colors disabled:opacity-50"
-                              >
-                                Renvoyer ID
-                              </button>
-                              <button
-                                onClick={() => handleStatut(a)}
-                                disabled={statutMutation.isPending}
-                                className={`px-2.5 py-1.5 sm:py-1 rounded text-[11px] font-medium disabled:opacity-50 transition-colors ${
-                                  bloque
-                                    ? 'bg-green-50 text-green-700 hover:bg-green-100'
-                                    : 'bg-red-50 text-red-600 hover:bg-red-100'
-                                }`}
-                              >
-                                {bloque ? 'Débloquer' : 'Bloquer'}
-                              </button>
-                              <button
-                                onClick={() => handleSupprimer(a)}
-                                disabled={supprimerMutation.isPending}
-                                title="Supprimer ce compte administrateur"
-                                className="px-2.5 py-1.5 sm:py-1 rounded text-[11px] font-medium bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
-                              >
-                                Supprimer
-                              </button>
-                            </>
+                            <MenuActions
+                              actions={[
+                                {
+                                  libelle: 'Renvoyer les identifiants',
+                                  icone: 'mail',
+                                  onClick: () => {
+                                    if (!renvoyerMutation.isPending) handleRenvoyer(a);
+                                  },
+                                },
+                                {
+                                  libelle: bloque ? 'Débloquer le compte' : 'Bloquer le compte',
+                                  icone: bloque ? 'check-circle' : 'ban',
+                                  onClick: () => {
+                                    if (!statutMutation.isPending) handleStatut(a);
+                                  },
+                                },
+                                {
+                                  libelle: 'Supprimer le compte',
+                                  icone: 'trash',
+                                  danger: true,
+                                  onClick: () => {
+                                    if (!supprimerMutation.isPending) handleSupprimer(a);
+                                  },
+                                },
+                              ]}
+                            />
                           )}
                         </div>
                       </td>
@@ -478,7 +479,7 @@ export default function AdministrateursPage() {
                   className={CHAMP}
                 />
                 {enEdition && (
-                  <p className="text-[11px] text-gray-400 mt-1">
+                  <p className="text-xs text-gray-400 mt-1">
                     C'est l'identifiant de connexion de l'administrateur.
                   </p>
                 )}

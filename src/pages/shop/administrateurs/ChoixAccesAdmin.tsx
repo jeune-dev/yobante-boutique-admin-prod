@@ -67,7 +67,7 @@ export default function ChoixAccesAdmin({ complet, pages, onChange, accesAuteur,
                 <button
                   type="button"
                   onClick={() => basculerGroupe(groupe)}
-                  className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 hover:text-gray-700 mb-1.5"
+                  className="text-xs font-semibold uppercase tracking-wide text-gray-400 hover:text-gray-700 mb-1.5"
                   title="Tout cocher / décocher"
                 >
                   {groupe}

@@ -38,7 +38,7 @@ export default function SelecteurPeriode({ valeur, onChange, sansTout = false }:
             type="button"
             onClick={() => choisir(p)}
             aria-pressed={actuelle === p}
-            className={`px-2.5 py-1.5 text-xs font-medium border-r border-b sm:border-b-0 border-gray-200 sm:last:border-r-0 transition-colors ${
+            className={`px-3 py-2 text-sm font-medium border-r border-b sm:border-b-0 border-gray-200 sm:last:border-r-0 transition-colors ${
               actuelle === p ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
@@ -49,7 +49,7 @@ export default function SelecteurPeriode({ valeur, onChange, sansTout = false }:
           type="button"
           onClick={() => setOuvertPerso((o) => !o)}
           aria-pressed={actuelle === 'personnalise'}
-          className={`px-2.5 py-1.5 text-xs font-medium border-b sm:border-b-0 border-gray-200 transition-colors ${
+          className={`px-3 py-2 text-sm font-medium border-b sm:border-b-0 border-gray-200 transition-colors ${
             actuelle === 'personnalise'
               ? 'bg-gray-900 text-white'
               : 'bg-white text-gray-600 hover:bg-gray-50'
@@ -60,13 +60,13 @@ export default function SelecteurPeriode({ valeur, onChange, sansTout = false }:
       </div>
 
       {ouvertPerso && (
-        <div className="flex flex-wrap items-center gap-1.5 text-xs min-w-0">
+        <div className="flex flex-wrap items-center gap-1.5 text-sm min-w-0">
           <input
             type="date"
             value={valeur.debut ?? ''}
             onChange={(e) => majDate('debut', e.target.value)}
             aria-label="Date de début"
-            className="px-2 py-1.5 rounded-lg border border-gray-200 text-xs"
+            className="px-2.5 py-2 rounded-lg border border-gray-200 text-sm"
           />
           <span className="text-gray-400">au</span>
           <input
@@ -74,7 +74,7 @@ export default function SelecteurPeriode({ valeur, onChange, sansTout = false }:
             value={valeur.fin ?? ''}
             onChange={(e) => majDate('fin', e.target.value)}
             aria-label="Date de fin"
-            className="px-2 py-1.5 rounded-lg border border-gray-200 text-xs"
+            className="px-2.5 py-2 rounded-lg border border-gray-200 text-sm"
           />
         </div>
       )}

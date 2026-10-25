@@ -23,7 +23,7 @@ export default function ProfilPage() {
       <header>
         {/* Ouvert depuis l'entête : retour à la page quittée ; sinon tableau de bord. */}
         <AdminBackButton parent="/boutique/dashboard" className="mb-3" />
-        <h1 className="text-xl font-bold text-gray-900">Mon profil</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Mon profil</h1>
         <p className="text-sm text-gray-500 mt-1">Vos informations et votre mot de passe.</p>
       </header>
 
@@ -43,7 +43,7 @@ export default function ProfilPage() {
 function Identite({ utilisateur }: { utilisateur: any }) {
   const initiales = `${utilisateur.prenom?.[0] ?? ''}${utilisateur.nom?.[0] ?? ''}`.toUpperCase();
   return (
-    <section className="bg-white rounded-xl border border-gray-100 p-5 flex items-center gap-4">
+    <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
       <div className="w-14 h-14 shrink-0 rounded-xl bg-yellow-50 text-yellow-700 flex items-center justify-center font-bold text-lg">
         {initiales || <Icon name="user" size={22} />}
       </div>
@@ -83,7 +83,7 @@ function Informations({
   });
 
   return (
-    <section className="bg-white rounded-xl border border-gray-100 p-5">
+    <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
       <h2 className="font-semibold text-gray-900 mb-4">Informations</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Champ label="Prénom" valeur={prenom} onChange={setPrenom} autoComplete="given-name" />
@@ -130,7 +130,7 @@ function MotDePasse() {
   };
 
   return (
-    <section className="bg-white rounded-xl border border-gray-100 p-5">
+    <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
       <h2 className="font-semibold text-gray-900 mb-4">Mot de passe</h2>
       <div className="space-y-3">
         <Champ

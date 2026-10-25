@@ -1,4 +1,5 @@
 import { Link, useParams } from 'react-router-dom';
+import Icon from '@/shared/components/dashboard/Icon';
 import { useQuery } from '@tanstack/react-query';
 import AdminBackButton from '@/shared/components/AdminBackButton';
 import shopClient from '@/infrastructure/http/shop.client';
@@ -85,53 +86,63 @@ export default function UserDetailPage() {
   const activite = user.activite;
 
   return (
-    <div className="max-w-3xl mx-auto space-y-3 sm:space-y-4">
+    <div className="max-w-5xl mx-auto space-y-5">
       <AdminBackButton parent="/boutique/clients" />
-      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 break-words">
-        {user.prenom} {user.nom}
-      </h1>
 
-      {/* ── Identité ─────────────────────────────────────────────────────── */}
+      {/* ── Identité : une carte de profil plutôt qu'une grille de champs ── */}
       <Bloc className="p-5 sm:p-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase mb-1">Email</p>
-            <p className="text-gray-900 break-words">{user.email}</p>
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase mb-1">Téléphone</p>
-            <p className="text-gray-900">{user.telephone || '—'}</p>
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase mb-1">Statut</p>
-            <span
-              className={`px-2 py-1 rounded-full text-xs ${
-                user.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-              }`}
-            >
-              {user.isActive ? 'Actif' : 'Bloqué'}
-            </span>
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase mb-1">Vérifié</p>
-            <span
-              className={`px-2 py-1 rounded-full text-xs ${
-                user.isVerified ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'
-              }`}
-            >
-              {user.isVerified ? 'Vérifié' : 'Non vérifié'}
-            </span>
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase mb-1">Inscrit le</p>
-            <p className="text-gray-900">{date(user.createdAt)}</p>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5">
+          <span className="w-16 h-16 rounded-2xl bg-yellow-50 text-yellow-700 text-xl font-bold flex items-center justify-center shrink-0">
+            {`${user.prenom?.[0] ?? ''}${user.nom?.[0] ?? ''}`.toUpperCase() || '?'}
+          </span>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 break-words">
+              {user.prenom} {user.nom}
+            </h1>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <span
+                className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                  user.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                }`}
+              >
+                {user.isActive ? 'Actif' : 'Bloqué'}
+              </span>
+              <span
+                className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                  user.isVerified ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'
+                }`}
+              >
+                {user.isVerified ? 'Vérifié' : 'Non vérifié'}
+              </span>
+              <span className="text-sm text-gray-500">Inscrit le {date(user.createdAt)}</span>
+            </div>
           </div>
         </div>
+        <dl className="mt-5 pt-5 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="w-10 h-10 rounded-xl bg-gray-50 text-gray-500 flex items-center justify-center shrink-0">
+              <Icon name="mail" size={18} />
+            </span>
+            <div className="min-w-0">
+              <dt className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Email</dt>
+              <dd className="text-[15px] text-gray-900 break-words">{user.email}</dd>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="w-10 h-10 rounded-xl bg-gray-50 text-gray-500 flex items-center justify-center shrink-0">
+              <Icon name="phone" size={18} />
+            </span>
+            <div className="min-w-0">
+              <dt className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Téléphone</dt>
+              <dd className="text-[15px] text-gray-900">{user.telephone || '—'}</dd>
+            </div>
+          </div>
+        </dl>
       </Bloc>
 
       {/* ── Activité commerciale ─────────────────────────────────────────── */}
       {activite && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <Chiffre libelle="Commandes" valeur={nombre(activite.nbCommandes)} />
           <Chiffre
             libelle="Livrées"
@@ -176,7 +187,7 @@ export default function UserDetailPage() {
           <div className="tbl-wrap mt-3">
             <table className="w-full text-sm tbl-cards">
               <thead>
-                <tr className="text-left text-[11px] uppercase tracking-wide text-gray-400 border-b border-gray-100">
+                <tr className="text-left text-xs uppercase tracking-wide text-gray-400 border-b border-gray-100">
                   <th className="px-4 py-2.5 font-medium">Référence</th>
                   <th className="px-4 py-2.5 font-medium">Date</th>
                   <th className="px-4 py-2.5 font-medium text-right">Articles</th>
@@ -206,7 +217,7 @@ export default function UserDetailPage() {
                     </td>
                     <td data-label="Statut" className="px-4 py-2.5">
                       <span
-                        className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
+                        className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                           COULEUR_STATUT[c.statut] ?? 'bg-gray-100 text-gray-600'
                         }`}
                       >

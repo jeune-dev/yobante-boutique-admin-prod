@@ -305,7 +305,7 @@ export function SectionProduits({ vendeurId }: { vendeurId: string }) {
           <div className="tbl-wrap mt-3">
             <table className="w-full text-sm tbl-cards">
               <thead>
-                <tr className="text-left text-[11px] uppercase tracking-wide text-gray-400 border-b border-gray-100">
+                <tr className="text-left text-xs uppercase tracking-wide text-gray-400 border-b border-gray-100">
                   <th className="px-4 py-2.5 font-medium">Produit</th>
                   <th className="px-4 py-2.5 font-medium text-right">Prix</th>
                   <th className="px-4 py-2.5 font-medium text-right">Stock</th>
@@ -324,7 +324,7 @@ export function SectionProduits({ vendeurId }: { vendeurId: string }) {
                     <td data-label="Produit" className="px-4 py-2.5 tbl-primary min-w-[160px]">
                       <p className="font-medium text-gray-900 truncate">{p.nom}</p>
                       {p.reference && (
-                        <p className="font-mono text-[11px] text-gray-400">{p.reference}</p>
+                        <p className="font-mono text-xs text-gray-400">{p.reference}</p>
                       )}
                     </td>
                     <td
@@ -333,7 +333,7 @@ export function SectionProduits({ vendeurId }: { vendeurId: string }) {
                     >
                       {fcfa(p.prixPromo ?? p.prix)}
                       {p.prixPromo != null && p.prixPromo !== p.prix && (
-                        <span className="block text-[11px] text-gray-400 line-through">
+                        <span className="block text-xs text-gray-400 line-through">
                           {fcfa(p.prix)}
                         </span>
                       )}
@@ -363,13 +363,13 @@ export function SectionProduits({ vendeurId }: { vendeurId: string }) {
                         <span className="inline-flex items-center gap-1 text-gray-800">
                           <Icon name="star" size={12} className="text-yellow-500" />
                           {decimal(p.noteMoyenne, 1)}
-                          <span className="text-[11px] text-gray-400">({p.nombreAvis})</span>
+                          <span className="text-xs text-gray-400">({p.nombreAvis})</span>
                         </span>
                       )}
                     </td>
                     <td data-label="Statut" className="px-4 py-2.5">
                       <span
-                        className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${CLASSE_STATUT_PRODUIT(p.statutValidation)}`}
+                        className={`text-xs font-medium px-2 py-0.5 rounded-full ${CLASSE_STATUT_PRODUIT(p.statutValidation)}`}
                       >
                         {String(p.statutValidation).replace(/_/g, ' ')}
                       </span>
@@ -437,7 +437,7 @@ export function SectionReversements({ vendeurId }: { vendeurId: string }) {
         <div className="tbl-wrap mt-3">
           <table className="w-full text-sm tbl-cards">
             <thead>
-              <tr className="text-left text-[11px] uppercase tracking-wide text-gray-400 border-b border-gray-100">
+              <tr className="text-left text-xs uppercase tracking-wide text-gray-400 border-b border-gray-100">
                 <th className="px-4 py-2.5 font-medium">Référence</th>
                 <th className="px-4 py-2.5 font-medium">Période</th>
                 <th className="px-4 py-2.5 font-medium text-right">Montant</th>
@@ -450,7 +450,7 @@ export function SectionReversements({ vendeurId }: { vendeurId: string }) {
                 <tr key={r.id} className="hover:bg-gray-50/60">
                   <td data-label="Référence" className="px-4 py-2.5 tbl-primary">
                     <p className="font-mono text-xs font-medium text-gray-900">{r.reference}</p>
-                    <p className="text-[11px] text-gray-400">Créé le {date(r.createdAt)}</p>
+                    <p className="text-xs text-gray-400">Créé le {date(r.createdAt)}</p>
                   </td>
                   <td data-label="Période" className="px-4 py-2.5 text-gray-500 whitespace-nowrap">
                     {r.periodeDebut || r.periodeFin
@@ -468,12 +468,12 @@ export function SectionReversements({ vendeurId }: { vendeurId: string }) {
                   </td>
                   <td data-label="Statut" className="px-4 py-2.5">
                     <span
-                      className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${CLASSE_STATUT_REVERSEMENT[r.statut]}`}
+                      className={`text-xs font-medium px-2 py-0.5 rounded-full ${CLASSE_STATUT_REVERSEMENT[r.statut]}`}
                     >
                       {LIBELLE_STATUT_REVERSEMENT[r.statut]}
                     </span>
                     {r.statut === 'paye' && r.payeLe && (
-                      <span className="block text-[11px] text-gray-400">le {date(r.payeLe)}</span>
+                      <span className="block text-xs text-gray-400">le {date(r.payeLe)}</span>
                     )}
                   </td>
                 </tr>
@@ -588,7 +588,7 @@ export function SectionAvis({ vendeurId }: { vendeurId: string }) {
               <li key={a.id} className="rounded-lg border border-gray-100 bg-gray-50/60 p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <Etoiles note={Number(a.note)} />
-                  <span className="text-[11px] text-gray-400">{date(a.createdAt)}</span>
+                  <span className="text-xs text-gray-400">{date(a.createdAt)}</span>
                 </div>
                 <p className="mt-1 text-sm font-medium text-gray-900 break-words">
                   {a.produit?.nom ?? 'Produit retiré'}
@@ -596,7 +596,7 @@ export function SectionAvis({ vendeurId }: { vendeurId: string }) {
                 {a.commentaire && (
                   <p className="mt-1 text-sm text-gray-600 break-words">{a.commentaire}</p>
                 )}
-                <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[11px] text-gray-400">
+                <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-gray-400">
                   <span>
                     {[a.user?.prenom, a.user?.nom].filter(Boolean).join(' ') || 'Client'}
                   </span>

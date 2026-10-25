@@ -114,7 +114,7 @@ export default function SousSectionPage() {
 
   if (blocQuery.isError || !bloc) {
     return (
-      <div className="bg-white rounded-xl border border-gray-100 p-8 text-center">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
         <Icon name="alert-triangle" size={26} className="mx-auto text-red-400" />
         <p className="mt-3 font-semibold text-gray-900">Sous-section introuvable</p>
         <Link to="/boutique/accueil" className="mt-3 inline-block text-sm text-yellow-700 hover:underline">
@@ -129,7 +129,7 @@ export default function SousSectionPage() {
       <AdminBackButton parent="/boutique/accueil" />
 
       {/* ── En-tête : la sous-section telle que le client la verra ───────── */}
-      <div className="bg-white rounded-xl border border-gray-100 p-5 flex flex-col sm:flex-row gap-5">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col sm:flex-row gap-5">
         <div className="w-full sm:w-64 shrink-0 aspect-[16/9] rounded-lg bg-gray-50 overflow-hidden flex items-center justify-center">
           {bloc.image ? (
             <img src={bloc.image} alt={bloc.titre ?? ''} className="w-full h-full object-cover" />
@@ -145,7 +145,7 @@ export default function SousSectionPage() {
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
             {LIBELLES[bloc.section] ?? bloc.section}
           </p>
-          <h1 className="text-lg sm:text-xl font-bold text-gray-900 mt-1">{bloc.titre ?? 'Sans titre'}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{bloc.titre ?? 'Sans titre'}</h1>
           {bloc.sousTitre && <p className="text-sm text-gray-500 mt-0.5">{bloc.sousTitre}</p>}
           <p className="text-sm text-gray-500 mt-3">
             {promotions.length === 0
@@ -166,7 +166,7 @@ export default function SousSectionPage() {
       </div>
 
       {/* ── Produits de la sous-section ──────────────────────────────────── */}
-      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="px-5 py-3.5 border-b border-gray-100">
           <h2 className="font-semibold text-gray-900">Produits mis en avant</h2>
           <p className="text-xs text-gray-500 mt-0.5">

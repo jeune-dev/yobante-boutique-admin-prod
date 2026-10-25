@@ -135,14 +135,14 @@ export default function AccueilPage() {
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="text-lg sm:text-xl font-bold text-gray-900">Page d'accueil</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Page d'accueil</h1>
         <p className="text-sm text-gray-500 mt-1">
           Ce que voient les clients dans l'application, connectés ou non.
         </p>
       </header>
 
       {/* ── Section principale ─────────────────────────────────────────── */}
-      <section className="bg-white rounded-xl border border-gray-100 p-4 sm:p-5">
+      <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <div className="min-w-0">
             <h2 className="font-semibold text-gray-900">Section principale</h2>
@@ -192,7 +192,7 @@ export default function AccueilPage() {
 
       {/* ── Sections promotionnelles ───────────────────────────────────── */}
       {SECTIONS.map((section) => (
-        <section key={section.cle} className="bg-white rounded-xl border border-gray-100 p-4 sm:p-5">
+        <section key={section.cle} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <div className="min-w-0">
               <h2 className="font-semibold text-gray-900">{section.libelle}</h2>
@@ -465,11 +465,11 @@ function GrilleProduits({
               ) : (
                 <Icon name="image" size={22} className="text-gray-300" />
               )}
-              <span className="absolute top-1.5 left-1.5 text-[10px] font-bold bg-gray-900/80 text-white rounded px-1.5 py-0.5">
+              <span className="absolute top-1.5 left-1.5 text-xs font-bold bg-gray-900/80 text-white rounded px-1.5 py-0.5">
                 {index + 1}
               </span>
               {enPromo && promo.pourcentageReduction ? (
-                <span className="absolute top-1.5 right-1.5 text-[10px] font-bold bg-red-500 text-white rounded px-1.5 py-0.5">
+                <span className="absolute top-1.5 right-1.5 text-xs font-bold bg-red-500 text-white rounded px-1.5 py-0.5">
                   −{promo.pourcentageReduction} %
                 </span>
               ) : null}
@@ -489,14 +489,14 @@ function GrilleProduits({
                 )}
               </div>
               {promo.dateFin && (
-                <div className="text-[10px] text-gray-500 mt-0.5">
+                <div className="text-xs text-gray-500 mt-0.5">
                   jusqu'au {new Date(promo.dateFin).toLocaleDateString('fr-FR')}
                 </div>
               )}
               <div className="flex items-center justify-between mt-1.5">
                 <Etat actif={promo.isActive} />
                 {index === 5 && promos.length > 6 && (
-                  <span className="text-[10px] text-gray-400">suite : « Voir tout »</span>
+                  <span className="text-xs text-gray-400">suite : « Voir tout »</span>
                 )}
               </div>
               {/* Sur mobile, les icônes passent à la ligne plutôt que d'être coupées. */}

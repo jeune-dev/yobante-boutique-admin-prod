@@ -276,7 +276,7 @@ export default function ProduitsSectionModal({
                       )}
                     </p>
                     {imposee && (
-                      <p className="text-[11px] text-amber-700 mt-0.5">
+                      <p className="text-xs text-amber-700 mt-0.5">
                         Remise reprise de « {imposee.ou} »
                       </p>
                     )}

@@ -6,6 +6,7 @@ import {
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import Icon from '@/shared/components/dashboard/Icon';
 import shopClient from '@/infrastructure/http/shop.client';
 import { showSuccess, showError } from '@/shared/utils/alert';
 import Pagination from '@/shared/components/tables/Pagination';
@@ -209,24 +210,30 @@ export default function OrdersPage() {
       {/* KPI Cards : 2 par ligne sur téléphone, 4 dès la tablette. */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         {[
-          { label: 'Total', value: kpi?.total, color: 'bg-gray-50' },
-          { label: 'En attente', value: kpi?.enAttente, color: 'bg-yellow-50' },
-          { label: 'Validées', value: kpi?.validees, color: 'bg-green-50' },
+          { label: 'Total', value: kpi?.total, icone: 'shopping-cart', teinte: 'bg-gray-100 text-gray-700' },
+          { label: 'En attente', value: kpi?.enAttente, icone: 'clock', teinte: 'bg-amber-50 text-amber-600' },
+          { label: 'Validées', value: kpi?.validees, icone: 'check-circle', teinte: 'bg-green-50 text-green-600' },
           // Un rejet admin passe la commande en « rejetee » (et non plus « annulee »).
           {
             label: 'Annulées / rejetées',
             value: kpi ? (kpi.annulees ?? 0) + (kpi.rejetees ?? 0) : undefined,
-            color: 'bg-red-50',
+            icone: 'x-circle',
+            teinte: 'bg-red-50 text-red-600',
           },
         ].map((k) => (
-          <div key={k.label} className={`${k.color} rounded-xl p-4 border border-gray-100`}>
-            <p className="text-sm text-gray-500">{k.label}</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{k.value ?? '…'}</p>
+          <div key={k.label} className="flex items-center gap-3.5 bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+            <span className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${k.teinte}`}>
+              <Icon name={k.icone} size={22} />
+            </span>
+            <div className="min-w-0">
+              <p className="text-2xl font-bold leading-none text-gray-900 tabular-nums">{k.value ?? '…'}</p>
+              <p className="text-sm font-medium text-gray-600 mt-1">{k.label}</p>
+            </div>
           </div>
         ))}
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
         <BarreFiltres
           nbActifs={nbActifs}
           onReinitialiser={() =>
@@ -316,65 +323,74 @@ export default function OrdersPage() {
         <div className="tbl-wrap">
           <table className="w-full text-sm tbl-cards">
             <thead>
-              <tr className="border-b border-gray-100 text-left">
-                <th className="p-4 font-medium text-gray-500">Référence</th>
-                <th className="p-4 font-medium text-gray-500">Client</th>
-                <th className="p-4 font-medium text-gray-500">Montant</th>
-                <th className="p-4 font-medium text-gray-500 hidden xl:table-cell">Articles</th>
-                <th className="p-4 font-medium text-gray-500">Vendeurs</th>
-                <th className="p-4 font-medium text-gray-500">Statut</th>
-                <th className="p-4 font-medium text-gray-500">Date</th>
-                <th className="p-4 font-medium text-gray-500 text-center">Actions</th>
+              <tr className="text-left">
+                <th className="px-4">Commande</th>
+                <th className="px-4">Client</th>
+                <th className="px-4">Montant</th>
+                <th className="px-4">Vendeurs</th>
+                <th className="px-4">Statut</th>
+                <th className="px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {commandes.map((c: any) => (
-                <tr key={c.id} {...ouvrir(`/boutique/commandes/${c.id}`)} className="border-b border-gray-50">
-                  <td className="p-4 font-mono text-xs tbl-primary">{c.reference}</td>
-                  <td className="p-4" data-label="Client">
-                    {c.user?.prenom} {c.user?.nom}
+                <tr key={c.id} {...ouvrir(`/boutique/commandes/${c.id}`)} className="border-b border-gray-50 last:border-0">
+                  {/* Référence et date ensemble : la référence ne se coupe
+                      plus en deux lignes. */}
+                  <td className="px-4 tbl-primary">
+                    <p className="font-mono text-[13px] font-semibold text-gray-900 whitespace-nowrap">{c.reference}</p>
+                    <p className="text-[13px] text-gray-500 mt-0.5">
+                      {new Date(c.createdAt).toLocaleDateString('fr-FR')}
+                    </p>
                   </td>
-                  <td className="p-4 font-medium whitespace-nowrap" data-label="Montant">
-                    {c.montantTotal?.toLocaleString('fr-FR')} FCFA
+                  <td className="px-4" data-label="Client">
+                    <span className="font-medium text-gray-900 whitespace-nowrap">
+                      {c.user?.prenom} {c.user?.nom}
+                    </span>
                   </td>
-                  <td className="p-4 text-center hidden xl:table-cell" data-label="Articles">{c.items?.length || '—'}</td>
-                  <td className="p-4" data-label="Vendeurs">
+                  <td className="px-4 whitespace-nowrap" data-label="Montant">
+                    <div className="text-right md:text-left">
+                      <p className="font-semibold text-gray-900 tabular-nums">
+                        {c.montantTotal?.toLocaleString('fr-FR')} FCFA
+                      </p>
+                      <p className="text-[13px] text-gray-500">
+                        {c.items?.length ? `${c.items.length} article(s)` : '—'}
+                      </p>
+                    </div>
+                  </td>
+                  <td className="px-4" data-label="Vendeurs">
                     <ReponsesVendeurs vendeurs={c.vendeurs ?? []} />
                   </td>
-                  <td className="p-4" data-label="Statut">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs ${
-                        STATUT_COLORS[c.statut] || 'bg-gray-100'
-                      }`}
-                    >
-                      {libelleStatut(c.statut)}
-                    </span>
-
-                    {/* Un vendeur a déclaré ses produits indisponibles. */}
-                    {c.refusVendeurs > 0 && (
+                  <td className="px-4" data-label="Statut">
+                    <div className="flex flex-wrap items-center justify-end md:justify-start gap-1.5">
                       <span
-                        className="ml-1.5 px-2 py-1 rounded-full text-xs bg-red-50 text-red-700 whitespace-nowrap"
-                        title="Produits déclarés indisponibles par un vendeur — voir le détail"
+                        className={`whitespace-nowrap px-2.5 py-1 rounded-full text-xs font-semibold ${
+                          STATUT_COLORS[c.statut] || 'bg-gray-100'
+                        }`}
                       >
-                        Indisponible
+                        {libelleStatut(c.statut)}
                       </span>
-                    )}
+
+                      {/* Un vendeur a déclaré ses produits indisponibles. */}
+                      {c.refusVendeurs > 0 && (
+                        <span
+                          className="px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-700 whitespace-nowrap"
+                          title="Produits déclarés indisponibles par un vendeur — voir le détail"
+                        >
+                          Indisponible
+                        </span>
+                      )}
+                    </div>
                   </td>
-                  <td className="p-4 text-gray-500" data-label="Date">
-                    {new Date(c.createdAt).toLocaleDateString('fr-FR')}
-                  </td>
-                  <td className="p-4 tbl-actions" data-label="Actions">
-                    <div className="flex items-center justify-center gap-1">
+                  <td className="px-4 tbl-actions" data-label="Actions">
+                    <div className="flex items-center justify-end gap-1">
                       <button
                         onClick={() => navigate(`/boutique/commandes/${c.id}`, { state: etatRetour(location) })}
                         title="Voir"
                         aria-label="Voir la commande"
-                        className="btn-icon hover:bg-gray-100 text-gray-500"
+                        className="btn-icon hover:bg-gray-100 text-gray-500 hover:text-gray-900"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
+                        <Icon name="eye" size={17} />
                       </button>
                       {(c.statut === 'en_attente' || c.statut === 'en_modification') && (
                         <>
@@ -382,21 +398,17 @@ export default function OrdersPage() {
                             onClick={() => validerMutation.mutate(c.id)}
                             title="Accepter"
                             aria-label="Accepter la commande"
-                            className="btn-icon hover:bg-green-50 text-gray-500 hover:text-green-600"
+                            className="btn-icon bg-green-50 text-green-700 hover:bg-green-100"
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
+                            <Icon name="check" size={17} />
                           </button>
                           <button
                             onClick={() => setShowRejectModal(c.id)}
                             title="Rejeter"
                             aria-label="Rejeter la commande"
-                            className="btn-icon hover:bg-red-50 text-gray-500 hover:text-red-500"
+                            className="btn-icon bg-red-50 text-red-600 hover:bg-red-100"
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
+                            <Icon name="x" size={17} />
                           </button>
                         </>
                       )}
@@ -406,7 +418,7 @@ export default function OrdersPage() {
               ))}
               {commandes.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-gray-400 tbl-empty">
+                  <td colSpan={6} className="p-8 text-center text-gray-400 tbl-empty">
                     Aucune commande trouvée
                   </td>
                 </tr>
@@ -495,7 +507,7 @@ function ReponsesVendeurs({ vendeurs }: { vendeurs: any[] }) {
               <span
                 title={badge.titre}
                 aria-label={badge.titre}
-                className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-bold shrink-0 ${badge.classes}`}
+                className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold shrink-0 ${badge.classes}`}
               >
                 {badge.texte}
               </span>
@@ -503,9 +515,9 @@ function ReponsesVendeurs({ vendeurs }: { vendeurs: any[] }) {
                 {nom}
               </span>
             </div>
-            {v.telephone && <p className="text-[11px] text-gray-400 pl-6">{v.telephone}</p>}
+            {v.telephone && <p className="text-xs text-gray-400 pl-6">{v.telephone}</p>}
             {v.statut === 'refusee' && v.motifRefus && (
-              <p className="text-[11px] text-red-700 pl-6 line-clamp-2" title={v.motifRefus}>
+              <p className="text-xs text-red-700 pl-6 line-clamp-2" title={v.motifRefus}>
                 Motif : {v.motifRefus}
               </p>
             )}

@@ -71,7 +71,7 @@ export default function VentesPage() {
       {/* ── Le compte de résultat commercial de la période ───────────────── */}
       <Bloc className="p-4">
         <Titre>Résultat commercial</Titre>
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mt-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-6 gap-3 mt-4">
           <Chiffre libelle="Chiffre d'affaires" valeur={fcfa(kpi.chiffreAffaires)} aide="Commandes livrées uniquement" />
           <Chiffre
             libelle="Marge brute"
@@ -150,7 +150,7 @@ export default function VentesPage() {
             <div className="scroller tbl-wrap mt-3">
               <table className="w-full text-sm tbl-cards">
                 <thead>
-                  <tr className="text-left text-[11px] uppercase tracking-wide text-gray-400">
+                  <tr className="text-left text-xs uppercase tracking-wide text-gray-400">
                     <th className="pb-2 font-medium">Rayon</th>
                     <th className="pb-2 font-medium text-right">CA</th>
                     <th className="pb-2 font-medium text-right">Part</th>

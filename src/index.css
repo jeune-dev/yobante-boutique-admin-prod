@@ -54,7 +54,7 @@
     @apply fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 sm:p-4 bg-black/40;
   }
   .modal-box {
-    @apply w-full max-h-[calc(100vh-1.5rem)] sm:max-h-[calc(100vh-2rem)] overflow-y-auto bg-white shadow-xl rounded-xl;
+    @apply w-full max-h-[calc(100vh-1.5rem)] sm:max-h-[calc(100vh-2rem)] overflow-y-auto bg-white shadow-2xl rounded-2xl;
   }
 
   /* ── Boutons d'icône ───────────────────────────────────────────────────
@@ -126,6 +126,42 @@
     padding: 0.3rem 0.55rem;
     font-size: 0.78rem;
   }
+}
+
+/* ── Lisibilité commune à toutes les listes ───────────────────────────
+   Chaque page posait ses propres classes d'entête (gris pâle, 11px) : la
+   règle ci-dessous, plus spécifique qu'une classe utilitaire, aligne tous
+   les tableaux sur un même entête lisible et des lignes plus aérées, sans
+   toucher au contenu des pages. */
+.tbl-wrap > table {
+  font-size: 0.875rem;
+}
+@media (min-width: 768px) {
+  .tbl-wrap > table > thead th {
+    background-color: #f9fafb;
+    color: #6b7280;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    white-space: nowrap;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  .tbl-wrap > table > tbody > tr > td {
+    padding-top: 0.875rem;
+    padding-bottom: 0.875rem;
+  }
+}
+
+/* Champs de saisie en 12px (filtres, tris) : remontés à 14px pour rester
+   lisibles sans zoom. */
+main input.text-xs,
+main select.text-xs,
+main textarea.text-xs {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
 }
 
 @media (max-width: 767px) {

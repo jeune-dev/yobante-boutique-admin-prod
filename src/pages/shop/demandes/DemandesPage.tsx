@@ -140,7 +140,7 @@ export default function DemandesPage() {
         ))}
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
         <BarreFiltres
           nbActifs={nbActifs}
           onReinitialiser={() =>
@@ -236,7 +236,7 @@ export default function DemandesPage() {
                               alt=""
                             />
                             {p.images.length > 1 && (
-                              <span className="absolute -bottom-1 -right-1 text-[10px] font-semibold bg-gray-900 text-white rounded-full px-1.5">
+                              <span className="absolute -bottom-1 -right-1 text-xs font-semibold bg-gray-900 text-white rounded-full px-1.5">
                                 {p.images.length}
                               </span>
                             )}

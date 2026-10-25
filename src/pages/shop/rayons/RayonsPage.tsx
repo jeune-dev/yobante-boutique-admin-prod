@@ -162,7 +162,7 @@ export default function RayonsPage() {
 
       {/* Tab Rayons */}
       {tab === 'rayons' && (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border-b border-gray-100">
             <input
               value={search}
@@ -260,7 +260,7 @@ export default function RayonsPage() {
 
       {/* Tab Sous-rayons */}
       {tab === 'sous-rayons' && (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border-b border-gray-100">
             <select
               value={selectedRayon}

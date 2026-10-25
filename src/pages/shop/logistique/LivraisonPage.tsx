@@ -72,7 +72,7 @@ export default function LivraisonPage() {
 
       {/* ── À l'instant T ────────────────────────────────────────────────── */}
       <div>
-        <h2 className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-2.5">
+        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2.5">
           À livrer maintenant
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
@@ -190,7 +190,7 @@ export default function LivraisonPage() {
 
               {parMotif.length > 0 && (
                 <div className="mt-4 pt-3 border-t border-gray-100">
-                  <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
                     Motifs des retours
                   </p>
                   <div className="space-y-2.5">

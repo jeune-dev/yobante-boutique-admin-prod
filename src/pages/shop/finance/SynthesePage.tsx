@@ -172,20 +172,20 @@ export default function SyntheseFinancePage() {
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mt-3">
           <div className="rounded-lg border border-gray-100 bg-gray-50/60 p-3">
-            <p className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">Vente</p>
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Vente</p>
             <p className="text-lg font-bold text-gray-900 tabular-nums">{fcfa(20000)}</p>
           </div>
           <div className="rounded-lg border border-gray-100 bg-gray-50/60 p-3">
-            <p className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
               Commission plateforme
             </p>
             <p className="text-lg font-bold text-green-700 tabular-nums">
               {fcfa((20000 * s.tauxCommissionDefaut) / 100)}
             </p>
-            <p className="text-[10px] text-gray-400">{s.tauxCommissionDefaut} %</p>
+            <p className="text-xs text-gray-400">{s.tauxCommissionDefaut} %</p>
           </div>
           <div className="rounded-lg border border-gray-100 bg-gray-50/60 p-3">
-            <p className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
               Montant vendeur
             </p>
             <p className="text-lg font-bold text-gray-900 tabular-nums">

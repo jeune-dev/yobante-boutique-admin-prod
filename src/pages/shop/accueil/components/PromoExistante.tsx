@@ -85,7 +85,7 @@ export default function PromoExistante({
       </div>
 
       {/* Mini fiche produit */}
-      <div className="flex gap-3 p-3 rounded-xl border border-gray-100 bg-white shadow-sm">
+      <div className="flex gap-3 p-3 rounded-2xl border border-gray-100 bg-white shadow-sm">
         <div className="w-20 h-20 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0 overflow-hidden">
           {image ? (
             <img src={image} alt="" className="w-full h-full object-contain p-1.5" />

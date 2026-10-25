@@ -116,7 +116,7 @@ function Carte({
   children: ReactNode;
 }) {
   return (
-    <section className="bg-white rounded-xl border border-gray-100 shadow-sm" aria-labelledby={`etape-${numero}`}>
+    <section className="bg-white rounded-2xl border border-gray-100 shadow-sm" aria-labelledby={`etape-${numero}`}>
       <div className="flex items-center justify-between gap-3 px-4 sm:px-5 py-3 border-b border-gray-100">
         <h2 id={`etape-${numero}`} className="flex items-center gap-2 font-semibold text-gray-900">
           <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-yellow-100 text-yellow-700 text-xs font-bold">
@@ -568,7 +568,7 @@ function CommandeCreeeVue({
 }) {
   const nbArticles = (commande.items ?? []).reduce((s, i) => s + Number(i.quantite || 0), 0);
   return (
-    <div className="max-w-xl mx-auto bg-white rounded-xl border border-gray-100 shadow-sm p-6 sm:p-8 text-center">
+    <div className="max-w-xl mx-auto bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 text-center">
       <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600">
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -819,7 +819,7 @@ export default function OrderCreatePage() {
           </Carte>
         </div>
 
-        <aside className="lg:sticky lg:top-4 bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-5" aria-label="Récapitulatif">
+        <aside className="lg:sticky lg:top-4 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5" aria-label="Récapitulatif">
           <h2 className="font-semibold text-gray-900 mb-4">Récapitulatif</h2>
           <dl className="space-y-2 text-sm">
             <div className="flex justify-between gap-3">

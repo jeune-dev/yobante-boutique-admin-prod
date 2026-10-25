@@ -50,7 +50,7 @@ interface Produit {
 function Ligne({ label, valeur }: { label: string; valeur: React.ReactNode }) {
   return (
     <div className="min-w-0">
-      <dt className="text-[11px] text-gray-400 uppercase tracking-wide">{label}</dt>
+      <dt className="text-xs text-gray-400 uppercase tracking-wide">{label}</dt>
       <dd className="text-sm text-gray-900 break-words">{valeur}</dd>
     </div>
   );
@@ -158,17 +158,17 @@ export default function ProductDetailPage() {
                     </span>
                   )}
                   {produit.statutValidation && (
-                    <span className="px-2 py-0.5 rounded-full text-[11px] bg-gray-100 text-gray-600">
+                    <span className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600">
                       {produit.statutValidation}
                     </span>
                   )}
                   {estEtatProduit(produit.etat) && (
-                    <span className={`px-2 py-0.5 rounded-full text-[11px] ${CLASSE_ETAT_PRODUIT[produit.etat]}`}>
+                    <span className={`px-2 py-0.5 rounded-full text-xs ${CLASSE_ETAT_PRODUIT[produit.etat]}`}>
                       {LIBELLE_ETAT_PRODUIT[produit.etat]}
                     </span>
                   )}
                   {produit.isActive === false && (
-                    <span className="px-2 py-0.5 rounded-full text-[11px] bg-red-100 text-red-700">
+                    <span className="px-2 py-0.5 rounded-full text-xs bg-red-100 text-red-700">
                       Masqué
                     </span>
                   )}
@@ -231,7 +231,7 @@ export default function ProductDetailPage() {
       </Bloc>
 
       {/* ── Mouvements de stock sur la période filtrée ───────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2.5 sm:gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-6 gap-3">
         <Chiffre libelle="Stock actuel" valeur={nombre(indicateurs?.stockActuel ?? stock)} />
         <Chiffre
           libelle="Entrées"
@@ -263,7 +263,7 @@ export default function ProductDetailPage() {
 
       {/* ── Indicateurs commerciaux déjà calculés par le backend ─────── */}
       {ind && (
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2.5 sm:gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-5 gap-3">
           <Chiffre libelle="Quantité vendue" valeur={nombre(ind.quantiteVendue)} />
           <Chiffre libelle="Chiffre d’affaires" valeur={fcfa(ind.chiffreAffaires)} />
           <Chiffre

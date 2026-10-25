@@ -174,7 +174,7 @@ export default function VendeurDetailPage() {
           <button
             type="button"
             onClick={() => setEnEdition(true)}
-            className="px-3 py-2 rounded-lg text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
+            className="px-3.5 py-2 rounded-lg text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
           >
             Modifier
           </button>
@@ -183,7 +183,7 @@ export default function VendeurDetailPage() {
             onClick={() => actions.demanderRenvoi(vendeur)}
             disabled={actionEnCours}
             title="Renvoyer les identifiants par email"
-            className="px-3 py-2 rounded-lg text-xs font-medium bg-yellow-50 text-yellow-700 hover:bg-yellow-100 transition-colors disabled:opacity-50"
+            className="px-3.5 py-2 rounded-lg text-sm font-medium bg-yellow-50 text-yellow-700 hover:bg-yellow-100 transition-colors disabled:opacity-50"
           >
             Renvoyer les identifiants
           </button>
@@ -191,7 +191,7 @@ export default function VendeurDetailPage() {
             type="button"
             onClick={() => actions.demanderStatut(vendeur)}
             disabled={actionEnCours}
-            className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors disabled:opacity-50 ${
+            className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 ${
               bloque
                 ? 'bg-green-50 text-green-700 hover:bg-green-100'
                 : 'bg-red-50 text-red-600 hover:bg-red-100'

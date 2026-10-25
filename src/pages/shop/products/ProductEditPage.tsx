@@ -159,7 +159,7 @@ export default function ProductEditPage() {
       <AdminBackButton parent="/boutique/produits" className="mb-3" />
       <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">Modifier le produit</h1>
 
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-6">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-6">
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="text-sm font-medium text-gray-700">Nom *</label>

@@ -99,14 +99,14 @@ export default function ChoixImagesProduit({ fichiers, onChange, imagesActuelles
           >
             <img src={apercus[i]} alt={f.name} className="w-full h-full object-contain p-1.5" />
             {i === 0 ? (
-              <span className="absolute bottom-1 left-1 text-[10px] font-semibold bg-yellow-500 text-white rounded px-1.5 py-0.5">
+              <span className="absolute bottom-1 left-1 text-xs font-semibold bg-yellow-500 text-white rounded px-1.5 py-0.5">
                 Principale
               </span>
             ) : (
               <button
                 type="button"
                 onClick={() => rendrePrincipale(i)}
-                className="absolute bottom-1 left-1 text-[10px] font-medium bg-white/90 text-gray-700 rounded px-1.5 py-0.5 hover:bg-white"
+                className="absolute bottom-1 left-1 text-xs font-medium bg-white/90 text-gray-700 rounded px-1.5 py-0.5 hover:bg-white"
                 title="Afficher cette photo en premier"
               >
                 Principale ?
@@ -131,7 +131,7 @@ export default function ChoixImagesProduit({ fichiers, onChange, imagesActuelles
             className="aspect-square rounded-lg border border-gray-200 bg-white hover:bg-yellow-50 hover:border-yellow-300 flex flex-col items-center justify-center gap-1 text-gray-500 transition-colors"
           >
             <span className="text-2xl leading-none">+</span>
-            <span className="text-[11px] font-medium text-center px-1">
+            <span className="text-xs font-medium text-center px-1">
               {fichiers.length ? 'Ajouter' : 'Ajouter des photos'}
             </span>
           </button>

@@ -117,7 +117,7 @@ export default function ComptesVendeursPage() {
           <div className="tbl-wrap">
             <table className="w-full text-sm tbl-cards">
               <thead>
-                <tr className="text-left text-[11px] uppercase tracking-wide text-gray-400 border-b border-gray-100">
+                <tr className="text-left text-xs uppercase tracking-wide text-gray-400 border-b border-gray-100">
                   <th className="px-3 sm:px-4 py-2.5 font-medium">Vendeur</th>
                   <th className="px-3 sm:px-4 py-2.5 font-medium text-right">CA</th>
                   <th className="px-3 sm:px-4 py-2.5 font-medium text-right">Taux</th>
@@ -145,7 +145,7 @@ export default function ComptesVendeursPage() {
                     <td data-label="Taux" className="px-3 sm:px-4 py-2.5 text-right tabular-nums">
                       <span className="text-gray-700">{pourcent(c.tauxCommission, 2)}</span>
                       {c.tauxParDefaut && (
-                        <span className="block text-[11px] text-gray-400" title="Aucun taux négocié enregistré">
+                        <span className="block text-xs text-gray-400" title="Aucun taux négocié enregistré">
                           par défaut
                         </span>
                       )}
@@ -159,7 +159,7 @@ export default function ComptesVendeursPage() {
                     <td data-label="Versé" className="px-3 sm:px-4 py-2.5 text-right text-gray-500 whitespace-nowrap tabular-nums">
                       {fcfa(c.dejaReverse)}
                       {c.reversementsEnAttente > 0 && (
-                        <span className="block text-[11px] text-orange-600">
+                        <span className="block text-xs text-orange-600">
                           + {fcfa(c.reversementsEnAttente)} en attente
                         </span>
                       )}
