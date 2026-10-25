@@ -48,9 +48,13 @@ export default function ShopLayout() {
   }
 
   return (
-    // `h-screen` + `overflow-hidden` : seul le contenu défile, la colonne de
-    // navigation et l'entête restent en place.
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    // `fixed inset-0` + `overflow-hidden` : seul le contenu défile, la colonne
+    // de navigation et l'entête restent en place. Un simple `h-screen` ne
+    // suffisait pas : un élément en position absolue du contenu (libellé
+    // `sr-only`, info-bulle…) sans ancêtre positionné échappait au rognage,
+    // allongeait le document, et c'est la page entière, menu compris, qui
+    // défilait en laissant un vide en bas.
+    <div className="fixed inset-0 flex overflow-hidden bg-gray-50">
       <ShopSidebar
         replie={replie}
         onBasculer={() => setReplie((v) => !v)}
@@ -62,7 +66,7 @@ export default function ShopLayout() {
         <ShopHeader onOuvrirMenu={() => setTiroirOuvert(true)} tiroirOuvert={tiroirOuvert} />
         {/* `overflow-x-hidden` : sur mobile, la page ne doit jamais glisser
             latéralement, même si un contenu inattendu dépasse. */}
-        <main className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6">
+        <main className="relative min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6">
           {/* Les pages sont chargées à la demande (voir app/routes) : l'entête
               reste affichée pendant le chargement du module, au lieu d'un
               écran vide. */}

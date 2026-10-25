@@ -65,7 +65,7 @@ const idDuLabel = (label: string) =>
 const entreeActive = (entree: EntreeNav, pathname: string, search: string) =>
   entree.path
     ? estActif(entree.path, pathname, search)
-    : (entree.enfants ?? []).some((c) => estActif(c.path.split('?')[0], pathname, ''));
+    : (entree.enfants ?? []).some(c => estActif(c.path.split('?')[0], pathname, ''));
 
 /** Suit le franchissement d'un point de rupture. */
 function usePointDeRupture(requete: string) {
@@ -116,7 +116,7 @@ interface Props {
  * vient de `navPourAcces`, exactement comme l'ancienne barre.
  */
 export default function ShopSidebar({ replie, onBasculer, tiroirOuvert, onFermerTiroir }: Props) {
-  const permissions = useAuthStore((s) => s.user?.permissions);
+  const permissions = useAuthStore(s => s.user?.permissions);
   const NAV = useMemo(() => navPourAcces(permissions), [permissions]);
   const { pathname, search } = useLocation();
 
@@ -151,7 +151,7 @@ export default function ShopSidebar({ replie, onBasculer, tiroirOuvert, onFermer
   const programmerFermeture = useCallback(() => {
     annulerFermeture();
     minuteur.current = setTimeout(() => {
-      setPanneau((ouvert) => (ouvert?.epingle ? ouvert : null));
+      setPanneau(ouvert => (ouvert?.epingle ? ouvert : null));
     }, DELAI_FERMETURE);
   }, [annulerFermeture]);
 
@@ -187,7 +187,8 @@ export default function ShopSidebar({ replie, onBasculer, tiroirOuvert, onFermer
     const surClic = (e: PointerEvent) => {
       const cible = e.target as Node;
       if (refsBoutons.current[panneau.id]?.contains(cible)) return;
-      if (document.getElementById(`sous-menu-${panneau.id}`)?.parentElement?.contains(cible)) return;
+      if (document.getElementById(`sous-menu-${panneau.id}`)?.parentElement?.contains(cible))
+        return;
       setPanneau(null);
     };
     document.addEventListener('pointerdown', surClic);
@@ -237,6 +238,10 @@ export default function ShopSidebar({ replie, onBasculer, tiroirOuvert, onFermer
     }
   };
 
+  /** Case d'une entrée de la colonne : les entrées se partagent toute la
+   *  hauteur disponible, avec un minimum au-delà duquel la colonne défile. */
+  const CASE_ENTREE = 'flex min-h-[2.75rem] flex-1 items-center';
+
   /** Classes communes aux entrées de premier niveau de la colonne. */
   const classeEntree = (actif: boolean, desactive = false) =>
     [
@@ -257,7 +262,7 @@ export default function ShopSidebar({ replie, onBasculer, tiroirOuvert, onFermer
   /* ── Tiroir (< md) : arborescence complète, groupes dépliés ───────────── */
   const contenuTiroir = (
     <nav aria-label="Menu principal" className="flex-1 overflow-y-auto overscroll-contain p-2">
-      {NAV.map((entree) => {
+      {NAV.map(entree => {
         const lien = (
           item: { label: string; icon: string; path: string; aide?: string },
           indente: boolean
@@ -302,7 +307,7 @@ export default function ShopSidebar({ replie, onBasculer, tiroirOuvert, onFermer
               <Icon name={entree.icon} size={13} />
               {entree.label}
             </p>
-            {(entree.enfants ?? []).map((enfant) => lien(enfant, true))}
+            {(entree.enfants ?? []).map(enfant => lien(enfant, true))}
           </div>
         );
       })}
@@ -313,31 +318,32 @@ export default function ShopSidebar({ replie, onBasculer, tiroirOuvert, onFermer
   const contenuColonne = (
     <nav
       aria-label="Menu principal"
-      className="flex-1 space-y-0.5 overflow-y-auto overscroll-contain px-2 py-3"
+      className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-2 py-3"
     >
-      {NAV.map((entree) => {
+      {NAV.map(entree => {
         const actif = entreeActive(entree, pathname, search);
 
         if (entree.path) {
           return (
-            <NavLink
-              key={entree.label}
-              to={entree.path}
-              onMouseEnter={montrerInfobulle(entree.label)}
-              onMouseLeave={cacherInfobulle}
-              onFocus={montrerInfobulle(entree.label)}
-              onBlur={cacherInfobulle}
-              onClick={() => {
-                cacherInfobulle();
-                fermerPanneau();
-              }}
-              aria-current={actif ? 'page' : undefined}
-              className={classeEntree(actif)}
-            >
-              {actif && LISERE}
-              <Icon name={entree.icon} size={18} className="shrink-0" />
-              <span className={`truncate ${libelleMasque}`}>{entree.label}</span>
-            </NavLink>
+            <div key={entree.label} className={CASE_ENTREE}>
+              <NavLink
+                to={entree.path}
+                onMouseEnter={montrerInfobulle(entree.label)}
+                onMouseLeave={cacherInfobulle}
+                onFocus={montrerInfobulle(entree.label)}
+                onBlur={cacherInfobulle}
+                onClick={() => {
+                  cacherInfobulle();
+                  fermerPanneau();
+                }}
+                aria-current={actif ? 'page' : undefined}
+                className={classeEntree(actif)}
+              >
+                {actif && LISERE}
+                <Icon name={entree.icon} size={18} className="shrink-0" />
+                <span className={`truncate ${libelleMasque}`}>{entree.label}</span>
+              </NavLink>
+            </div>
           );
         }
 
@@ -347,6 +353,7 @@ export default function ShopSidebar({ replie, onBasculer, tiroirOuvert, onFermer
         return (
           <div
             key={entree.label}
+            className={CASE_ENTREE}
             onMouseEnter={() => {
               const bouton = refsBoutons.current[id];
               // Le panneau porte déjà le libellé du groupe : pas d'infobulle
@@ -357,7 +364,7 @@ export default function ShopSidebar({ replie, onBasculer, tiroirOuvert, onFermer
           >
             <button
               type="button"
-              ref={(el) => {
+              ref={el => {
                 refsBoutons.current[id] = el;
               }}
               aria-haspopup="true"
@@ -402,7 +409,7 @@ export default function ShopSidebar({ replie, onBasculer, tiroirOuvert, onFermer
       <aside
         id="menu-principal"
         className={`
-          nav-transition z-[60] flex h-screen shrink-0 flex-col border-r border-gray-100 bg-white
+          nav-transition z-[60] flex h-full shrink-0 flex-col border-r border-gray-100 bg-white
           transition-[width] duration-200
           ${
             ecranMd
@@ -476,7 +483,7 @@ export default function ShopSidebar({ replie, onBasculer, tiroirOuvert, onFermer
       {ecranMd &&
         panneau &&
         (() => {
-          const groupe = NAV.find((e) => !e.path && idDuLabel(e.label) === panneau.id);
+          const groupe = NAV.find(e => !e.path && idDuLabel(e.label) === panneau.id);
           if (!groupe) return null;
           return (
             <SousMenuFlottant

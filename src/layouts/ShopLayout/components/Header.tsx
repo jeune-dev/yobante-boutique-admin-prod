@@ -74,7 +74,7 @@ export default function ShopHeader({ onOuvrirMenu, tiroirOuvert }: Props) {
       </button>
 
       <div className="flex min-w-0 flex-1 items-center">
-        <h1 className="text-[15px] font-bold text-gray-900 truncate">{titre}</h1>
+        <h1 className="text-lg font-bold text-gray-900 truncate">{titre}</h1>
       </div>
 
       <div className="relative shrink-0 flex items-center" ref={zoneMenu}>
