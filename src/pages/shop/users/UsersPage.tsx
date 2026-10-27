@@ -19,6 +19,7 @@ import {
 } from '@/shared/components/filtres/BarreFiltres';
 import { dansIntervalle, dansPeriode, libelleIntervalle, libellePeriode } from '@/shared/utils/filtres';
 import { enDate, enNombre, type ColonneExport } from '@/shared/utils/exportExcel';
+import { EntetePage } from '@/shared/components/dashboard/Blocs';
 
 /** Filtre de statut ↔ valeur conservée dans l'URL. */
 const FILTRES_STATUT = [
@@ -176,13 +177,16 @@ export default function UsersPage() {
 
   return (
     <div>
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Clients</h1>
-        <p className="text-sm text-gray-500">
-          {count} client{count > 1 ? 's' : ''}
-          {activeFilter === true ? ' actifs' : activeFilter === false ? ' bloqués' : ' au total'}
-        </p>
-      </div>
+      <EntetePage
+        className="mb-6"
+        titre="Clients"
+        soustitre={
+          <>
+            {count} client{count > 1 ? 's' : ''}
+            {activeFilter === true ? ' actifs' : activeFilter === false ? ' bloqués' : ' au total'}
+          </>
+        }
+      />
 
       {(filtres.du || filtres.au) && (
         <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
@@ -250,7 +254,7 @@ export default function UsersPage() {
               />
               <button
                 type="submit"
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-600"
+                className="bg-yellow-400 text-gray-900 px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-300"
               >
                 Rechercher
               </button>

@@ -307,7 +307,7 @@ export default function ProductCreatePage() {
             <button
               type="submit"
               disabled={createMutation.isPending}
-              className="px-4 py-2 text-sm bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 disabled:opacity-60"
+              className="px-4 py-2 text-sm bg-yellow-400 text-gray-900 rounded-lg hover:bg-yellow-300 disabled:opacity-60"
             >
               {createMutation.isPending ? 'Création…' : 'Créer le produit'}
             </button>

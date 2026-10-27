@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import Icon from '@/shared/components/dashboard/Icon';
 import ErreurChargement from '@/shared/components/feedback/ErreurChargement';
 import Pagination from '@/shared/components/tables/Pagination';
@@ -15,7 +15,6 @@ import {
 import { useIndicateursStock } from '@/domains/shop/hooks/useAnalytique';
 import { date, decimal, fcfa, nombre, pourcent } from '@/shared/utils/format';
 import type { ProduitStock } from '@/domains/shop/types/analytique';
-import { useOuvrirLigne } from '@/shared/hooks/useOuvrirLigne';
 
 /** Les vues du stock, chacune répondant à une décision différente. */
 type Vue = 'tout' | 'rupture' | 'alerte' | 'surstock' | 'sans-prix';
@@ -40,7 +39,6 @@ type Tri = 'couverture' | 'stock' | 'valeur' | 'ventes' | 'nom';
  * changement d'onglet.
  */
 export default function StockPage() {
-  const ouvrir = useOuvrirLigne();
   // La vue est dans l'URL : l'alerte « produits en rupture » du dashboard
   // amène directement sur le bon onglet, et le lien reste partageable.
   const [params, setParams] = useSearchParams();
@@ -271,14 +269,9 @@ export default function StockPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {visibles.map((p) => (
-                    <tr key={p.id} {...ouvrir(`/boutique/produits/${p.id}/modifier`)}>
+                    <tr key={p.id}>
                       <td data-label="Produit" className="px-3 sm:px-4 py-2.5 min-w-[180px]">
-                        <Link
-                          to={`/boutique/produits/${p.id}/modifier`}
-                          className="font-medium text-gray-900 hover:underline"
-                        >
-                          {p.nom}
-                        </Link>
+                        <p className="font-medium text-gray-900">{p.nom}</p>
                         <p className="text-xs text-gray-400">
                           {p.rayon} · modifié le {date(p.derniereMaj)}
                         </p>

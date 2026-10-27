@@ -25,6 +25,7 @@ import {
 } from '@/shared/components/filtres/BarreFiltres';
 import { dansIntervalle, dansPeriode, libelleIntervalle, libellePeriode } from '@/shared/utils/filtres';
 import { enDate, enNombre, type ColonneExport } from '@/shared/utils/exportExcel';
+import { EntetePage } from '@/shared/components/dashboard/Blocs';
 
 const api = {
   getCommandes: (p: any) =>
@@ -195,17 +196,20 @@ export default function OrdersPage() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Commandes</h1>
+      <EntetePage
+        className="mb-6"
+        titre="Commandes"
+        soustitre="Suivi, validation et livraison des commandes clients."
+      >
         <button
           type="button"
           onClick={() => navigate('/boutique/commandes/nouveau', { state: etatRetour(location) })}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg bg-yellow-500 text-white hover:bg-yellow-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300"
+          className="btn-primaire w-full sm:w-auto"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+          <Icon name="plus" size={16} />
           Créer une commande
         </button>
-      </div>
+      </EntetePage>
 
       {/* KPI Cards : 2 par ligne sur téléphone, 4 dès la tablette. */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">

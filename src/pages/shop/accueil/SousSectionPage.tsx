@@ -159,7 +159,7 @@ export default function SousSectionPage() {
             setPromoEnEdition(null);
             setModalOuvert(true);
           }}
-          className="w-full sm:w-auto sm:self-start inline-flex items-center justify-center gap-1.5 px-4 py-2.5 sm:py-2 text-sm font-semibold rounded-lg bg-yellow-500 text-white hover:bg-yellow-600 shrink-0"
+          className="w-full sm:w-auto sm:self-start inline-flex items-center justify-center gap-1.5 px-4 py-2.5 sm:py-2 text-sm font-semibold rounded-lg bg-yellow-400 text-gray-900 hover:bg-yellow-300 shrink-0"
         >
           <Icon name="plus" size={16} /> Ajouter un produit
         </button>

@@ -32,6 +32,7 @@ import {
   type EtatProduit,
 } from '@/domains/shop/etatProduit';
 import { LIBELLE_NIVEAU_STOCK, type NiveauStock } from '@/domains/shop/types/indicateurs';
+import { EntetePage } from '@/shared/components/dashboard/Blocs';
 
 const api = {
   getProduits: (p: any) =>
@@ -284,15 +285,20 @@ export default function ProductsPage() {
     <div>
       {/* Liste filtrée depuis la page Rayons : retour possible vers celle-ci. */}
       {filterRayonId && <AdminBackButton parent="/boutique/rayons" className="mb-3" />}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Produits</h1>
+      <EntetePage
+        className="mb-6"
+        titre="Produits"
+        soustitre="Catalogue de la boutique : prix, stock, promotions et visibilité."
+      >
         <button
+          type="button"
           onClick={() => navigate('/boutique/produits/nouveau', { state: etatRetour(location) })}
-          className="w-full sm:w-auto bg-yellow-500 text-white px-4 py-2.5 sm:py-2 rounded-lg text-sm font-medium hover:bg-yellow-600"
+          className="btn-primaire w-full sm:w-auto"
         >
-          + Nouveau produit
+          <Icon name="plus" size={16} />
+          Nouveau produit
         </button>
-      </div>
+      </EntetePage>
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
         <BarreFiltres
@@ -729,7 +735,7 @@ export default function ProductsPage() {
                 <button
                   type="submit"
                   disabled={promoMutation.isPending}
-                  className="px-4 py-2.5 sm:py-2 text-sm bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 disabled:opacity-60"
+                  className="px-4 py-2.5 sm:py-2 text-sm bg-yellow-400 text-gray-900 rounded-lg hover:bg-yellow-300 disabled:opacity-60"
                 >
                   Valider la promotion
                 </button>

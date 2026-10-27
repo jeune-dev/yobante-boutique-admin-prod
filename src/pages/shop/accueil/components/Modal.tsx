@@ -116,7 +116,7 @@ export function BoutonPrincipal({
 }) {
   const couleurs =
     ton === 'or'
-      ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
+      ? 'bg-yellow-400 hover:bg-yellow-300 text-gray-900'
       : 'bg-gray-900 hover:bg-gray-800 text-white';
   return (
     <button

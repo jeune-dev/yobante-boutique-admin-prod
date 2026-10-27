@@ -8,6 +8,8 @@ import ErreurChargement from '@/shared/components/feedback/ErreurChargement';
 import { etatRetour } from '@/shared/hooks/useRetour';
 import { lirePage, useParametresUrl } from '@/shared/hooks/useParametresUrl';
 import { useOuvrirLigne } from '@/shared/hooks/useOuvrirLigne';
+import Icon from '@/shared/components/dashboard/Icon';
+import { EntetePage } from '@/shared/components/dashboard/Blocs';
 
 const api = {
   getRayons: (params?: any) => shopClient.get('/admin/rayons', { params }),
@@ -132,9 +134,11 @@ export default function RayonsPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Rayons &amp; Sous-rayons</h1>
-      </div>
+      <EntetePage
+        className="mb-6"
+        titre="Rayons & sous-rayons"
+        soustitre="Organisation du catalogue telle qu'elle apparaît dans l'application."
+      />
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6">
@@ -142,7 +146,7 @@ export default function RayonsPage() {
           onClick={() => setEtatUrl({ onglet: 'rayons' })}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             tab === 'rayons'
-              ? 'bg-yellow-500 text-white'
+              ? 'bg-gray-900 text-white border border-gray-900'
               : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
           }`}
         >
@@ -152,7 +156,7 @@ export default function RayonsPage() {
           onClick={() => setEtatUrl({ onglet: 'sous-rayons' })}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             tab === 'sous-rayons'
-              ? 'bg-yellow-500 text-white'
+              ? 'bg-gray-900 text-white border border-gray-900'
               : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
           }`}
         >
@@ -173,9 +177,10 @@ export default function RayonsPage() {
             />
             <button
               onClick={openCreate}
-              className="w-full sm:w-auto bg-yellow-500 text-white px-4 py-2.5 sm:py-2 rounded-lg text-sm font-medium hover:bg-yellow-600 transition-colors"
+              className="btn-primaire w-full sm:w-auto"
             >
-              + Nouveau rayon
+              <Icon name="plus" size={16} />
+              Nouveau rayon
             </button>
           </div>
           {isLoading ? (
@@ -282,9 +287,10 @@ export default function RayonsPage() {
                   setSrForm({ nom: '', description: '' });
                   setShowSrModal(true);
                 }}
-                className="w-full sm:w-auto bg-yellow-500 text-white px-4 py-2.5 sm:py-2 rounded-lg text-sm font-medium hover:bg-yellow-600"
+                className="btn-primaire w-full sm:w-auto"
               >
-                + Nouveau sous-rayon
+                <Icon name="plus" size={16} />
+                Nouveau sous-rayon
               </button>
             )}
           </div>
@@ -421,7 +427,7 @@ export default function RayonsPage() {
                 <button
                   type="submit"
                   disabled={creerMutation.isPending || modifierMutation.isPending}
-                  className="px-4 py-2.5 sm:py-2 text-sm bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 disabled:opacity-60"
+                  className="px-4 py-2.5 sm:py-2 text-sm bg-yellow-400 text-gray-900 rounded-lg hover:bg-yellow-300 disabled:opacity-60"
                 >
                   {creerMutation.isPending || modifierMutation.isPending
                     ? 'Enregistrement…'
@@ -486,7 +492,7 @@ export default function RayonsPage() {
                 <button
                   type="submit"
                   disabled={creerSrMutation.isPending || modifierSrMutation.isPending}
-                  className="px-4 py-2.5 sm:py-2 text-sm bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 disabled:opacity-60"
+                  className="px-4 py-2.5 sm:py-2 text-sm bg-yellow-400 text-gray-900 rounded-lg hover:bg-yellow-300 disabled:opacity-60"
                 >
                   {creerSrMutation.isPending || modifierSrMutation.isPending
                     ? 'Enregistrement…'

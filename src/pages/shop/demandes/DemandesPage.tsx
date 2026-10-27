@@ -17,6 +17,7 @@ import Icon from '@/shared/components/dashboard/Icon';
 import DemandeDetailModal from './DemandeDetailModal';
 import Pagination from '@/shared/components/tables/Pagination';
 import ErreurChargement from '@/shared/components/feedback/ErreurChargement';
+import { EntetePage } from '@/shared/components/dashboard/Blocs';
 
 /** Les demandes en cours d'instruction restent visibles jusqu'à publication. */
 const STATUTS = [
@@ -116,12 +117,11 @@ export default function DemandesPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Demandes de publication</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Produits soumis par les vendeurs depuis l'application.
-        </p>
-      </div>
+      <EntetePage
+        className="mb-6"
+        titre="Demandes de publication"
+        soustitre="Produits soumis par les vendeurs depuis l'application."
+      />
 
       {/* Filtre par statut */}
       <div className="flex flex-wrap gap-2 mb-5">

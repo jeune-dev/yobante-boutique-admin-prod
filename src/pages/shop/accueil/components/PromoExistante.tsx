@@ -133,7 +133,7 @@ export default function PromoExistante({
         <button
           type="button"
           onClick={onConfirmer}
-          className="px-4 py-2 text-sm font-semibold rounded-lg bg-yellow-500 text-white hover:bg-yellow-600"
+          className="px-4 py-2 text-sm font-semibold rounded-lg bg-yellow-400 text-gray-900 hover:bg-yellow-300"
         >
           Confirmer
         </button>

@@ -9,6 +9,7 @@ import Pagination from '@/shared/components/tables/Pagination';
 import { PhoneInput } from '@/shared/components/PhoneInput';
 import { libellesPages } from '@/shared/accesAdmin';
 import ChoixAccesAdmin from './ChoixAccesAdmin';
+import { EntetePage } from '@/shared/components/dashboard/Blocs';
 
 const api = {
   lister: (p: Record<string, unknown>) => shopClient.get('/admin/users/admins', { params: p }),
@@ -237,20 +238,16 @@ export default function AdministrateursPage() {
 
   return (
     <div>
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Administrateurs</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Comptes ayant accès à ce dashboard.
-          </p>
-        </div>
-        <button
-          onClick={ouvrirCreation}
-          className="w-full sm:w-auto bg-yellow-500 text-white px-4 py-2.5 sm:py-2 rounded-lg text-sm font-medium hover:bg-yellow-600"
-        >
-          + Nouvel administrateur
+      <EntetePage
+        className="mb-6"
+        titre="Administrateurs"
+        soustitre="Comptes ayant accès à ce dashboard."
+      >
+        <button type="button" onClick={ouvrirCreation} className="btn-primaire w-full sm:w-auto">
+          <Icon name="plus" size={16} />
+          Nouvel administrateur
         </button>
-      </div>
+      </EntetePage>
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
         <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-3">
@@ -527,7 +524,7 @@ export default function AdministrateursPage() {
                 <button
                   type="submit"
                   disabled={enregistrer.isPending}
-                  className="px-4 py-2.5 sm:py-2 text-sm bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 disabled:opacity-60"
+                  className="px-4 py-2.5 sm:py-2 text-sm bg-yellow-400 text-gray-900 rounded-lg hover:bg-yellow-300 disabled:opacity-60"
                 >
                   {enregistrer.isPending
                     ? 'Enregistrement…'

@@ -20,7 +20,6 @@ export default function ProductEditPage() {
   const [prix, setPrix] = useState('');
   const [prixAchat, setPrixAchat] = useState('');
   const [venduAuPoids, setVenduAuPoids] = useState(false);
-  const [stock, setStock] = useState('0');
   const [poids, setPoids] = useState('');
   const [reference, setReference] = useState('');
   const [avecEtat, setAvecEtat] = useState(false);
@@ -48,7 +47,6 @@ export default function ProductEditPage() {
         // pas une absence de valeur.
         prixAchat: produit.prixAchat == null ? '' : String(produit.prixAchat),
         venduAuPoids: Boolean(produit.venduAuPoids),
-        stock: String(produit.stock || '0'),
         poids: String(produit.poids || ''),
         reference: produit.reference || '',
         // État précisé (neuf, reconditionné ou en l'état) : case cochée.
@@ -63,7 +61,6 @@ export default function ProductEditPage() {
       setPrix(valeurs.prix);
       setPrixAchat(valeurs.prixAchat);
       setVenduAuPoids(valeurs.venduAuPoids);
-      setStock(valeurs.stock);
       setPoids(valeurs.poids);
       setReference(valeurs.reference);
       setAvecEtat(valeurs.avecEtat);
@@ -77,7 +74,7 @@ export default function ProductEditPage() {
   const modifie =
     initial !== null &&
     (images.length > 0 ||
-      JSON.stringify({ nom, description, prix, venduAuPoids, stock, poids, reference, avecEtat, etat, rayonId, sousRayonId }) !==
+      JSON.stringify({ nom, description, prix, venduAuPoids, poids, reference, avecEtat, etat, rayonId, sousRayonId }) !==
         initial);
   const { autoriserSortie } = useConfirmationSortie(modifie);
 
@@ -133,7 +130,8 @@ export default function ProductEditPage() {
     // par erreur, ce qu'omettre le champ ne permettrait pas.
     fd.append('prixAchat', prixAchat);
     fd.append('venduAuPoids', String(venduAuPoids));
-    fd.append('stock', stock);
+    // Stock jamais envoyé : il ne change que par un ajustement motivé
+    // (fiche produit → « Modifier le stock »), qui garde l'historique.
     // Case décochée : état non précisé (aucun badge dans l'application).
     fd.append('etat', avecEtat ? etat : '');
     if (poids) fd.append('poids', poids);
@@ -205,15 +203,13 @@ export default function ProductEditPage() {
               </label>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700">Stock *</label>
-              <input
-                required
-                type="number"
-                min="0"
-                value={stock}
-                onChange={(e) => setStock(e.target.value)}
-                className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
-              />
+              <p className="text-sm font-medium text-gray-700">Stock</p>
+              <p className="mt-1 w-full border border-gray-100 bg-gray-50 rounded-lg px-3 py-2 text-sm text-gray-700 tabular-nums">
+                {produit?.stock ?? 0}
+              </p>
+              <p className="mt-1 text-xs text-gray-400">
+                Se modifie depuis la fiche produit, avec un motif.
+              </p>
             </div>
           </div>
 
@@ -342,7 +338,7 @@ export default function ProductEditPage() {
             <button
               type="submit"
               disabled={updateMutation.isPending}
-              className="px-4 py-2 text-sm bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 disabled:opacity-60"
+              className="px-4 py-2 text-sm bg-yellow-400 text-gray-900 rounded-lg hover:bg-yellow-300 disabled:opacity-60"
             >
               {updateMutation.isPending ? 'Mise à jour…' : 'Mettre à jour'}
             </button>

@@ -29,6 +29,7 @@ import {
 } from '@/domains/shop/api/vendeurs.api';
 import ModaleModifierVendeur from './ModaleModifierVendeur';
 import { useActionsVendeur } from './useActionsVendeur';
+import { EntetePage } from '@/shared/components/dashboard/Blocs';
 
 /** Cadenas affiché à côté du nom d'un vendeur bloqué. */
 function IconeBlocage() {
@@ -260,15 +261,16 @@ export default function VendeursPage() {
 
   return (
     <div>
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Vendeurs</h1>
-        <button
-          onClick={() => setShowModal(true)}
-          className="w-full sm:w-auto bg-yellow-500 text-white px-4 py-2.5 sm:py-2 rounded-lg text-sm font-medium hover:bg-yellow-600"
-        >
-          + Nouveau vendeur
+      <EntetePage
+        className="mb-6"
+        titre="Vendeurs"
+        soustitre="Comptes vendeurs, accès et fiabilité."
+      >
+        <button type="button" onClick={() => setShowModal(true)} className="btn-primaire w-full sm:w-auto">
+          <Icon name="plus" size={16} />
+          Nouveau vendeur
         </button>
-      </div>
+      </EntetePage>
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
         <BarreFiltres
@@ -606,7 +608,7 @@ export default function VendeursPage() {
                 <button
                   type="submit"
                   disabled={creerMutation.isPending}
-                  className="px-4 py-2.5 sm:py-2 text-sm bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 disabled:opacity-60"
+                  className="px-4 py-2.5 sm:py-2 text-sm bg-yellow-400 text-gray-900 rounded-lg hover:bg-yellow-300 disabled:opacity-60"
                 >
                   {creerMutation.isPending ? 'Création…' : 'Créer'}
                 </button>

@@ -46,13 +46,15 @@ export function EntetePage({
   titre,
   soustitre,
   children,
+  className = '',
 }: {
   titre: string;
   soustitre?: ReactNode;
   children?: ReactNode;
+  className?: string;
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className={`flex flex-wrap items-center justify-between gap-3 ${className}`}>
       <div className="min-w-0">
         <h1 className="text-xl sm:text-2xl font-bold leading-tight text-gray-900">{titre}</h1>
         {soustitre && <p className="text-sm sm:text-[15px] text-gray-500 mt-1">{soustitre}</p>}

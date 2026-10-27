@@ -99,7 +99,7 @@ export default function ChoixImagesProduit({ fichiers, onChange, imagesActuelles
           >
             <img src={apercus[i]} alt={f.name} className="w-full h-full object-contain p-1.5" />
             {i === 0 ? (
-              <span className="absolute bottom-1 left-1 text-xs font-semibold bg-yellow-500 text-white rounded px-1.5 py-0.5">
+              <span className="absolute bottom-1 left-1 text-xs font-semibold bg-yellow-400 text-gray-900 rounded px-1.5 py-0.5">
                 Principale
               </span>
             ) : (

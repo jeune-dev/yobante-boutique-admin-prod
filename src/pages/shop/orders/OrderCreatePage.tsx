@@ -356,7 +356,7 @@ function SelectionAdresse({
                 }
                 ajout.mutate({ ...formulaire, region: formulaire.region || '' });
               }}
-              className="px-3 py-1.5 text-sm font-semibold rounded-lg bg-yellow-500 text-white hover:bg-yellow-600 disabled:opacity-60"
+              className="px-3 py-1.5 text-sm font-semibold rounded-lg bg-yellow-400 text-gray-900 hover:bg-yellow-300 disabled:opacity-60"
             >
               {ajout.isPending ? 'Enregistrement…' : 'Enregistrer l’adresse'}
             </button>
@@ -599,7 +599,7 @@ function CommandeCreeeVue({
         </div>
       </dl>
       <div className="mt-6 flex flex-col sm:flex-row sm:flex-wrap gap-2 justify-center [&>button]:whitespace-nowrap">
-        <button type="button" onClick={onVoir} className="px-4 py-2 text-sm font-semibold rounded-lg bg-yellow-500 text-white hover:bg-yellow-600">
+        <button type="button" onClick={onVoir} className="px-4 py-2 text-sm font-semibold rounded-lg bg-yellow-400 text-gray-900 hover:bg-yellow-300">
           Voir la commande
         </button>
         <button type="button" onClick={onListe} className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50">
@@ -862,7 +862,7 @@ export default function OrderCreatePage() {
               type="submit"
               disabled={mutation.isPending}
               aria-busy={mutation.isPending}
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-lg bg-yellow-500 text-white hover:bg-yellow-600 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-lg bg-yellow-400 text-gray-900 hover:bg-yellow-300 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {mutation.isPending && (
                 <span className="w-4 h-4 border-2 border-white/60 border-t-white rounded-full animate-spin" aria-hidden="true" />

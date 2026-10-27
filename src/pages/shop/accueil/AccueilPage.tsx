@@ -155,7 +155,7 @@ export default function AccueilPage() {
               setBanniereEnEdition(null);
               setModaleBanniere(true);
             }}
-            className="inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg bg-yellow-500 text-white hover:bg-yellow-600"
+            className="inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg bg-yellow-400 text-gray-900 hover:bg-yellow-300"
           >
             <Icon name="plus" size={15} /> Bannière
           </button>
@@ -216,14 +216,14 @@ export default function AccueilPage() {
                   setSectionPromo(section.cle);
                   setPromoEnEdition(null);
                 }}
-                className="inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg bg-yellow-500 text-white hover:bg-yellow-600"
+                className="inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg bg-yellow-400 text-gray-900 hover:bg-yellow-300"
               >
                 <Icon name="plus" size={15} /> Produit en promo
               </button>
               ) : (
               <button
                 onClick={() => setSectionProduits(section.cle)}
-                className="inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg bg-yellow-500 text-white hover:bg-yellow-600"
+                className="inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg bg-yellow-400 text-gray-900 hover:bg-yellow-300"
               >
                 <Icon name="plus" size={15} /> Ajouter des produits
               </button>

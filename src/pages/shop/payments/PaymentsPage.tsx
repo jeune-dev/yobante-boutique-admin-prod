@@ -4,21 +4,28 @@ import { Payment } from '@/domains/shop/api/payments.api';
 import { showSuccess, showConfirm } from '@/shared/utils/alert';
 import Pagination from '@/shared/components/tables/Pagination';
 import { useOuvrirLigne } from '@/shared/hooks/useOuvrirLigne';
+import Icon from '@/shared/components/dashboard/Icon';
+import ErreurChargement from '@/shared/components/feedback/ErreurChargement';
+import { Bloc, EntetePage } from '@/shared/components/dashboard/Blocs';
+import { fcfa, nombre } from '@/shared/utils/format';
 
-function fmtFcfa(n: number) { return Number(n).toLocaleString('fr-FR') + ' FCFA'; }
+const fmtFcfa = fcfa;
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 const STATUTS: Record<string, { label: string; cls: string }> = {
-  en_attente: { label: 'En attente', cls: 'bgo' },
-  succes:     { label: 'Succès',     cls: 'bg'  },
-  echec:      { label: 'Échoué',     cls: 'br'  },
-  rembourse:  { label: 'Remboursé',  cls: 'bx'  },
+  en_attente: { label: 'En attente', cls: 'bg-amber-50 text-amber-700' },
+  succes:     { label: 'Succès',     cls: 'bg-green-50 text-green-700' },
+  echec:      { label: 'Échoué',     cls: 'bg-red-50 text-red-700' },
+  rembourse:  { label: 'Remboursé',  cls: 'bg-gray-100 text-gray-700' },
 };
 
-const METHODES: Record<string, string> = {
-  wave: 'Wave', orange_money: 'Orange Money', carte: 'Carte', cash_livraison: 'À la livraison',
+const METHODES: Record<string, { label: string; cls: string }> = {
+  wave:           { label: 'Wave',            cls: 'bg-sky-50 text-sky-700' },
+  orange_money:   { label: 'Orange Money',    cls: 'bg-orange-50 text-orange-700' },
+  carte:          { label: 'Carte',           cls: 'bg-indigo-50 text-indigo-700' },
+  cash_livraison: { label: 'À la livraison',  cls: 'bg-gray-100 text-gray-700' },
 };
 
 export default function PaymentsPage() {
@@ -26,7 +33,7 @@ export default function PaymentsPage() {
   const [page, setPage] = useState(1);
   const [statutFilter, setStatutFilter] = useState('');
 
-  const { data, isLoading, isError } = usePayments({ page, limit: 15, statut: statutFilter || undefined });
+  const { data, isLoading, isError, error, refetch } = usePayments({ page, limit: 15, statut: statutFilter || undefined });
   const rembourserMut = useRembourser();
 
   // Le backend renvoie { paiements, pagination: { total, totalPages, page, limit } }.
@@ -61,89 +68,125 @@ export default function PaymentsPage() {
   ];
 
   return (
-    <div>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.2rem', flexWrap: 'wrap', gap: '0.6rem' }}>
-        <div>
-          <div style={{ fontSize: '1.08rem', fontWeight: 700, color: 'var(--black)' }}>Paiements</div>
-          <div style={{ fontSize: '0.78rem', color: 'var(--text3)', marginTop: 2 }}>
-            {count} paiement{count > 1 ? 's' : ''} au total
-          </div>
-        </div>
+    <div className="space-y-3 sm:space-y-4">
+      <EntetePage
+        titre="Paiements"
+        soustitre={`${nombre(count)} paiement${count > 1 ? 's' : ''} au total`}
+      >
         {totalSucces > 0 && (
-          <div style={{ background: 'rgba(26,86,219,0.07)', border: '1px solid rgba(26,86,219,0.15)', borderRadius: 10, padding: '0.6rem 1.1rem', textAlign: 'right' }}>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text3)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.06em' }}>Total encaissé (page)</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--green)' }}>{fmtFcfa(totalSucces)}</div>
+          <div className="rounded-xl border border-green-100 bg-green-50 px-4 py-2 text-right">
+            <p className="text-xs font-medium text-green-700">Total encaissé (page)</p>
+            <p className="text-lg font-bold text-green-800 tabular-nums">{fmtFcfa(totalSucces)}</p>
           </div>
         )}
-      </div>
+      </EntetePage>
 
-      {/* Filtres */}
-      <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-        {FILTRES.map(f => (
-          <button key={f.val} className={`db-chip${statutFilter === f.val ? ' active' : ''}`}
-            onClick={() => { setStatutFilter(f.val); setPage(1); }}>
-            {f.label}
-          </button>
-        ))}
-      </div>
+      <Bloc>
+        <div className="p-3 sm:p-4 border-b border-gray-100">
+          <div className="inline-flex flex-wrap rounded-lg border border-gray-200 overflow-hidden">
+            {FILTRES.map((f) => (
+              <button
+                key={f.val}
+                type="button"
+                onClick={() => { setStatutFilter(f.val); setPage(1); }}
+                aria-pressed={statutFilter === f.val}
+                className={`px-3 py-2 text-sm font-medium border-r border-gray-200 last:border-r-0 transition-colors ${
+                  statutFilter === f.val ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
-      {/* Tableau */}
-      <div className="db-card">
         {isLoading ? (
-          <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text3)' }}>Chargement…</div>
+          <div className="p-8 text-center text-gray-400">Chargement…</div>
         ) : isError ? (
-          <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--red)' }}>Erreur lors du chargement.</div>
+          <ErreurChargement erreur={error} onReessayer={() => refetch()} defaut="Impossible de charger les paiements." />
         ) : payments.length === 0 ? (
-          <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text3)' }}>Aucun paiement trouvé.</div>
+          <div className="p-10 text-center">
+            <Icon name="wallet" size={28} className="mx-auto text-gray-300" />
+            <p className="mt-3 font-semibold text-gray-900">Aucun paiement</p>
+            <p className="mt-1 text-sm text-gray-500">Rien ne correspond à ce filtre.</p>
+          </div>
         ) : (
-          <div className="db-table-wrap tbl-wrap">
-            <table className="tbl-cards">
+          <div className="tbl-wrap">
+            <table className="w-full text-sm tbl-cards">
               <thead>
-                <tr>
-                  <th>Commande</th>
-                  <th>Client</th>
-                  <th>Méthode</th>
-                  <th>Montant</th>
-                  <th>Date</th>
-                  <th>Statut</th>
-                  <th>Actions</th>
+                <tr className="text-left">
+                  <th className="px-4">Commande</th>
+                  <th className="px-4">Client</th>
+                  <th className="px-4">Méthode</th>
+                  <th className="px-4">Montant</th>
+                  <th className="px-4">Statut</th>
+                  <th className="px-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {payments.map((p: Payment) => {
                   const s = STATUTS[p.statut];
-                  const user = (p as any).Commande?.User;
+                  const m = METHODES[p.methode];
+                  const commande = (p as any).Commande ?? (p as any).commande;
+                  const user = commande?.User ?? commande?.user;
                   return (
-                    <tr key={p.id} {...ouvrir(p.commandeId ? `/boutique/commandes/${p.commandeId}` : undefined)}>
-                      <td className="tbl-primary" style={{ fontFamily: 'monospace', fontSize: '0.82rem', fontWeight: 600 }}>
-                        #{p.commandeId?.slice(0, 8).toUpperCase() ?? '—'}
+                    <tr
+                      key={p.id}
+                      {...ouvrir(p.commandeId ? `/boutique/commandes/${p.commandeId}` : undefined)}
+                      className="border-b border-gray-50 last:border-0"
+                    >
+                      {/* Référence et date ensemble, comme sur la liste des commandes. */}
+                      <td className="px-4 tbl-primary">
+                        <p className="font-mono text-[13px] font-semibold text-gray-900 whitespace-nowrap">
+                          #{p.commandeId?.slice(0, 8).toUpperCase() ?? '—'}
+                        </p>
+                        <p className="text-[13px] text-gray-500 mt-0.5 whitespace-nowrap">
+                          {p.payeAt ? fmtDate(p.payeAt) : p.createdAt ? fmtDate(p.createdAt) : '—'}
+                        </p>
                       </td>
-                      <td data-label="Client">
+                      <td className="px-4" data-label="Client">
                         {user ? (
-                          <div>
-                            <div style={{ fontWeight: 600, fontSize: '0.87rem' }}>{user.nom} {user.prenom}</div>
-                            <div className="wrap-anywhere" style={{ fontSize: '0.72rem', color: 'var(--text3)' }}>{user.email}</div>
+                          <div className="min-w-0">
+                            <p className="font-medium text-gray-900 whitespace-nowrap">{user.prenom} {user.nom}</p>
+                            {user.email && (
+                              <p className="text-[13px] text-gray-500 wrap-anywhere">{user.email}</p>
+                            )}
                           </div>
-                        ) : <span style={{ color: 'var(--text3)' }}>—</span>}
-                      </td>
-                      <td style={{ fontSize: '0.84rem' }} data-label="Méthode">
-                        {/* Le backend expose `methode`, pas `methodePaiement`. */}
-                        {METHODES[p.methode] ?? p.methode ?? '—'}
-                      </td>
-                      <td className="db-td-bold" data-label="Montant" style={{ whiteSpace: 'nowrap' }}>{fmtFcfa(Number(p.montant))}</td>
-                      {/* Date et heure peuvent passer sur deux lignes : sur un
-                          petit portable, la colonne forçait un défilement. */}
-                      <td style={{ fontSize: '0.82rem', color: 'var(--text3)', minWidth: 88 }} data-label="Date">
-                        {p.payeAt ? fmtDate(p.payeAt) : p.createdAt ? fmtDate(p.createdAt) : '—'}
-                      </td>
-                      <td data-label="Statut"><span className={`badge ${s?.cls}`}>{s?.label ?? p.statut}</span></td>
-                      <td className="tbl-actions" data-label="Actions">
-                        {p.statut === 'succes' && (
-                          <button className="db-btn-ghost" onClick={() => confirmerRemboursement(p)}>
-                            Rembourser
-                          </button>
+                        ) : (
+                          <span className="text-gray-400">Client inconnu</span>
                         )}
+                      </td>
+                      <td className="px-4" data-label="Méthode">
+                        {/* Le backend expose `methode`, pas `methodePaiement`. */}
+                        <span className={`whitespace-nowrap px-2.5 py-1 rounded-full text-xs font-semibold ${m?.cls ?? 'bg-gray-100 text-gray-700'}`}>
+                          {m?.label ?? p.methode ?? '—'}
+                        </span>
+                      </td>
+                      <td className="px-4 whitespace-nowrap" data-label="Montant">
+                        <p className="font-semibold text-gray-900 tabular-nums text-right md:text-left">
+                          {fmtFcfa(Number(p.montant))}
+                        </p>
+                      </td>
+                      <td className="px-4" data-label="Statut">
+                        <span className={`whitespace-nowrap px-2.5 py-1 rounded-full text-xs font-semibold ${s?.cls ?? 'bg-gray-100 text-gray-700'}`}>
+                          {s?.label ?? p.statut}
+                        </span>
+                      </td>
+                      <td className="px-4 tbl-actions" data-label="Actions">
+                        <div className="flex items-center justify-end gap-1">
+                          {p.statut === 'succes' ? (
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); confirmerRemboursement(p); }}
+                              disabled={rembourserMut.isPending}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-200 text-red-600 hover:bg-red-50 disabled:opacity-50"
+                            >
+                              <Icon name="refresh-cw" size={13} /> Rembourser
+                            </button>
+                          ) : (
+                            <Icon name="chevron-right" size={16} className="text-gray-300" />
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -154,7 +197,7 @@ export default function PaymentsPage() {
         )}
 
         <Pagination page={page} totalPages={totalPages} onChange={setPage} />
-      </div>
+      </Bloc>
     </div>
   );
 }

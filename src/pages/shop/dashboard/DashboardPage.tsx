@@ -209,17 +209,8 @@ export default function DashboardPage() {
           survol="hover:shadow-lg hover:brightness-110"
           className="lg:col-span-2 relative overflow-hidden rounded-2xl p-5 sm:p-6 bg-gradient-to-br from-gray-900 via-gray-800 to-slate-700 text-white shadow-sm"
         >
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full bg-yellow-400/10"
-          />
           <div className="relative">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-sm sm:text-[15px] font-medium text-white/75">Chiffre d'affaires du mois</p>
-              <span className="w-10 h-10 rounded-xl bg-yellow-400 text-gray-900 flex items-center justify-center shrink-0">
-                <Icon name="trending-up" size={20} />
-              </span>
-            </div>
+            <p className="text-sm sm:text-[15px] font-medium text-white/75">Chiffre d'affaires du mois</p>
             <p className="text-3xl sm:text-4xl font-bold mt-2 break-words">
               <Montant valeur={kpi.caMois} />
             </p>

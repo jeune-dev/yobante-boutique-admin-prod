@@ -63,12 +63,20 @@
     @apply inline-flex items-center justify-center min-w-[36px] min-h-[36px] p-2 rounded-lg transition-colors;
   }
 
+  /* ── Bouton principal ──────────────────────────────────────────────────
+     Action principale d'une page (« Nouveau produit », « Créer… ») : même
+     jaune, même taille et même icône partout. Texte foncé : du blanc sur ce
+     jaune ne se lit pas. */
+  .btn-primaire {
+    @apply inline-flex items-center justify-center gap-1.5 px-4 py-2.5 sm:py-2 rounded-lg text-sm font-semibold bg-yellow-400 text-gray-900 shadow-sm transition-colors hover:bg-yellow-300 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300 focus-visible:ring-offset-1;
+  }
+
   /* ── Pagination ── */
   .pagination-btn {
     @apply inline-flex items-center justify-center min-w-[36px] h-9 px-2 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed;
   }
   .pagination-btn.active {
-    @apply bg-yellow-500 border-yellow-500 text-white hover:bg-yellow-500;
+    @apply bg-yellow-400 border-yellow-400 text-gray-900 hover:bg-yellow-400;
   }
 }
 

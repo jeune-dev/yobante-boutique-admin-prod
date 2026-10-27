@@ -179,7 +179,7 @@ export default function ProductDetailPage() {
                 <button
                   type="button"
                   onClick={() => setStockModal(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg bg-yellow-500 text-white hover:bg-yellow-600"
+                  className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg bg-yellow-400 text-gray-900 hover:bg-yellow-300"
                 >
                   <Icon name="package" size={15} /> Modifier le stock
                 </button>
