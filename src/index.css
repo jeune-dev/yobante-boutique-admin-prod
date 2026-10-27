@@ -7,6 +7,9 @@
     /* Évite le zoom automatique d'iOS sur les champs < 16px et garde une
        taille de base stable quel que soit l'écran. */
     -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
   /* Sur mobile, rien ne doit faire glisser la page à gauche ou à droite. */
   html,
@@ -16,8 +19,25 @@
     overflow-x: hidden;
   }
   body {
-    @apply bg-white text-gray-900;
+    @apply bg-gray-50 font-sans text-gray-900;
     overscroll-behavior-x: none;
+    /* Variantes d'Inter plus lisibles à petite taille : « 1 » à empattement,
+       « l » à crochet, pour ne pas confondre l, I et 1 dans une référence. */
+    font-feature-settings: 'cv05', 'cv08', 'ss03';
+  }
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.011em;
+  }
+  ::selection {
+    @apply bg-yellow-200 text-gray-900;
+  }
+  /* Cases à cocher et boutons radio aux couleurs de la marque, sans
+     remplacer le contrôle natif (accessibilité et clavier inchangés). */
+  input[type='checkbox'],
+  input[type='radio'] {
+    accent-color: #eab308;
   }
   select {
     max-width: 100%;
@@ -42,41 +62,140 @@
   }
 }
 
+/* ════════════════════════════════════════════════════════════════════════
+   Système de design de l'administration
+   ------------------------------------------------------------------------
+   Une seule source pour les cartes, boutons, champs, badges et fenêtres :
+   chaque page les emploie au lieu de réécrire ses propres classes, si bien
+   que deux écrans ne peuvent plus diverger d'un pixel.
+   Couleurs de la marque : jaune (action principale), noir (sélection,
+   action forte), gris (structure). Le reste ne sert qu'aux statuts.
+   ════════════════════════════════════════════════════════════════════════ */
 @layer components {
   .container {
     @apply mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* ── Cartes ───────────────────────────────────────────────────────────
+     Bordure nette et ombre très légère : la carte se détache du fond gris
+     sans effet de relief. */
+  .carte {
+    @apply rounded-xl border border-gray-200/80 bg-white shadow-carte;
+  }
+  .carte-entete {
+    @apply flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-4 py-3.5 sm:px-5;
+  }
+  .carte-titre {
+    @apply text-[15px] font-semibold leading-tight text-gray-900;
+  }
+  .carte-corps {
+    @apply p-4 sm:p-5;
+  }
+
+  /* ── Boutons ──────────────────────────────────────────────────────────
+     Même hauteur pour toutes les variantes (bordure comprise), pour que
+     deux boutons côte à côte soient toujours alignés. */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border px-3.5 py-2 text-sm font-semibold leading-5 transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  /* Action principale d'une page (« Nouveau produit », « Créer… ») : un
+     seul jaune par écran. Texte foncé : du blanc sur ce jaune ne se lit pas. */
+  .btn-primaire {
+    @apply btn border-yellow-400 bg-yellow-400 text-gray-900 shadow-xs hover:border-yellow-300 hover:bg-yellow-300 focus-visible:ring-yellow-400;
+  }
+  .btn-secondaire {
+    @apply btn border-gray-300 bg-white text-gray-700 shadow-xs hover:bg-gray-50 hover:text-gray-900 focus-visible:ring-gray-300;
+  }
+  .btn-sombre {
+    @apply btn border-gray-900 bg-gray-900 text-white shadow-xs hover:border-gray-800 hover:bg-gray-800 focus-visible:ring-gray-400;
+  }
+  .btn-danger {
+    @apply btn border-red-600 bg-red-600 text-white shadow-xs hover:border-red-700 hover:bg-red-700 focus-visible:ring-red-300;
+  }
+  /* Action destructive secondaire : rouge sur blanc, sans crier. */
+  .btn-danger-doux {
+    @apply btn border-gray-300 bg-white text-red-600 shadow-xs hover:border-red-200 hover:bg-red-50 focus-visible:ring-red-200;
+  }
+  .btn-succes {
+    @apply btn border-green-600 bg-green-600 text-white shadow-xs hover:border-green-700 hover:bg-green-700 focus-visible:ring-green-300;
+  }
+  .btn-fantome {
+    @apply btn border-transparent bg-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus-visible:ring-gray-300;
+  }
+  .btn-sm {
+    @apply gap-1.5 px-2.5 py-1.5 text-xs;
+  }
+
+  /* ── Boutons d'icône ───────────────────────────────────────────────────
+     Zone tactile d'au moins 36px, sans changer l'icône elle-même. */
+  .btn-icon {
+    @apply inline-flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg p-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-300;
+  }
+
+  /* ── Champs de saisie ─────────────────────────────────────────────────
+     Pas de largeur imposée : un champ garde la largeur que lui donne sa
+     page (pleine largeur dans un formulaire, étroit dans une barre). */
+  .champ {
+    @apply rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-xs transition-[border-color,box-shadow] duration-150 placeholder:text-gray-400 focus:border-yellow-500 focus:outline-none focus:ring-4 focus:ring-yellow-400/20 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500;
+  }
+  .etiquette {
+    @apply mb-1.5 block text-sm font-medium text-gray-700;
+  }
+  .aide-champ {
+    @apply mt-1.5 text-xs text-gray-500;
+  }
+
+  /* ── Badges ───────────────────────────────────────────────────────────
+     La couleur vient de la page (statut) ; le badge n'apporte que la forme
+     et un fin liseré qui le garde lisible sur fond blanc comme sur fond gris. */
+  .badge {
+    @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ring-gray-900/[0.06];
+  }
+
+  /* Pastille de couleur (statut, niveau de stock) : remplace les emojis,
+     dont le dessin change d'un ordinateur à l'autre. */
+  .puce {
+    @apply inline-block h-2 w-2 shrink-0 rounded-full;
+  }
+
+  /* ── Sélecteur segmenté ───────────────────────────────────────────────
+     Filtres exclusifs (statut, période) : un seul choix actif, en noir. */
+  .segments {
+    @apply inline-flex max-w-full flex-wrap items-center gap-0.5 rounded-lg border border-gray-200 bg-white p-0.5 shadow-xs;
+  }
+  .segment {
+    @apply whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-300;
+  }
+  .segment[aria-pressed='true'],
+  .segment[aria-selected='true'],
+  .segment.actif {
+    @apply bg-gray-900 text-white shadow-xs hover:bg-gray-900 hover:text-white;
   }
 
   /* ── Modales ─────────────────────────────────────────────────────────
      Fond plein écran avec marge intérieure : la fenêtre ne touche jamais
      les bords, et son contenu défile en interne si l'écran est bas. */
   .modal-overlay {
-    @apply fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 sm:p-4 bg-black/40;
+    @apply fixed inset-0 z-50 flex animate-apparition items-end justify-center bg-gray-900/50 p-3 backdrop-blur-[2px] sm:items-center sm:p-4;
   }
   .modal-box {
-    @apply w-full max-h-[calc(100vh-1.5rem)] sm:max-h-[calc(100vh-2rem)] overflow-y-auto bg-white shadow-2xl rounded-2xl;
+    @apply max-h-[calc(100vh-1.5rem)] w-full animate-apparition-fenetre overflow-y-auto rounded-2xl bg-white shadow-flottant ring-1 ring-gray-900/5 sm:max-h-[calc(100vh-2rem)];
   }
 
-  /* ── Boutons d'icône ───────────────────────────────────────────────────
-     Zone tactile d'au moins 36px, sans changer l'icône elle-même. */
-  .btn-icon {
-    @apply inline-flex items-center justify-center min-w-[36px] min-h-[36px] p-2 rounded-lg transition-colors;
+  /* ── États vides et chargement ───────────────────────────────────────── */
+  .etat-vide {
+    @apply flex flex-col items-center justify-center px-6 py-12 text-center;
   }
-
-  /* ── Bouton principal ──────────────────────────────────────────────────
-     Action principale d'une page (« Nouveau produit », « Créer… ») : même
-     jaune, même taille et même icône partout. Texte foncé : du blanc sur ce
-     jaune ne se lit pas. */
-  .btn-primaire {
-    @apply inline-flex items-center justify-center gap-1.5 px-4 py-2.5 sm:py-2 rounded-lg text-sm font-semibold bg-yellow-400 text-gray-900 shadow-sm transition-colors hover:bg-yellow-300 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300 focus-visible:ring-offset-1;
+  .etat-vide-icone {
+    @apply mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-gray-100 text-gray-400;
   }
 
   /* ── Pagination ── */
   .pagination-btn {
-    @apply inline-flex items-center justify-center min-w-[36px] h-9 px-2 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed;
+    @apply inline-flex h-9 min-w-[36px] items-center justify-center rounded-lg border border-gray-200 bg-white px-2 text-sm font-medium text-gray-600 shadow-xs transition-colors hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40;
   }
   .pagination-btn.active {
-    @apply bg-yellow-400 border-yellow-400 text-gray-900 hover:bg-yellow-400;
+    @apply border-gray-900 bg-gray-900 text-white hover:bg-gray-900 hover:text-white;
   }
 }
 
@@ -140,26 +259,41 @@
    Chaque page posait ses propres classes d'entête (gris pâle, 11px) : la
    règle ci-dessous, plus spécifique qu'une classe utilitaire, aligne tous
    les tableaux sur un même entête lisible et des lignes plus aérées, sans
-   toucher au contenu des pages. */
+   toucher au contenu des pages. Les chiffres ont tous la même largeur, pour
+   que les montants s'alignent d'une ligne à l'autre. */
 .tbl-wrap > table {
   font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  border-collapse: collapse;
 }
 @media (min-width: 768px) {
   .tbl-wrap > table > thead th {
-    background-color: #f9fafb;
-    color: #6b7280;
-    font-size: 0.75rem;
+    background-color: rgb(249 250 251);
+    color: rgb(102 112 133);
+    font-size: 0.6875rem;
     font-weight: 600;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
     white-space: nowrap;
-    border-bottom: 1px solid #f3f4f6;
+    border-top: 1px solid rgb(234 236 240);
+    border-bottom: 1px solid rgb(234 236 240);
   }
   .tbl-wrap > table > tbody > tr > td {
     padding-top: 0.875rem;
     padding-bottom: 0.875rem;
+    vertical-align: middle;
+  }
+  .tbl-wrap > table > tbody > tr {
+    border-bottom: 1px solid rgb(242 244 247);
+    transition: background-color 120ms ease;
+  }
+  .tbl-wrap > table > tbody > tr:last-child {
+    border-bottom: 0;
+  }
+  .tbl-wrap > table > tbody > tr:hover {
+    background-color: rgb(249 250 251 / 0.7);
   }
 }
 
@@ -301,8 +435,11 @@ main textarea.text-xs {
 [data-ligne-cliquable]:hover {
   background-color: rgb(249 250 251);
 }
+[data-ligne-cliquable]:hover td:first-child {
+  box-shadow: inset 2px 0 0 rgb(250 204 21);
+}
 [data-ligne-cliquable]:focus-visible {
-  outline: 2px solid rgb(253 224 71);
+  outline: 2px solid rgb(250 204 21);
   outline-offset: -2px;
 }
 

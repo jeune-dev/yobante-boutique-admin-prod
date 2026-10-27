@@ -23,7 +23,7 @@ export default function ProfilPage() {
       <header>
         {/* Ouvert depuis l'entête : retour à la page quittée ; sinon tableau de bord. */}
         <AdminBackButton parent="/boutique/dashboard" className="mb-3" />
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Mon profil</h1>
+        <h1 className="text-[22px] sm:text-2xl font-semibold tracking-tight text-gray-900">Mon profil</h1>
         <p className="text-sm text-gray-500 mt-1">Vos informations et votre mot de passe.</p>
       </header>
 
@@ -43,8 +43,8 @@ export default function ProfilPage() {
 function Identite({ utilisateur }: { utilisateur: any }) {
   const initiales = `${utilisateur.prenom?.[0] ?? ''}${utilisateur.nom?.[0] ?? ''}`.toUpperCase();
   return (
-    <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
-      <div className="w-14 h-14 shrink-0 rounded-xl bg-yellow-50 text-yellow-700 flex items-center justify-center font-bold text-lg">
+    <section className="carte p-5 flex items-center gap-4">
+      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gray-900 text-lg font-semibold text-yellow-400">
         {initiales || <Icon name="user" size={22} />}
       </div>
       <div className="min-w-0">
@@ -83,7 +83,7 @@ function Informations({
   });
 
   return (
-    <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+    <section className="carte p-5">
       <h2 className="font-semibold text-gray-900 mb-4">Informations</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Champ label="Prénom" valeur={prenom} onChange={setPrenom} autoComplete="given-name" />
@@ -93,7 +93,7 @@ function Informations({
       <button
         onClick={() => enregistrer.mutate()}
         disabled={enregistrer.isPending}
-        className="mt-4 px-4 py-2 text-sm font-semibold rounded-lg bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-50"
+        className="btn-sombre mt-4"
       >
         {enregistrer.isPending ? 'Enregistrement…' : 'Enregistrer'}
       </button>
@@ -130,7 +130,7 @@ function MotDePasse() {
   };
 
   return (
-    <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+    <section className="carte p-5">
       <h2 className="font-semibold text-gray-900 mb-4">Mot de passe</h2>
       <div className="space-y-3">
         <Champ
@@ -158,7 +158,7 @@ function MotDePasse() {
       <button
         onClick={valider}
         disabled={changer.isPending}
-        className="mt-4 px-4 py-2 text-sm font-semibold rounded-lg bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-50"
+        className="btn-sombre mt-4"
       >
         {changer.isPending ? 'Modification…' : 'Changer le mot de passe'}
       </button>
@@ -195,7 +195,7 @@ function Champ({
         value={valeur}
         onChange={(e) => onChange(e.target.value)}
         autoComplete={autoComplete}
-        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
+        className="champ w-full"
       />
     </div>
   );

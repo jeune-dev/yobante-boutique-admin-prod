@@ -97,7 +97,7 @@ export default function ReversementsPage() {
       >
         <Link
           to="/boutique/finance/commissions"
-          className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-semibold rounded-lg bg-gray-900 text-white hover:bg-gray-800"
+          className="btn-sombre btn-sm"
         >
           <Icon name="plus" size={15} /> Nouveau reversement
         </Link>
@@ -120,7 +120,7 @@ export default function ReversementsPage() {
       </div>
 
       <Bloc className="p-3 sm:p-4">
-        <div className="inline-flex flex-wrap rounded-lg border border-gray-200 overflow-hidden">
+        <div className="segments">
           {FILTRES.map((f) => (
             <button
               key={f.libelle}
@@ -130,9 +130,7 @@ export default function ReversementsPage() {
                 setPage(1);
               }}
               aria-pressed={statut === f.valeur}
-              className={`px-3 py-2 text-sm font-medium border-r border-gray-200 last:border-r-0 transition-colors ${
-                statut === f.valeur ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
-              }`}
+              className={`segment ${statut === f.valeur ? 'actif' : ''}`}
             >
               {f.libelle}
             </button>
@@ -198,7 +196,7 @@ export default function ReversementsPage() {
                       </td>
                       <td data-label="Statut" className="px-3 sm:px-4 py-2.5">
                         <span
-                          className={`text-xs font-medium px-2 py-0.5 rounded-full ${CLASSE_STATUT_REVERSEMENT[r.statut]}`}
+                          className={`badge ${CLASSE_STATUT_REVERSEMENT[r.statut]}`}
                         >
                           {LIBELLE_STATUT_REVERSEMENT[r.statut]}
                         </span>

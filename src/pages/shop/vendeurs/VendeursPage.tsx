@@ -272,7 +272,7 @@ export default function VendeursPage() {
         </button>
       </EntetePage>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+      <div className="carte">
         <BarreFiltres
           nbActifs={nbActifs}
           onReinitialiser={() =>
@@ -284,7 +284,7 @@ export default function VendeursPage() {
               onChange={(e) => setFiltres({ q: e.target.value, page: '1' })}
               placeholder="Rechercher un vendeur…"
               aria-label="Rechercher un vendeur"
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              className="champ w-full sm:w-64"
             />
           }
           actions={
@@ -476,7 +476,7 @@ export default function VendeursPage() {
             className="modal-box max-w-md p-5 sm:p-6"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-lg font-bold mb-1">Nouveau vendeur</h2>
+            <h2 className="text-lg font-semibold mb-1 text-gray-900">Nouveau vendeur</h2>
             <p className="text-xs text-gray-500 mb-4">
               Le compte sera <strong>actif immédiatement</strong>. Le vendeur reçoit par email son
               identifiant et le mot de passe ci-dessous, et se connecte depuis{' '}
@@ -490,7 +490,7 @@ export default function VendeursPage() {
                     required
                     value={form.prenom}
                     onChange={(e) => setForm((f) => ({ ...f, prenom: e.target.value }))}
-                    className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                    className="champ mt-1 w-full"
                   />
                 </div>
                 <div>
@@ -499,7 +499,7 @@ export default function VendeursPage() {
                     required
                     value={form.nom}
                     onChange={(e) => setForm((f) => ({ ...f, nom: e.target.value }))}
-                    className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                    className="champ mt-1 w-full"
                   />
                 </div>
               </div>
@@ -511,7 +511,7 @@ export default function VendeursPage() {
                   {...SANS_AUTOREMPLISSAGE}
                   value={form.email}
                   onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                  className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                  className="champ mt-1 w-full"
                 />
               </div>
               <div>
@@ -549,7 +549,7 @@ export default function VendeursPage() {
                     maxLength={72}
                     value={form.password}
                     onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 pr-20 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                    className="champ w-full pr-20 font-mono"
                   />
                   <button
                     type="button"
@@ -586,7 +586,7 @@ export default function VendeursPage() {
                   required
                   value={form.nomBoutique}
                   onChange={(e) => setForm((f) => ({ ...f, nomBoutique: e.target.value }))}
-                  className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                  className="champ mt-1 w-full"
                 />
               </div>
               <div>
@@ -594,7 +594,7 @@ export default function VendeursPage() {
                 <input
                   value={form.adresseBoutique}
                   onChange={(e) => setForm((f) => ({ ...f, adresseBoutique: e.target.value }))}
-                  className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                  className="champ mt-1 w-full"
                 />
               </div>
               <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2">
@@ -608,7 +608,7 @@ export default function VendeursPage() {
                 <button
                   type="submit"
                   disabled={creerMutation.isPending}
-                  className="px-4 py-2.5 sm:py-2 text-sm bg-yellow-400 text-gray-900 rounded-lg hover:bg-yellow-300 disabled:opacity-60"
+                  className="btn-primaire sm:py-2"
                 >
                   {creerMutation.isPending ? 'Création…' : 'Créer'}
                 </button>
@@ -659,7 +659,7 @@ function CelluleFiabilite({ fiabilite }: { fiabilite?: any }) {
     <div
       title={`${annulationsImputables} annulation(s) et ${retoursImputables} retour(s) imputables sur ${commandesTotal} commande(s)`}
     >
-      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${teinte}`}>
+      <span className={`badge ${teinte}`}>
         {scoreFiabilite}%
       </span>
       <span className="block text-xs text-gray-400 mt-0.5">

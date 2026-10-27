@@ -29,15 +29,13 @@ export default function ErreurChargement({
   className = '',
 }: Props) {
   return (
-    <div className={`p-8 text-center ${className}`} role="alert">
-      <Icon name="alert-triangle" size={26} className="mx-auto text-red-400" />
-      <p className="mt-3 text-sm font-semibold text-gray-900">{messageDe(erreur, defaut)}</p>
+    <div className={`etat-vide ${className}`} role="alert">
+      <span className="etat-vide-icone bg-red-50 text-red-500">
+        <Icon name="alert-triangle" size={20} />
+      </span>
+      <p className="text-sm font-semibold text-gray-900">{messageDe(erreur, defaut)}</p>
       {onReessayer && (
-        <button
-          type="button"
-          onClick={onReessayer}
-          className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-gray-900 text-white hover:bg-gray-800"
-        >
+        <button type="button" onClick={onReessayer} className="btn-sombre mt-4">
           <Icon name="refresh-cw" size={14} /> Réessayer
         </button>
       )}

@@ -28,8 +28,12 @@ const FILTRES_STATUT = [
   { label: 'Bloqués', val: false, url: 'bloques' },
 ];
 
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+function fmtDate(iso?: string | null) {
+  // La liste de l'API n'envoie pas toujours la date d'inscription : un tiret
+  // plutôt que « Invalid Date ».
+  const d = iso ? new Date(iso) : null;
+  if (!d || Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 function initiales(u: ShopUser) {
@@ -218,7 +222,7 @@ export default function UsersPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+      <div className="carte">
         <BarreFiltres
           nbActifs={nbActifs}
           onReinitialiser={() =>
@@ -250,11 +254,11 @@ export default function UsersPage() {
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Rechercher un client (nom, email)…"
                 aria-label="Rechercher un client"
-                className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-72 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                className="champ w-full sm:w-72"
               />
               <button
                 type="submit"
-                className="bg-yellow-400 text-gray-900 px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-300"
+                className="btn-primaire"
               >
                 Rechercher
               </button>
@@ -349,7 +353,7 @@ export default function UsersPage() {
                   <tr key={u.id} {...ouvrir(`/boutique/clients/${u.id}`)} className="border-b border-gray-50">
                     <td className="p-4 tbl-primary">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-blue-900 text-white text-xs font-bold flex items-center justify-center shrink-0">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-900 text-xs font-semibold text-white">
                           {initiales(u)}
                         </div>
                         <div className="min-w-0">

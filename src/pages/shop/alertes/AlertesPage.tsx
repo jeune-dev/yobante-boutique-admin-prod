@@ -15,6 +15,7 @@ import {
   PUCE_GRAVITE,
   type Alerte,
 } from '@/domains/shop/types/analytique';
+import Puce from '@/shared/components/dashboard/Puce';
 
 /** Seuils d'annulation proposés, en pourcentage. */
 const SEUILS = [3, 5, 10];
@@ -67,18 +68,14 @@ export default function AlertesPage() {
       >
         <div className="inline-flex items-center gap-1.5 text-xs">
           <span className="text-gray-500">Seuil d'annulation</span>
-          <div className="inline-flex rounded-lg border border-gray-200 overflow-hidden">
+          <div className="segments">
             {SEUILS.map((s) => (
               <button
                 key={s}
                 type="button"
                 onClick={() => setSeuilAnnulation(s)}
                 aria-pressed={seuilAnnulation === s}
-                className={`px-3 py-2 text-sm font-medium border-r border-gray-200 last:border-r-0 transition-colors ${
-                  seuilAnnulation === s
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-white text-gray-600 hover:bg-gray-50'
-                }`}
+                className={`segment ${seuilAnnulation === s ? 'actif' : ''}`}
               >
                 {s} %
               </button>
@@ -129,7 +126,7 @@ export default function AlertesPage() {
 function GroupeAlertes({ titre, alertes }: { titre: string; alertes: Alerte[] }) {
   return (
     <section className="space-y-2.5 sm:space-y-3">
-      <h2 className="flex items-center gap-2 text-sm font-bold text-gray-700 uppercase tracking-wide">
+      <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-700 uppercase tracking-wide">
         <span
           aria-hidden="true"
           className={`w-2.5 h-2.5 rounded-full ${titre === 'Critique' ? 'bg-red-500' : 'bg-orange-500'}`}
@@ -158,7 +155,7 @@ function CarteAlerte({ alerte }: { alerte: Alerte }) {
         <div className="min-w-0">
           <p className="flex items-baseline gap-2">
             <span
-              className={`text-3xl font-bold leading-none tabular-nums ${
+              className={`text-3xl font-semibold tracking-tight leading-none tabular-nums ${
                 vide ? 'text-gray-400' : alerte.gravite === 'critique' ? 'text-red-600' : 'text-orange-600'
               }`}
             >
@@ -173,11 +170,11 @@ function CarteAlerte({ alerte }: { alerte: Alerte }) {
           )}
         </div>
         <span
-          className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full border ${
+          className={`badge shrink-0 border ${
             vide ? 'bg-gray-50 text-gray-500 border-gray-200' : CLASSE_GRAVITE[alerte.gravite]
           }`}
         >
-          <span aria-hidden="true">{vide ? '🟢' : PUCE_GRAVITE[alerte.gravite]} </span>
+          <Puce valeur={vide ? '🟢' : PUCE_GRAVITE[alerte.gravite]} />
           {vide ? 'Rien' : alerte.gravite === 'critique' ? 'Critique' : 'Attention'}
         </span>
       </div>
@@ -196,7 +193,7 @@ function CarteAlerte({ alerte }: { alerte: Alerte }) {
       {!vide && (
         <Link
           to={alerte.lien}
-          className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-gray-900 px-3.5 py-2 text-sm font-semibold text-white hover:bg-gray-800"
+          className="btn-sombre mt-3"
         >
           Traiter <Icon name="arrow-right" size={15} />
         </Link>

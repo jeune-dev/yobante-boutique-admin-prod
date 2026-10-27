@@ -17,6 +17,8 @@ import {
   type EntreeHistorique,
   type Responsabilite,
 } from '@/domains/shop/types/indicateurs';
+import { montant } from '@/shared/utils/format';
+import { LIBELLE_METHODE_PAIEMENT, LIBELLE_STATUT_PAIEMENT } from '@/domains/shop/api/payments.api';
 
 /** Statuts clos : ni modifiables, ni annulables. */
 const STATUTS_CLOS = ['livree', 'annulee', 'rejetee'];
@@ -173,7 +175,7 @@ export default function OrderDetailPage() {
       <div className="flex flex-wrap items-start justify-between gap-4 mb-5">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 min-w-0">
+            <h1 className="text-[22px] sm:text-2xl font-semibold tracking-tight text-gray-900 min-w-0">
               Commande {commande.reference}
             </h1>
             <span
@@ -225,7 +227,7 @@ export default function OrderDetailPage() {
                   <button
                     onClick={() => setModaleModification(true)}
                     disabled={modifier.isPending}
-                    className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 disabled:opacity-60"
+                    className="btn-sombre"
                   >
                     Enregistrer les quantités
                   </button>
@@ -234,7 +236,7 @@ export default function OrderDetailPage() {
                       setModeEdition(false);
                       setQuantites({});
                     }}
-                    className="px-4 py-2 border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50"
+                    className="btn-secondaire"
                   >
                     Abandonner la modification
                   </button>
@@ -242,7 +244,7 @@ export default function OrderDetailPage() {
               ) : (
                 <button
                   onClick={() => setModeEdition(true)}
-                  className="px-4 py-2 border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50"
+                  className="btn-secondaire"
                 >
                   Modifier les quantités
                 </button>
@@ -276,7 +278,7 @@ export default function OrderDetailPage() {
                 : undefined
             }
           />
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+          <div className="carte">
             <div className="p-4 border-b border-gray-100">
               <h2 className="font-semibold text-gray-900">Articles</h2>
             </div>
@@ -328,20 +330,20 @@ export default function OrderDetailPage() {
                               }))
                             }
                             aria-label={`Quantité pour ${item.produit?.nom ?? 'cet article'}`}
-                            className="w-20 border border-gray-200 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                            className="champ w-20 px-2 py-1"
                           />
                         ) : (
                           item.quantite
                         )}
                       </td>
-                      <td className="p-4 whitespace-nowrap" data-label="Prix unit.">{item.prixUnitaire?.toLocaleString('fr-FR')} FCFA</td>
+                      <td className="p-4 whitespace-nowrap" data-label="Prix unit.">{montant(item.prixUnitaire)}</td>
                       <td className="p-4 font-medium whitespace-nowrap" data-label="Sous-total">
                         {item.enRupture ? (
                           <span className="text-gray-400 line-through">
-                            {item.sousTotal?.toLocaleString('fr-FR')} FCFA
+                            {montant(item.sousTotal)}
                           </span>
                         ) : (
-                          <>{item.sousTotal?.toLocaleString('fr-FR')} FCFA</>
+                          <>{montant(item.sousTotal)}</>
                         )}
                       </td>
                       {peutAgir && !modeEdition && (
@@ -367,8 +369,9 @@ export default function OrderDetailPage() {
               </table>
             </div>
             <div className="flex justify-end p-4 border-t border-gray-100">
-              <span className="font-bold text-lg">
-                Total : {commande.montantTotal?.toLocaleString('fr-FR')} FCFA
+              <span className="text-lg font-semibold tracking-tight text-gray-900 tabular-nums">
+                <span className="mr-2 text-sm font-medium text-gray-500">Total</span>
+                {montant(commande.montantTotal)}
               </span>
             </div>
           </div>
@@ -418,7 +421,7 @@ export default function OrderDetailPage() {
               montant auprès du client et d'alimenter le suivi des vendeurs. */}
           {Array.isArray(commande.historiqueModifications) &&
             commande.historiqueModifications.length > 0 && (
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+              <div className="carte">
                 <div className="p-4 border-b border-gray-100">
                   <h2 className="font-semibold text-gray-900">
                     Historique ({commande.historiqueModifications.length})
@@ -462,7 +465,7 @@ export default function OrderDetailPage() {
         {/* Colonne latérale : qui, où, et le changement de statut. */}
         <aside className="space-y-5 min-w-0 lg:sticky lg:top-0">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-5">
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+            <div className="carte p-4">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Client</p>
               <p className="font-semibold text-gray-900">
                 {commande.user?.prenom} {commande.user?.nom}
@@ -470,27 +473,33 @@ export default function OrderDetailPage() {
               <p className="text-sm text-gray-500">{commande.user?.email}</p>
               <p className="text-sm text-gray-500">{commande.user?.telephone}</p>
             </div>
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+            <div className="carte p-4">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Livraison</p>
               <p className="font-semibold text-gray-900">{commande.adresse?.ville || '—'}</p>
               <p className="text-sm text-gray-500">{commande.adresse?.rue || ''}</p>
               <p className="text-sm text-gray-500 mt-1">
                 {/* Le backend renvoie le paiement comme association (`paiement.methode`). */}
-                Paiement : {commande.paiement?.methode ?? commande.methodePaiement ?? '—'}
-                {commande.paiement?.statut ? ` (${commande.paiement.statut})` : ''}
+                Paiement :{' '}
+                {(() => {
+                  const code = commande.paiement?.methode ?? commande.methodePaiement;
+                  return code ? (LIBELLE_METHODE_PAIEMENT[code] ?? code) : '—';
+                })()}
+                {commande.paiement?.statut
+                  ? ` (${LIBELLE_STATUT_PAIEMENT[commande.paiement.statut] ?? commande.paiement.statut})`
+                  : ''}
               </p>
             </div>
           </div>
           {/* Changement de statut : seules les étapes possibles sont proposées. */}
           {etapes.length > 0 && (
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+            <div className="carte p-4">
               <h2 className="font-semibold text-gray-900 mb-3">Statut de la commande</h2>
               <div className="flex flex-col gap-3">
                 <select
                   value={nouveauStatut}
                   onChange={(e) => setNouveauStatut(e.target.value)}
                   aria-label="Nouveau statut"
-                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-yellow-300 w-full"
+                  className="champ w-full"
                 >
                   <option value="">Choisir un statut…</option>
                   {etapes.map((s) => (
@@ -503,12 +512,12 @@ export default function OrderDetailPage() {
                   value={noteStatut}
                   onChange={(e) => setNoteStatut(e.target.value)}
                   placeholder="Note interne (facultatif)"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                  className="champ w-full"
                 />
                 <button
                   onClick={() => statutMutation.mutate()}
                   disabled={!nouveauStatut || statutMutation.isPending}
-                  className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
+                  className="btn-sombre"
                 >
                   {statutMutation.isPending ? 'Mise à jour…' : 'Mettre à jour'}
                 </button>
@@ -530,7 +539,7 @@ export default function OrderDetailPage() {
         <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Rejeter la commande">
           <div className="modal-box max-w-md">
             <div className="p-5 sm:p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
                 Rejeter la commande
               </h2>
               <p className="text-sm text-gray-600 mb-4">
@@ -542,7 +551,7 @@ export default function OrderDetailPage() {
                 placeholder="Motif du rejet (ex: Stock insuffisant, Produit indisponible)…"
                 aria-label="Motif du rejet"
                 maxLength={500}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none"
+                className="champ w-full resize-none focus:border-red-400 focus:ring-red-400/20"
                 rows={4}
               />
               <div className="flex gap-3 mt-6">
@@ -711,7 +720,7 @@ function ModaleMotif({
     <div className="modal-overlay" role="dialog" aria-modal="true" aria-label={titre}>
       <div className="modal-box max-w-md">
         <div className="p-5 sm:p-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-2">{titre}</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">{titre}</h2>
           <p className="text-sm text-gray-600 mb-4">{explication}</p>
 
           <label className="text-sm font-medium text-gray-700" htmlFor="motif-commande">
@@ -724,9 +733,7 @@ function ModaleMotif({
             placeholder="Ex. : stock annoncé à tort par le vendeur, client injoignable…"
             maxLength={500}
             rows={3}
-            className={`mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 resize-none ${
-              danger ? 'focus:ring-red-300' : 'focus:ring-yellow-300'
-            }`}
+            className={`champ mt-1 w-full resize-none ${danger ? 'focus:border-red-400 focus:ring-red-400/20' : ''}`}
           />
 
           <label className="text-sm font-medium text-gray-700 mt-4 block" htmlFor="resp-commande">
@@ -736,7 +743,7 @@ function ModaleMotif({
             id="resp-commande"
             value={responsabilite}
             onChange={(e) => onResponsabiliteChange(e.target.value as Responsabilite | '')}
-            className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+            className="champ mt-1 w-full"
           >
             <option value="">Personne en particulier</option>
             {RESPONSABILITES.map((r) => (
@@ -878,7 +885,7 @@ function DisponibilitesVendeurs({
               {v.statut === 'refusee' && onRupture && (
                 <button
                   onClick={() => onRupture(v)}
-                  className="mt-3 text-sm font-medium px-3 py-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700"
+                  className="btn-danger btn-sm mt-3"
                 >
                   Marquer en rupture de stock et prévenir le client
                 </button>
@@ -921,8 +928,8 @@ function ModaleRuptureStock({
   const valide = valeur.produitIds.length > 0 && valeur.motif.trim().length >= 3;
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
+    <div className="modal-overlay">
+      <div className="modal-box max-w-md p-6">
         <h3 className="font-semibold text-lg text-gray-900 mb-1">Rupture de stock</h3>
         <p className="text-sm text-gray-500 mb-4">
           Le client sera prévenu par notification et par e-mail, avec ce motif. Les produits
@@ -950,7 +957,7 @@ function ModaleRuptureStock({
           onChange={(e) => onChange({ ...valeur, motif: e.target.value })}
           rows={3}
           placeholder="Ex : produit épuisé chez le vendeur"
-          className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-200"
+          className="champ mt-1 w-full focus:border-red-400 focus:ring-red-400/20"
         />
         <div className="flex justify-end gap-2 mt-4">
           <button onClick={onAnnuler} className="px-4 py-2 text-sm rounded-lg border border-gray-200">

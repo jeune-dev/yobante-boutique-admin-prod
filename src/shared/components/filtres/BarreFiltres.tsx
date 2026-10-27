@@ -4,8 +4,7 @@ import type { ToutesLesLignes } from '@/shared/hooks/useListeFiltree';
 import { LIMITE_LIGNES } from '@/shared/hooks/useListeFiltree';
 import { showError, showSuccess, showWarning } from '@/shared/utils/alert';
 
-const CHAMP =
-  'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-yellow-300';
+const CHAMP = 'champ w-full';
 
 /**
  * En-tête de liste : recherche, bouton « Filtres » (avec le nombre de filtres
@@ -29,25 +28,25 @@ export function BarreFiltres({
 
   return (
     <div className="border-b border-gray-100">
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4">
+      <div className="flex flex-col gap-3 px-4 py-3.5 sm:flex-row sm:items-center sm:px-5">
         {recherche}
         <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
           <button
             type="button"
             onClick={() => setOuvert((o) => !o)}
             aria-expanded={ouvert}
-            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
+            className={
               nbActifs > 0
-                ? 'bg-yellow-50 border-yellow-300 text-yellow-800'
-                : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
-            }`}
+                ? 'btn border-yellow-300 bg-yellow-50 text-yellow-900 shadow-xs hover:bg-yellow-100 focus-visible:ring-yellow-300'
+                : `btn-secondaire ${ouvert ? 'bg-gray-50' : ''}`
+            }
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h18l-7 8.5V19l-4 2v-8.5L3 4z" />
             </svg>
             Filtres
             {nbActifs > 0 && (
-              <span className="ml-0.5 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full bg-yellow-400 text-gray-900 text-xs font-bold">
+              <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-yellow-400 px-1 text-xs font-bold text-gray-900">
                 {nbActifs}
               </span>
             )}
@@ -56,7 +55,7 @@ export function BarreFiltres({
             <button
               type="button"
               onClick={onReinitialiser}
-              className="px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-100"
+              className="btn-fantome"
             >
               Réinitialiser
             </button>
@@ -65,7 +64,9 @@ export function BarreFiltres({
         </div>
       </div>
       {ouvert && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 px-4 pb-4">{children}</div>
+        <div className="grid animate-apparition grid-cols-1 gap-x-4 gap-y-3 border-t border-gray-100 bg-gray-50/60 px-4 py-4 sm:grid-cols-2 sm:px-5 lg:grid-cols-4">
+          {children}
+        </div>
       )}
     </div>
   );
@@ -74,7 +75,7 @@ export function BarreFiltres({
 export function ChampFiltre({ libelle, children }: { libelle: string; children: ReactNode }) {
   return (
     <label className="block">
-      <span className="block text-xs font-medium text-gray-500 mb-1">{libelle}</span>
+      <span className="mb-1.5 block text-xs font-medium text-gray-600">{libelle}</span>
       {children}
     </label>
   );
@@ -121,7 +122,7 @@ export function FiltrePeriode({
 }) {
   return (
     <fieldset>
-      <legend className="block text-xs font-medium text-gray-500 mb-1">{libelle}</legend>
+      <legend className="mb-1.5 block text-xs font-medium text-gray-600">{libelle}</legend>
       <div className="flex items-center gap-2">
         <input
           type="date"
@@ -159,7 +160,7 @@ export function FiltreIntervalle({
 }) {
   return (
     <fieldset>
-      <legend className="block text-xs font-medium text-gray-500 mb-1">{libelle}</legend>
+      <legend className="mb-1.5 block text-xs font-medium text-gray-600">{libelle}</legend>
       <div className="flex items-center gap-2">
         <input
           type="number"
@@ -235,7 +236,7 @@ export function BoutonExportExcel<T>({
       type="button"
       onClick={exporter}
       disabled={enCours}
-      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700 disabled:opacity-60"
+      className="btn-succes"
     >
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v11m0 0-4-4m4 4 4-4M4 19h16" />

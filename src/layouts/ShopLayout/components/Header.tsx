@@ -4,7 +4,7 @@ import { etatRetour } from '@/shared/hooks/useRetour';
 import { useAuthStore } from '@/auth/store/auth.store';
 import { useAuth } from '@/auth/hooks/useAuth';
 import Icon from '@/shared/components/dashboard/Icon';
-import { libelleDuChemin } from '../navigation';
+import { filAriane } from '../navigation';
 
 /** Libellés des sections qui ne figurent pas dans la navigation. */
 const TITRES_HORS_NAV: Record<string, string> = {
@@ -50,16 +50,16 @@ export default function ShopHeader({ onOuvrirMenu, tiroirOuvert }: Props) {
     };
   }, [menuOuvert]);
 
-  // La navigation est passée en colonne à gauche : l'entête n'a plus
-  // d'onglets, le titre de la page y est donc affiché en permanence.
+  // Fil d'Ariane plutôt que titre seul : le titre est déjà en tête de page,
+  // l'entête dit dans quelle partie de l'administration on se trouve.
   const section = pathname.split('/')[2] ?? '';
-  const libelleNav = libelleDuChemin(pathname);
-  const titre = libelleNav ?? TITRES_HORS_NAV[section] ?? 'Boutique';
+  const { groupe, page } = filAriane(pathname);
+  const titre = page ?? TITRES_HORS_NAV[section] ?? 'Boutique';
 
   const initiales = `${user?.prenom?.[0] ?? ''}${user?.nom?.[0] ?? ''}`.toUpperCase();
 
   return (
-    <header className="h-16 xl:h-[4.5rem] shrink-0 bg-white border-b border-gray-100 flex items-center gap-1.5 sm:gap-3 lg:gap-4 px-2.5 sm:px-4 lg:px-5">
+    <header className="z-30 flex h-16 shrink-0 items-center gap-2 border-b border-gray-200/70 bg-white/90 px-3 backdrop-blur supports-[backdrop-filter]:bg-white/75 sm:gap-3 sm:px-5 lg:px-8">
       {/* Sous `md`, la colonne de navigation devient un tiroir : ce bouton
           l'ouvre. Le logo vit dans la colonne, y compris dans le tiroir. */}
       <button
@@ -68,14 +68,26 @@ export default function ShopHeader({ onOuvrirMenu, tiroirOuvert }: Props) {
         aria-label="Ouvrir le menu"
         aria-controls="menu-principal"
         aria-expanded={tiroirOuvert}
-        className="md:hidden flex items-center justify-center w-10 shrink-0 -ml-1 rounded-lg text-gray-600 hover:bg-gray-50"
+        className="btn-icon -ml-1 shrink-0 text-gray-600 hover:bg-gray-100 md:hidden"
       >
         <Icon name="menu" size={22} />
       </button>
 
-      <div className="flex min-w-0 flex-1 items-center">
-        <h1 className="text-lg font-bold text-gray-900 truncate">{titre}</h1>
-      </div>
+      <nav aria-label="Fil d'Ariane" className="flex min-w-0 flex-1 items-center">
+        <ol className="flex min-w-0 items-center gap-1.5 text-sm">
+          {groupe && (
+            <>
+              <li className="hidden shrink-0 text-gray-500 sm:block">{groupe}</li>
+              <li aria-hidden="true" className="hidden shrink-0 text-gray-300 sm:block">
+                <Icon name="chevron-right" size={14} />
+              </li>
+            </>
+          )}
+          <li className="truncate font-semibold text-gray-900" aria-current="page">
+            {titre}
+          </li>
+        </ol>
+      </nav>
 
       <div className="relative shrink-0 flex items-center" ref={zoneMenu}>
         <button
@@ -83,31 +95,43 @@ export default function ShopHeader({ onOuvrirMenu, tiroirOuvert }: Props) {
           onClick={() => setMenuOuvert((o) => !o)}
           aria-haspopup="menu"
           aria-expanded={menuOuvert}
-          className={`flex items-center gap-2 p-1.5 sm:pr-2.5 rounded-lg transition-colors ${
-            menuOuvert ? 'bg-gray-100' : 'hover:bg-gray-50'
+          className={`flex items-center gap-2.5 rounded-full border py-1 pl-1 pr-1 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-300 sm:pr-3 ${
+            menuOuvert ? 'border-gray-300 bg-gray-50' : 'border-gray-200 bg-white hover:bg-gray-50'
           }`}
         >
-          <span className="w-8 h-8 rounded-lg bg-yellow-50 text-yellow-700 text-xs font-bold flex items-center justify-center shrink-0">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-900 text-xs font-semibold text-yellow-400">
             {initiales || <Icon name="user" size={15} />}
           </span>
-          <span className="text-sm text-gray-700 hidden lg:block max-w-[140px] truncate">
-            {user?.prenom} {user?.nom}
+          <span className="hidden max-w-[160px] truncate text-left lg:block">
+            <span className="block text-sm font-medium leading-tight text-gray-900">
+              {user?.prenom} {user?.nom}
+            </span>
+            <span className="block text-xs leading-tight text-gray-500">Administrateur</span>
           </span>
-          <Icon name="chevron-right" size={14} className="text-gray-400 rotate-90 shrink-0" />
+          <Icon
+            name="chevron-right"
+            size={14}
+            className={`hidden shrink-0 text-gray-400 transition-transform sm:block ${menuOuvert ? '-rotate-90' : 'rotate-90'}`}
+          />
         </button>
 
         {menuOuvert && (
           <div
             role="menu"
-            className="absolute right-0 top-full mt-1 w-56 rounded-xl border border-gray-100 bg-white shadow-lg overflow-hidden z-50"
+            className="absolute right-0 top-full z-50 mt-2 w-64 animate-apparition-fenetre overflow-hidden rounded-xl border border-gray-200/80 bg-white p-1 shadow-flottant"
           >
             {/* Le nom est répété ici : sous `lg` il est masqué dans le bouton,
                 et le menu serait alors le seul endroit qui dit qui est connecté. */}
-            <div className="px-3.5 py-3 border-b border-gray-50">
-              <p className="text-sm font-semibold text-gray-900 truncate">
-                {user?.prenom} {user?.nom}
-              </p>
-              <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+            <div className="mb-1 flex items-center gap-3 border-b border-gray-100 px-3 pb-3 pt-2.5">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-900 text-xs font-semibold text-yellow-400">
+                {initiales || <Icon name="user" size={15} />}
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-semibold text-gray-900">
+                  {user?.prenom} {user?.nom}
+                </span>
+                <span className="block truncate text-xs text-gray-500">{user?.email}</span>
+              </span>
             </div>
 
             <Link
@@ -115,7 +139,7 @@ export default function ShopHeader({ onOuvrirMenu, tiroirOuvert }: Props) {
               role="menuitem"
               // Le bouton Retour du profil ramène à la page quittée.
               state={pathname === '/boutique/profil' ? location.state : etatRetour(location)}
-              className="flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+              className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
             >
               <Icon name="user" size={16} className="text-gray-400" />
               Mon profil
@@ -125,7 +149,7 @@ export default function ShopHeader({ onOuvrirMenu, tiroirOuvert }: Props) {
               type="button"
               role="menuitem"
               onClick={logout}
-              className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-red-600 hover:bg-red-50 border-t border-gray-50"
+              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
             >
               <Icon name="log-out" size={16} />
               Déconnexion

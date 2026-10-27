@@ -78,7 +78,7 @@ export default function ModaleModifierVendeur({
       aria-label="Modifier le vendeur"
     >
       <div className="modal-box max-w-md p-5 sm:p-6" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-lg font-bold mb-4">Modifier le vendeur</h2>
+        <h2 className="text-lg font-semibold mb-4 text-gray-900">Modifier le vendeur</h2>
         <form onSubmit={soumettre} className="space-y-4" autoComplete="off">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -87,7 +87,7 @@ export default function ModaleModifierVendeur({
                 required
                 value={form.prenom}
                 onChange={(e) => setForm((f) => ({ ...f, prenom: e.target.value }))}
-                className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                className="champ mt-1 w-full"
               />
             </div>
             <div>
@@ -96,7 +96,7 @@ export default function ModaleModifierVendeur({
                 required
                 value={form.nom}
                 onChange={(e) => setForm((f) => ({ ...f, nom: e.target.value }))}
-                className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                className="champ mt-1 w-full"
               />
             </div>
           </div>
@@ -107,7 +107,7 @@ export default function ModaleModifierVendeur({
               type="email"
               value={form.email}
               onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="champ mt-1 w-full"
             />
           </div>
           <div>
@@ -130,7 +130,7 @@ export default function ModaleModifierVendeur({
               required
               value={form.nomBoutique}
               onChange={(e) => setForm((f) => ({ ...f, nomBoutique: e.target.value }))}
-              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="champ mt-1 w-full"
             />
           </div>
           <div>
@@ -138,7 +138,7 @@ export default function ModaleModifierVendeur({
             <input
               value={form.adresseBoutique}
               onChange={(e) => setForm((f) => ({ ...f, adresseBoutique: e.target.value }))}
-              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="champ mt-1 w-full"
             />
           </div>
           <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2">

@@ -83,7 +83,7 @@ export default function RentabilitePage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 sm:gap-3">
         <div className="rounded-xl p-4 bg-gradient-to-br from-gray-900 to-gray-700 text-white">
           <p className="text-xs text-white/70">Revenu de la plateforme</p>
-          <p className="text-xl sm:text-2xl font-bold mt-1 break-words tabular-nums">
+          <p className="text-xl sm:text-2xl font-semibold tracking-tight mt-1 break-words tabular-nums">
             {fcfa(s.revenuPlateforme)}
           </p>
           <p className="text-xs text-white/60 mt-2">{s.formuleRevenu}</p>
@@ -91,7 +91,7 @@ export default function RentabilitePage() {
 
         <Bloc className="p-4">
           <p className="text-xs text-gray-500">Part due aux vendeurs</p>
-          <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1 break-words tabular-nums">
+          <p className="text-xl sm:text-2xl font-semibold tracking-tight text-gray-900 mt-1 break-words tabular-nums">
             {fcfa(s.montantVendeurs)}
           </p>
           <p className="text-xs text-gray-400 mt-2">
@@ -101,7 +101,7 @@ export default function RentabilitePage() {
 
         <Bloc className="p-4">
           <p className="text-xs text-gray-500">Valeur créée au total</p>
-          <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1 break-words tabular-nums">
+          <p className="text-xl sm:text-2xl font-semibold tracking-tight text-gray-900 mt-1 break-words tabular-nums">
             {fcfa(valeurCreee)}
           </p>
           <p className="text-xs text-gray-400 mt-2">

@@ -83,16 +83,14 @@ export default function PaymentsPage() {
 
       <Bloc>
         <div className="p-3 sm:p-4 border-b border-gray-100">
-          <div className="inline-flex flex-wrap rounded-lg border border-gray-200 overflow-hidden">
+          <div className="segments">
             {FILTRES.map((f) => (
               <button
                 key={f.val}
                 type="button"
                 onClick={() => { setStatutFilter(f.val); setPage(1); }}
                 aria-pressed={statutFilter === f.val}
-                className={`px-3 py-2 text-sm font-medium border-r border-gray-200 last:border-r-0 transition-colors ${
-                  statutFilter === f.val ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
-                }`}
+                className={`segment ${statutFilter === f.val ? 'actif' : ''}`}
               >
                 {f.label}
               </button>
@@ -158,7 +156,7 @@ export default function PaymentsPage() {
                       </td>
                       <td className="px-4" data-label="Méthode">
                         {/* Le backend expose `methode`, pas `methodePaiement`. */}
-                        <span className={`whitespace-nowrap px-2.5 py-1 rounded-full text-xs font-semibold ${m?.cls ?? 'bg-gray-100 text-gray-700'}`}>
+                        <span className={`badge ${m?.cls ?? 'bg-gray-100 text-gray-700'}`}>
                           {m?.label ?? p.methode ?? '—'}
                         </span>
                       </td>
@@ -168,7 +166,7 @@ export default function PaymentsPage() {
                         </p>
                       </td>
                       <td className="px-4" data-label="Statut">
-                        <span className={`whitespace-nowrap px-2.5 py-1 rounded-full text-xs font-semibold ${s?.cls ?? 'bg-gray-100 text-gray-700'}`}>
+                        <span className={`badge ${s?.cls ?? 'bg-gray-100 text-gray-700'}`}>
                           {s?.label ?? p.statut}
                         </span>
                       </td>
@@ -179,7 +177,7 @@ export default function PaymentsPage() {
                               type="button"
                               onClick={(e) => { e.stopPropagation(); confirmerRemboursement(p); }}
                               disabled={rembourserMut.isPending}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-200 text-red-600 hover:bg-red-50 disabled:opacity-50"
+                              className="btn-danger-doux btn-sm"
                             >
                               <Icon name="refresh-cw" size={13} /> Rembourser
                             </button>

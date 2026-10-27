@@ -124,12 +124,12 @@ export default function HistoriqueStock({ produitId, onIndicateurs }: Props) {
     setSaisie((precedent) => ({ ...precedent, [cle]: valeur }));
 
   const champ =
-    'w-full px-2.5 py-2 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400';
+    'champ w-full px-2.5';
 
   return (
     <Bloc>
       <div className="px-3 sm:px-4 py-3 border-b border-gray-100">
-        <h2 className="font-bold text-gray-900">Historique du stock</h2>
+        <h2 className="font-semibold text-gray-900">Historique du stock</h2>
         <p className="text-xs text-gray-400 mt-0.5">
           La traçabilité démarre à la mise en service de cette fonctionnalité : les mouvements
           antérieurs n’ont pas été enregistrés et ne sont pas reconstitués.
@@ -237,7 +237,7 @@ export default function HistoriqueStock({ produitId, onIndicateurs }: Props) {
             <button
               type="button"
               onClick={appliquer}
-              className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-gray-900 text-white hover:bg-gray-800"
+              className="btn-sombre btn-sm"
             >
               Appliquer les filtres
             </button>
@@ -309,7 +309,7 @@ export default function HistoriqueStock({ produitId, onIndicateurs }: Props) {
                   </td>
                   <td data-label="Type" className="px-3 sm:px-4 py-2.5">
                     <span
-                      className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${
+                      className={`badge border ${
                         COULEUR_TYPE[m.type] ?? 'bg-gray-50 text-gray-600 border-gray-200'
                       }`}
                     >

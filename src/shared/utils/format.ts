@@ -13,6 +13,15 @@ export const fcfa = (v: unknown): string =>
   `${Math.round(Number(v ?? 0)).toLocaleString(FR)} FCFA`;
 
 /**
+ * Montant tel qu'enregistré : séparateur de milliers, centimes conservés
+ * s'il y en a. Pour les prix unitaires et les lignes de commande, où un
+ * arrondi masquerait une valeur saisie ; les totaux restent sur `fcfa`.
+ * Accepte aussi les montants que l'API renvoie en texte (« 1410570.00 »).
+ */
+export const montant = (v: unknown): string =>
+  `${Number(v ?? 0).toLocaleString(FR, { maximumFractionDigits: 2 })} FCFA`;
+
+/**
  * Montant abrégé pour les tuiles étroites : 1,2 M au lieu de 1 250 000.
  * La valeur exacte reste disponible en infobulle via `fcfa`.
  */

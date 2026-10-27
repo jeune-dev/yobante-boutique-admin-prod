@@ -16,6 +16,7 @@ import {
   PUCE_NIVEAU_STOCK,
   type FiltrePeriode,
 } from '@/domains/shop/types/indicateurs';
+import Puce from '@/shared/components/dashboard/Puce';
 
 const api = {
   getKpi: (filtres: FiltrePeriode) =>
@@ -92,7 +93,7 @@ export default function DashboardPage() {
         </p>
         <button
           onClick={() => refetch()}
-          className="mt-4 px-4 py-2 text-sm font-semibold rounded-lg bg-gray-900 text-white hover:bg-gray-800"
+          className="btn-sombre mt-4"
         >
           Réessayer
         </button>
@@ -137,7 +138,7 @@ export default function DashboardPage() {
             <Icon name="layout-dashboard" size={24} />
           </span>
           <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">Vue d'ensemble</h1>
+            <h1 className="text-[22px] sm:text-2xl font-semibold tracking-tight text-gray-900 leading-tight">Vue d'ensemble</h1>
             <p className="text-sm sm:text-[15px] text-gray-500 mt-0.5 first-letter:uppercase">
               {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
               {' · '}activité de la boutique en temps réel
@@ -149,7 +150,7 @@ export default function DashboardPage() {
           <button
             onClick={() => refetch()}
             disabled={isFetching}
-            className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            className="btn-secondaire"
           >
             <Icon name="refresh-cw" size={16} className={isFetching ? 'animate-spin' : ''} />
             {isFetching ? 'Actualisation…' : 'Actualiser'}
@@ -211,7 +212,7 @@ export default function DashboardPage() {
         >
           <div className="relative">
             <p className="text-sm sm:text-[15px] font-medium text-white/75">Chiffre d'affaires du mois</p>
-            <p className="text-3xl sm:text-4xl font-bold mt-2 break-words">
+            <p className="text-3xl sm:text-4xl font-semibold tracking-tight mt-2 break-words">
               <Montant valeur={kpi.caMois} />
             </p>
             <dl className="mt-5 grid grid-cols-3 gap-3 border-t border-white/10 pt-4">
@@ -588,7 +589,7 @@ export default function DashboardPage() {
                     className="flex items-center justify-between gap-3 text-sm py-2 px-2 hover:bg-gray-50 rounded-lg"
                   >
                     <span className="truncate text-gray-800">{p.nom}</span>
-                    <span className="shrink-0 rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-600">
+                    <span className="badge shrink-0 bg-red-50 text-red-600">
                       Rupture
                     </span>
                   </div>
@@ -643,7 +644,7 @@ export default function DashboardPage() {
                     </td>
                     <td className="py-3 px-3" data-label="Statut">
                       <span
-                        className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                        className={`badge ${
                           COULEUR_STATUT[c.statut] ?? 'bg-gray-100 text-gray-600'
                         }`}
                       >
@@ -668,7 +669,7 @@ export default function DashboardPage() {
 
 function Bloc({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm ${className}`}>
+    <div className={`carte ${className}`}>
       {children}
     </div>
   );
@@ -693,7 +694,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5 ${className}`}>
+    <section className={`carte p-4 sm:p-5 ${className}`}>
       <header className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div className="flex min-w-0 items-center gap-3">
           <span
@@ -738,7 +739,7 @@ function Indicateur({
       vers={vers}
       titre={aide}
       survol={`hover:shadow-md ${ACCENTS[accent].bord}`}
-      className="rounded-2xl border border-gray-100 bg-white shadow-sm p-4"
+      className="carte p-4"
     >
       <div className="flex items-center gap-2.5">
         <span className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${ACCENTS[accent].pastille}`}>
@@ -749,7 +750,7 @@ function Indicateur({
           <Icon name="chevron-right" size={16} className="shrink-0 text-gray-300 group-hover:text-gray-600" />
         )}
       </div>
-      <p className="mt-3 text-2xl font-bold leading-tight text-gray-900 break-words tabular-nums">{valeur}</p>
+      <p className="mt-3 text-2xl font-semibold tracking-tight leading-tight text-gray-900 break-words tabular-nums">{valeur}</p>
       {aide && <p className="mt-1 text-[13px] leading-snug text-gray-500">{aide}</p>}
     </Cliquable>
   );
@@ -774,7 +775,7 @@ function Total({
   return (
     <Cliquable
       vers={vers}
-      className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm"
+      className="carte p-4"
       survol="hover:shadow-md hover:border-gray-200"
     >
       <div className="flex items-start justify-between gap-2">
@@ -785,7 +786,7 @@ function Total({
           <Icon name="chevron-right" size={16} className="shrink-0 text-gray-300 group-hover:text-gray-600" />
         )}
       </div>
-      <p className="mt-3 text-2xl sm:text-3xl font-bold leading-none text-gray-900 tabular-nums">{valeur}</p>
+      <p className="mt-3 text-2xl sm:text-3xl font-semibold tracking-tight leading-none text-gray-900 tabular-nums">{valeur}</p>
       <p className="mt-1.5 text-sm font-medium text-gray-600">
         {libelle}
         {sous && <span className="font-normal text-gray-400"> · {sous}</span>}
@@ -831,13 +832,13 @@ function Pastille({
     <Cliquable
       vers={vers}
       titre={aide}
-      survol="hover:brightness-95 hover:shadow-sm"
-      className={`rounded-xl px-3 py-3 text-center ${teinte}`}
+      survol="hover:brightness-[0.97] hover:shadow-survol"
+      className={`rounded-xl px-3 py-3.5 text-center ${teinte}`}
     >
-      <p className="text-2xl font-bold tabular-nums leading-none">{valeur}</p>
+      <p className="text-2xl font-semibold leading-none tracking-tight tabular-nums">{valeur}</p>
       {/* La pastille double la couleur d'un repère non chromatique. */}
-      <p className="mt-1.5 text-[13px] font-medium leading-tight">
-        {puce && <span aria-hidden="true">{puce} </span>}
+      <p className="mt-2 flex items-center justify-center gap-1.5 text-[13px] font-medium leading-tight">
+        <Puce valeur={puce} />
         {libelle}
       </p>
       {aide && <p className="mt-0.5 text-xs leading-tight opacity-75">{aide}</p>}

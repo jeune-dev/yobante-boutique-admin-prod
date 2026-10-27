@@ -140,7 +140,7 @@ export default function VendeursAnalyticsPage() {
       <Bloc className="p-3 sm:p-4">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs text-gray-500">Trier par</span>
-          <div className="inline-flex flex-wrap rounded-lg border border-gray-200 overflow-hidden">
+          <div className="segments">
             {(
               [
                 ['ca', 'CA'],
@@ -156,9 +156,7 @@ export default function VendeursAnalyticsPage() {
                 type="button"
                 onClick={() => setTri(cle)}
                 aria-pressed={tri === cle}
-                className={`px-3 py-2 text-sm font-medium border-r border-gray-200 last:border-r-0 transition-colors ${
-                  tri === cle ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
-                }`}
+                className={`segment ${tri === cle ? 'actif' : ''}`}
               >
                 {libelle}
               </button>

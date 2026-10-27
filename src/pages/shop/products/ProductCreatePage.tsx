@@ -104,9 +104,9 @@ export default function ProductCreatePage() {
   return (
     <div className="max-w-2xl mx-auto">
       <AdminBackButton parent="/boutique/produits" className="mb-3" />
-      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">Nouveau produit</h1>
+      <h1 className="text-[22px] sm:text-2xl font-semibold tracking-tight text-gray-900 mb-6">Nouveau produit</h1>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-6">
+      <div className="carte p-4 sm:p-6">
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="text-sm font-medium text-gray-700">Nom *</label>
@@ -114,7 +114,7 @@ export default function ProductCreatePage() {
               required
               value={nom}
               onChange={(e) => setNom(e.target.value)}
-              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              className="champ mt-1 w-full"
               placeholder="Nom du produit"
             />
           </div>
@@ -125,7 +125,7 @@ export default function ProductCreatePage() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
-              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300 resize-vertical"
+              className="champ mt-1 w-full resize-vertical"
               placeholder="Description…"
             />
           </div>
@@ -141,7 +141,7 @@ export default function ProductCreatePage() {
                 min="0"
                 value={prix}
                 onChange={(e) => setPrix(e.target.value)}
-                className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                className="champ mt-1 w-full"
               />
               <label className="mt-2 flex items-center gap-2 text-xs text-gray-600">
                 <input
@@ -161,7 +161,7 @@ export default function ProductCreatePage() {
                 min="0"
                 value={stock}
                 onChange={(e) => setStock(e.target.value)}
-                className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                className="champ mt-1 w-full"
               />
             </div>
           </div>
@@ -181,7 +181,7 @@ export default function ProductCreatePage() {
                 value={prixAchat}
                 onChange={(e) => setPrixAchat(e.target.value)}
                 placeholder="Optionnel"
-                className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                className="champ mt-1 w-full"
               />
               <p className="mt-1 text-xs text-gray-400">
                 Réservé à l'administration. Sans lui, la marge reste incalculable.
@@ -228,7 +228,7 @@ export default function ProductCreatePage() {
                   // Le sous-rayon retenu appartient à l'ancien rayon : on le vide.
                   setSousRayonId('');
                 }}
-                className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                className="champ mt-1 w-full"
               >
                 <option value="">— Sélectionner un rayon —</option>
                 {rayons.map((r: any) => (
@@ -246,7 +246,7 @@ export default function ProductCreatePage() {
                 value={sousRayonId}
                 onChange={(e) => setSousRayonId(e.target.value)}
                 disabled={!rayonId}
-                className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300 disabled:bg-gray-50 disabled:text-gray-400"
+                className="champ mt-1 w-full"
               >
                 <option value="">
                   {rayonId ? '— Sélectionner un sous-rayon —' : '— Choisir un rayon d’abord —'}
@@ -271,7 +271,7 @@ export default function ProductCreatePage() {
               <input
                 value={reference}
                 onChange={(e) => setReference(e.target.value)}
-                className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                className="champ mt-1 w-full"
                 placeholder="REF-001"
               />
             </div>
@@ -283,7 +283,7 @@ export default function ProductCreatePage() {
                 step="0.01"
                 value={poids}
                 onChange={(e) => setPoids(e.target.value)}
-                className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                className="champ mt-1 w-full"
                 placeholder="0.5"
               />
             </div>
@@ -307,7 +307,7 @@ export default function ProductCreatePage() {
             <button
               type="submit"
               disabled={createMutation.isPending}
-              className="px-4 py-2 text-sm bg-yellow-400 text-gray-900 rounded-lg hover:bg-yellow-300 disabled:opacity-60"
+              className="btn-primaire"
             >
               {createMutation.isPending ? 'Création…' : 'Créer le produit'}
             </button>

@@ -264,7 +264,7 @@ export default function DemandeDetailModal({ demande, onFermer, onTraitee }: Pro
                     setRayonId(e.target.value);
                     setSousRayonId('');
                   }}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                  className="champ w-full"
                 >
                   <option value="">— Choisir —</option>
                   {rayons.map((r) => (
@@ -282,7 +282,7 @@ export default function DemandeDetailModal({ demande, onFermer, onTraitee }: Pro
                   value={sousRayonId}
                   onChange={(e) => setSousRayonId(e.target.value)}
                   disabled={!rayonId}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400 disabled:bg-gray-50 disabled:text-gray-400"
+                  className="champ w-full"
                 >
                   <option value="">{rayonId ? '— Choisir —' : '— Rayon d’abord —'}</option>
                   {sousRayons.map((sr) => (

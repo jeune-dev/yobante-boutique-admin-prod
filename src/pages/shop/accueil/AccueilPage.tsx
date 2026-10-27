@@ -135,14 +135,14 @@ export default function AccueilPage() {
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Page d'accueil</h1>
+        <h1 className="text-[22px] sm:text-2xl font-semibold tracking-tight text-gray-900">Page d'accueil</h1>
         <p className="text-sm text-gray-500 mt-1">
           Ce que voient les clients dans l'application, connectés ou non.
         </p>
       </header>
 
       {/* ── Section principale ─────────────────────────────────────────── */}
-      <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5">
+      <section className="carte p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <div className="min-w-0">
             <h2 className="font-semibold text-gray-900">Section principale</h2>
@@ -155,7 +155,7 @@ export default function AccueilPage() {
               setBanniereEnEdition(null);
               setModaleBanniere(true);
             }}
-            className="inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg bg-yellow-400 text-gray-900 hover:bg-yellow-300"
+            className="btn-primaire btn-sm"
           >
             <Icon name="plus" size={15} /> Bannière
           </button>
@@ -192,7 +192,7 @@ export default function AccueilPage() {
 
       {/* ── Sections promotionnelles ───────────────────────────────────── */}
       {SECTIONS.map((section) => (
-        <section key={section.cle} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5">
+        <section key={section.cle} className="carte p-4 sm:p-5">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <div className="min-w-0">
               <h2 className="font-semibold text-gray-900">{section.libelle}</h2>
@@ -205,7 +205,7 @@ export default function AccueilPage() {
                   setSectionCible(section.cle);
                   setBlocEnEdition(null);
                 }}
-                className="inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg bg-gray-900 text-white hover:bg-gray-800"
+                className="btn-sombre btn-sm"
               >
                 <Icon name="plus" size={15} /> Sous-section
               </button>
@@ -216,14 +216,14 @@ export default function AccueilPage() {
                   setSectionPromo(section.cle);
                   setPromoEnEdition(null);
                 }}
-                className="inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg bg-yellow-400 text-gray-900 hover:bg-yellow-300"
+                className="btn-primaire btn-sm"
               >
                 <Icon name="plus" size={15} /> Produit en promo
               </button>
               ) : (
               <button
                 onClick={() => setSectionProduits(section.cle)}
-                className="inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg bg-yellow-400 text-gray-900 hover:bg-yellow-300"
+                className="btn-primaire btn-sm"
               >
                 <Icon name="plus" size={15} /> Ajouter des produits
               </button>
@@ -329,7 +329,7 @@ export default function AccueilPage() {
                         {promo.produit?.nom ?? promo.titre ?? '—'}
                       </td>
                       <td className="py-2.5 pr-3 whitespace-nowrap" data-label="Prix promo">
-                        {promo.prixPromo ? `${promo.prixPromo} FCFA` : '—'}
+                        {promo.prixPromo ? prix(promo.prixPromo) : '—'}
                       </td>
                       <td className="py-2.5 pr-3" data-label="Réduction">
                         {promo.pourcentageReduction ? `−${promo.pourcentageReduction} %` : '—'}

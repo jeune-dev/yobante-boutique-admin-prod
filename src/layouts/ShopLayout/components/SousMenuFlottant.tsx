@@ -134,12 +134,12 @@ export default function SousMenuFlottant({
         id={`sous-menu-${idGroupe}`}
         role="group"
         aria-labelledby={`sous-menu-titre-${idGroupe}`}
-        className="nav-flyout w-[16.5rem] overflow-y-auto rounded-xl border border-gray-100 bg-white p-1.5 shadow-lg shadow-gray-900/5"
+        className="nav-flyout w-[17rem] overflow-y-auto rounded-xl border border-gray-200/80 bg-white p-1.5 shadow-flottant"
         style={{ maxHeight: pos.maxHeight }}
       >
         <p
           id={`sous-menu-titre-${idGroupe}`}
-          className="px-2.5 pb-1.5 pt-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400"
+          className="px-2.5 pb-1.5 pt-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400"
         >
           {groupe.label}
         </p>
@@ -152,27 +152,27 @@ export default function SousMenuFlottant({
                   to={enfant.path}
                   aria-current={actif ? 'page' : undefined}
                   onClick={() => onFermer(false)}
-                  className={`flex items-start gap-2.5 rounded-lg px-2.5 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500/50 ${
-                    actif ? 'bg-yellow-50' : 'hover:bg-gray-50'
+                  className={`group flex items-start gap-3 rounded-lg px-2.5 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400/60 ${
+                    actif ? 'bg-yellow-50' : 'hover:bg-gray-100'
                   }`}
                 >
                   <Icon
                     name={enfant.icon}
                     size={16}
-                    className={`mt-0.5 shrink-0 ${actif ? 'text-yellow-600' : 'text-gray-400'}`}
+                    className={`mt-0.5 shrink-0 ${actif ? 'text-yellow-600' : 'text-gray-400 group-hover:text-gray-600'}`}
                   />
                   {/* L'aide est conservée : c'est elle qui dit ce que la page
                       contient, le seul intitulé ne suffit pas toujours. */}
                   <span className="min-w-0">
                     <span
-                      className={`block text-[14px] font-medium leading-snug ${
-                        actif ? 'text-yellow-700' : 'text-gray-800'
+                      className={`block text-sm leading-snug ${
+                        actif ? 'font-semibold text-gray-900' : 'font-medium text-gray-800'
                       }`}
                     >
                       {enfant.label}
                     </span>
                     {enfant.aide && (
-                      <span className="block text-[12px] leading-tight text-gray-400">
+                      <span className="mt-0.5 block text-xs leading-tight text-gray-500">
                         {enfant.aide}
                       </span>
                     )}

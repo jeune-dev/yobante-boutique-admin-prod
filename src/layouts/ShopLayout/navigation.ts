@@ -290,6 +290,31 @@ export function libelleDuChemin(pathname: string): string | null {
 }
 
 /**
+ * Fil d'Ariane de l'entête : groupe de navigation puis page
+ * (« Commerce › Produits »). Même règle que `libelleDuChemin` — le chemin le
+ * plus long l'emporte — mais en gardant le groupe, qui dit dans quelle partie
+ * de l'administration on se trouve. Une page de premier niveau (Dashboard,
+ * Stock) n'a pas de groupe.
+ */
+export function filAriane(pathname: string): { groupe: string | null; page: string | null } {
+  const chemin = pathname.split('?')[0];
+
+  const feuilles: Array<{ path: string; label: string; groupe: string | null }> = [];
+  for (const entree of NAV) {
+    if (entree.path) feuilles.push({ path: entree.path, label: entree.label, groupe: null });
+    for (const enfant of entree.enfants ?? []) {
+      feuilles.push({ path: enfant.path.split('?')[0], label: enfant.label, groupe: entree.label });
+    }
+  }
+
+  const correspondance = feuilles
+    .filter((f) => chemin === f.path || chemin.startsWith(`${f.path}/`))
+    .sort((a, b) => b.path.length - a.path.length)[0];
+
+  return { groupe: correspondance?.groupe ?? null, page: correspondance?.label ?? null };
+}
+
+/**
  * Navigation limitée aux pages autorisées de l'administrateur (null = tout).
  * Un groupe dont aucune sous-page n'est autorisée disparaît.
  */

@@ -59,7 +59,7 @@ export default function CommandesDuProduit({ produitId, vendeur }: Props) {
   return (
     <Bloc>
       <div className="px-3 sm:px-4 py-3 border-b border-gray-100 flex items-center justify-between gap-3">
-        <h2 className="font-bold text-gray-900">Commandes contenant ce produit</h2>
+        <h2 className="font-semibold text-gray-900">Commandes contenant ce produit</h2>
         {total !== undefined && (
           <span className="text-xs text-gray-400 shrink-0">
             {nombre(total)} ligne{total > 1 ? 's' : ''}
@@ -139,7 +139,7 @@ export default function CommandesDuProduit({ produitId, vendeur }: Props) {
                   </td>
                   <td data-label="Statut" className="px-3 sm:px-4 py-2.5">
                     <span
-                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                      className={`badge ${
                         STATUT_COMMANDE_COULEUR[l.commande?.statut ?? ''] ??
                         'bg-gray-100 text-gray-600'
                       }`}

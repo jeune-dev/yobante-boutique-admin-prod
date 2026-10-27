@@ -148,9 +148,7 @@ export default function StockModal({ produit, onFermer }: Props) {
   const mouvements = historique.data?.mouvements ?? [];
 
   const classesChamp = (enErreur?: string) =>
-    `w-full px-3 py-2 text-sm border rounded-lg bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 ${
-      enErreur ? 'border-red-300 focus:ring-red-300' : 'border-gray-200 focus:ring-yellow-400'
-    }`;
+    `champ w-full ${enErreur ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20' : ''}`;
 
   return (
     <Modal
@@ -279,11 +277,11 @@ export default function StockModal({ produit, onFermer }: Props) {
               {mouvements.map((m) => (
                 <li
                   key={m.id}
-                  className="rounded-2xl border border-gray-100 shadow-sm px-3 py-2.5 bg-white"
+                  className="carte px-3 py-2.5"
                 >
                   <div className="flex items-center gap-2 flex-wrap">
                     <span
-                      className={`px-2 py-0.5 rounded-full border text-xs font-medium ${
+                      className={`badge border ${
                         COULEUR_TYPE[m.type] ?? 'bg-gray-50 text-gray-600 border-gray-200'
                       }`}
                     >

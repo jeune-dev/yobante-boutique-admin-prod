@@ -146,14 +146,14 @@ export default function ProductDetailPage() {
           <div className="min-w-0 flex-1">
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
               <div className="min-w-0">
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 break-words">
+                <h1 className="text-[22px] sm:text-2xl font-semibold tracking-tight text-gray-900 break-words">
                   {produit.nom}
                 </h1>
                 <div className="flex flex-wrap items-center gap-2 mt-2">
                   {ind?.niveauStock ? (
                     <BadgeStock niveau={ind.niveauStock} stock={stock} />
                   ) : (
-                    <span className="px-2 py-0.5 rounded-full border text-xs font-semibold bg-gray-50 text-gray-600 border-gray-200">
+                    <span className="badge border bg-gray-50 text-gray-600 border-gray-200">
                       {nombre(stock)} en stock
                     </span>
                   )}
@@ -179,7 +179,7 @@ export default function ProductDetailPage() {
                 <button
                   type="button"
                   onClick={() => setStockModal(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg bg-yellow-400 text-gray-900 hover:bg-yellow-300"
+                  className="btn-primaire"
                 >
                   <Icon name="package" size={15} /> Modifier le stock
                 </button>

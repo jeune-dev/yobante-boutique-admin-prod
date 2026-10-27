@@ -37,7 +37,7 @@ interface PanneauOuvert {
 const LISERE = (
   <span
     aria-hidden="true"
-    className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-yellow-500"
+    className="absolute -left-3 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-yellow-400"
   />
 );
 
@@ -239,20 +239,21 @@ export default function ShopSidebar({ replie, onBasculer, tiroirOuvert, onFermer
   };
 
   /** Case d'une entrée de la colonne : les entrées se partagent toute la
-   *  hauteur disponible, avec un minimum au-delà duquel la colonne défile. */
+   *  hauteur disponible (demande de la boutique : pas de vide sous le menu),
+   *  avec un minimum au-delà duquel la colonne défile sur un écran bas. */
   const CASE_ENTREE = 'flex min-h-[2.75rem] flex-1 items-center';
 
   /** Classes communes aux entrées de premier niveau de la colonne. */
   const classeEntree = (actif: boolean, desactive = false) =>
     [
-      'relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13.5px] font-medium transition-colors',
-      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500/50',
-      compact ? 'justify-center px-0' : '',
+      'group relative flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors',
+      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400/60',
+      compact ? 'justify-center px-0 py-2.5' : '',
       desactive
         ? 'cursor-not-allowed text-gray-300'
         : actif
-          ? 'bg-yellow-50 text-yellow-700'
-          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+          ? 'bg-yellow-50 text-gray-900 font-semibold'
+          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
     ]
       .filter(Boolean)
       .join(' ');
@@ -276,7 +277,7 @@ export default function ShopSidebar({ replie, onBasculer, tiroirOuvert, onFermer
               onClick={onFermerTiroir}
               className={`flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors ${
                 indente ? 'ml-1' : ''
-              } ${actif ? 'bg-yellow-50' : 'hover:bg-gray-50 active:bg-gray-100'}`}
+              } ${actif ? 'bg-yellow-50' : 'hover:bg-gray-100 active:bg-gray-100'}`}
             >
               <Icon
                 name={item.icon}
@@ -285,8 +286,8 @@ export default function ShopSidebar({ replie, onBasculer, tiroirOuvert, onFermer
               />
               <span className="min-w-0">
                 <span
-                  className={`block text-sm font-medium ${
-                    actif ? 'text-yellow-700' : 'text-gray-800'
+                  className={`block text-sm ${
+                    actif ? 'font-semibold text-gray-900' : 'font-medium text-gray-800'
                   }`}
                 >
                   {item.label}
@@ -303,7 +304,7 @@ export default function ShopSidebar({ replie, onBasculer, tiroirOuvert, onFermer
 
         return (
           <div key={entree.label} className="mt-2 first:mt-0">
-            <p className="flex items-center gap-2 px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+            <p className="flex items-center gap-2 px-3 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
               <Icon name={entree.icon} size={13} />
               {entree.label}
             </p>
@@ -318,13 +319,35 @@ export default function ShopSidebar({ replie, onBasculer, tiroirOuvert, onFermer
   const contenuColonne = (
     <nav
       aria-label="Menu principal"
-      className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-2 py-3"
+      className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto overscroll-contain px-3 py-4"
     >
-      {NAV.map(entree => {
+      {!compact && (
+        <p className="shrink-0 px-2.5 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+          Pilotage
+        </p>
+      )}
+      {NAV.map((entree, index) => {
         const actif = entreeActive(entree, pathname, search);
+        // Séparation entre le pilotage (Dashboard, À surveiller) et les
+        // rubriques de gestion : un repère visuel, pas un changement d'ordre.
+        const premiereRubrique =
+          index > 0 && !entree.path && NAV.slice(0, index).every(e => !!e.path);
+        const separateur = premiereRubrique ? (
+          compact ? (
+            <div key={`sep-${entree.label}`} aria-hidden="true" className="mx-2 my-1 shrink-0 border-t border-gray-200" />
+          ) : (
+            <p
+              key={`sep-${entree.label}`}
+              className="mt-1 shrink-0 border-t border-gray-100 px-2.5 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400"
+            >
+              Gestion
+            </p>
+          )
+        ) : null;
 
         if (entree.path) {
-          return (
+          return [
+            separateur,
             <div key={entree.label} className={CASE_ENTREE}>
               <NavLink
                 to={entree.path}
@@ -340,17 +363,22 @@ export default function ShopSidebar({ replie, onBasculer, tiroirOuvert, onFermer
                 className={classeEntree(actif)}
               >
                 {actif && LISERE}
-                <Icon name={entree.icon} size={18} className="shrink-0" />
+                <Icon
+                  name={entree.icon}
+                  size={18}
+                  className={`shrink-0 ${actif ? 'text-yellow-600' : 'text-gray-400 group-hover:text-gray-600'}`}
+                />
                 <span className={`truncate ${libelleMasque}`}>{entree.label}</span>
               </NavLink>
-            </div>
-          );
+            </div>,
+          ];
         }
 
         const id = idDuLabel(entree.label);
         const ouvert = panneau?.id === id;
 
-        return (
+        return [
+          separateur,
           <div
             key={entree.label}
             className={CASE_ENTREE}
@@ -375,18 +403,22 @@ export default function ShopSidebar({ replie, onBasculer, tiroirOuvert, onFermer
               className={classeEntree(actif)}
             >
               {actif && LISERE}
-              <Icon name={entree.icon} size={18} className="shrink-0" />
+              <Icon
+                name={entree.icon}
+                size={18}
+                className={`shrink-0 ${actif ? 'text-yellow-600' : 'text-gray-400 group-hover:text-gray-600'}`}
+              />
               <span className={`truncate ${libelleMasque}`}>{entree.label}</span>
               <Icon
                 name="chevron-right"
-                size={13}
+                size={14}
                 className={`nav-transition ml-auto shrink-0 text-gray-300 transition-transform ${libelleMasque} ${
-                  ouvert ? 'translate-x-0.5 text-gray-400' : ''
+                  ouvert ? 'translate-x-0.5 text-gray-500' : 'group-hover:text-gray-400'
                 }`}
               />
             </button>
-          </div>
-        );
+          </div>,
+        ];
       })}
     </nav>
   );
@@ -409,17 +441,17 @@ export default function ShopSidebar({ replie, onBasculer, tiroirOuvert, onFermer
       <aside
         id="menu-principal"
         className={`
-          nav-transition z-[60] flex h-full shrink-0 flex-col border-r border-gray-100 bg-white
+          nav-transition z-[60] flex h-full shrink-0 flex-col border-r border-gray-200/70 bg-white
           transition-[width] duration-200
           ${
             ecranMd
-              ? `static ${compact ? 'w-[72px]' : 'w-[15.5rem]'} shadow-none`
+              ? `static ${compact ? 'w-[72px]' : 'w-64'} shadow-none`
               : 'fixed inset-y-0 left-0 w-[86vw] max-w-sm shadow-2xl'
           }
         `}
       >
         <div
-          className={`flex h-16 shrink-0 items-center gap-2 border-b border-gray-100 px-3 xl:h-[4.5rem] ${
+          className={`flex h-16 shrink-0 items-center gap-2 border-b border-gray-200/70 px-4 ${
             compact ? 'justify-center px-2' : ''
           }`}
         >
@@ -427,13 +459,16 @@ export default function ShopSidebar({ replie, onBasculer, tiroirOuvert, onFermer
             to="/boutique/dashboard"
             title="Yobante Boutique"
             onClick={onFermerTiroir}
-            className="flex min-w-0 items-center gap-2"
+            className="flex min-w-0 items-center gap-2.5 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400/60"
           >
-            <img src={PICTO} alt="Yobante Boutique" className="h-10 w-auto shrink-0" />
-            <span
-              className={`truncate text-[15px] font-bold leading-tight text-gray-900 ${libelleMasque}`}
-            >
-              Yobante <span className="text-yellow-500">Boutique</span>
+            <img src={PICTO} alt="Yobante Boutique" className="h-9 w-auto shrink-0" />
+            <span className={`min-w-0 leading-tight ${libelleMasque}`}>
+              <span className="block truncate text-[15px] font-bold tracking-tight text-gray-900">
+                Yobante <span className="text-yellow-500">Boutique</span>
+              </span>
+              <span className="block truncate text-[11px] font-medium uppercase tracking-wider text-gray-400">
+                Administration
+              </span>
             </span>
           </NavLink>
 

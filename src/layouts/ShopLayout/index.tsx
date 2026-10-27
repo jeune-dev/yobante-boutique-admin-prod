@@ -66,7 +66,7 @@ export default function ShopLayout() {
         <ShopHeader onOuvrirMenu={() => setTiroirOuvert(true)} tiroirOuvert={tiroirOuvert} />
         {/* `overflow-x-hidden` : sur mobile, la page ne doit jamais glisser
             latéralement, même si un contenu inattendu dépasse. */}
-        <main className="relative min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:px-8">
+        <main className="relative min-w-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
           {/* Largeur plafonnée : sur un grand écran, une ligne de tableau
               étirée sur toute la largeur ne se lit plus d'un coup d'œil. */}
           <div className="mx-auto w-full max-w-[1600px]">

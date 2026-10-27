@@ -124,23 +124,20 @@ export default function DemandesPage() {
       />
 
       {/* Filtre par statut */}
-      <div className="flex flex-wrap gap-2 mb-5">
+      <div className="segments mb-5">
         {STATUTS.map((s) => (
           <button
             key={s.cle}
             onClick={() => setFiltres({ statut: s.cle, page: '1' })}
-            className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              statut === s.cle
-                ? 'bg-gray-900 text-white'
-                : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
-            }`}
+            aria-pressed={statut === s.cle}
+            className={`segment ${statut === s.cle ? 'actif' : ''}`}
           >
             {s.libelle}
           </button>
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+      <div className="carte">
         <BarreFiltres
           nbActifs={nbActifs}
           onReinitialiser={() =>
@@ -152,7 +149,7 @@ export default function DemandesPage() {
               onChange={(e) => setFiltres({ q: e.target.value, page: '1' })}
               placeholder="Rechercher un produit…"
               aria-label="Rechercher un produit"
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              className="champ w-full sm:w-64"
             />
           }
           actions={
@@ -270,7 +267,7 @@ export default function DemandesPage() {
                           e.stopPropagation();
                           setDemandeOuverte(p);
                         }}
-                        className="px-3 py-2 sm:py-1.5 text-xs font-semibold rounded-lg bg-gray-900 text-white hover:bg-gray-800"
+                        className="btn-sombre btn-sm sm:py-1.5"
                       >
                         Consulter
                       </button>

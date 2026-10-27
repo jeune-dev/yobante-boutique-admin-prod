@@ -91,7 +91,7 @@ const STATUT_LIBELLES: Record<string, string> = {
 };
 
 const CHAMP =
-  'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-yellow-300';
+  'champ w-full';
 
 const nomClient = (c: Client) => `${c.prenom ?? ''} ${c.nom ?? ''}`.trim() || c.email || 'Client';
 
@@ -116,7 +116,7 @@ function Carte({
   children: ReactNode;
 }) {
   return (
-    <section className="bg-white rounded-2xl border border-gray-100 shadow-sm" aria-labelledby={`etape-${numero}`}>
+    <section className="carte" aria-labelledby={`etape-${numero}`}>
       <div className="flex items-center justify-between gap-3 px-4 sm:px-5 py-3 border-b border-gray-100">
         <h2 id={`etape-${numero}`} className="flex items-center gap-2 font-semibold text-gray-900">
           <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-yellow-100 text-yellow-700 text-xs font-bold">
@@ -170,7 +170,7 @@ function SelectionClient({
         <button
           type="button"
           onClick={() => onChange(null)}
-          className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+          className="btn-secondaire btn-sm"
         >
           Changer de client
         </button>
@@ -356,7 +356,7 @@ function SelectionAdresse({
                 }
                 ajout.mutate({ ...formulaire, region: formulaire.region || '' });
               }}
-              className="px-3 py-1.5 text-sm font-semibold rounded-lg bg-yellow-400 text-gray-900 hover:bg-yellow-300 disabled:opacity-60"
+              className="btn-primaire btn-sm"
             >
               {ajout.isPending ? 'Enregistrement…' : 'Enregistrer l’adresse'}
             </button>
@@ -568,13 +568,13 @@ function CommandeCreeeVue({
 }) {
   const nbArticles = (commande.items ?? []).reduce((s, i) => s + Number(i.quantite || 0), 0);
   return (
-    <div className="max-w-xl mx-auto bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 text-center">
+    <div className="carte max-w-xl mx-auto p-6 sm:p-8 text-center">
       <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600">
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
         </svg>
       </div>
-      <h1 className="text-xl font-bold text-gray-900">Commande créée avec succès</h1>
+      <h1 className="text-[22px] sm:text-2xl font-semibold tracking-tight text-gray-900">Commande créée avec succès</h1>
       <p className="mt-1 text-sm text-gray-500">Elle est enregistrée et visible dans la liste des commandes.</p>
       <dl className="mt-6 grid grid-cols-2 gap-3 text-left text-sm">
         <div className="rounded-lg bg-gray-50 p-3">
@@ -599,10 +599,10 @@ function CommandeCreeeVue({
         </div>
       </dl>
       <div className="mt-6 flex flex-col sm:flex-row sm:flex-wrap gap-2 justify-center [&>button]:whitespace-nowrap">
-        <button type="button" onClick={onVoir} className="px-4 py-2 text-sm font-semibold rounded-lg bg-yellow-400 text-gray-900 hover:bg-yellow-300">
+        <button type="button" onClick={onVoir} className="btn-primaire">
           Voir la commande
         </button>
-        <button type="button" onClick={onListe} className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50">
+        <button type="button" onClick={onListe} className="btn-secondaire">
           Retour à la liste
         </button>
         <button type="button" onClick={onNouvelle} className="px-4 py-2 text-sm font-medium rounded-lg text-gray-600 hover:bg-gray-100">
@@ -732,7 +732,7 @@ export default function OrderCreatePage() {
     <div className="max-w-6xl mx-auto">
       <AdminBackButton parent="/boutique/commandes" className="mb-3" />
       <div className="mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Créer une commande</h1>
+        <h1 className="text-[22px] sm:text-2xl font-semibold tracking-tight text-gray-900">Créer une commande</h1>
         <p className="text-sm text-gray-500 mt-1">
           Commande passée pour le compte d'un client. Les prix et le stock sont vérifiés par le serveur à la validation.
         </p>
@@ -819,7 +819,7 @@ export default function OrderCreatePage() {
           </Carte>
         </div>
 
-        <aside className="lg:sticky lg:top-4 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5" aria-label="Récapitulatif">
+        <aside className="carte lg:sticky lg:top-4 p-4 sm:p-5" aria-label="Récapitulatif">
           <h2 className="font-semibold text-gray-900 mb-4">Récapitulatif</h2>
           <dl className="space-y-2 text-sm">
             <div className="flex justify-between gap-3">
@@ -862,7 +862,7 @@ export default function OrderCreatePage() {
               type="submit"
               disabled={mutation.isPending}
               aria-busy={mutation.isPending}
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-lg bg-yellow-400 text-gray-900 hover:bg-yellow-300 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="btn-primaire w-full"
             >
               {mutation.isPending && (
                 <span className="w-4 h-4 border-2 border-white/60 border-t-white rounded-full animate-spin" aria-hidden="true" />

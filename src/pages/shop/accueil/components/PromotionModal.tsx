@@ -277,7 +277,7 @@ export default function PromotionModal({
               onChange={(e) => setRecherche(e.target.value)}
               placeholder="Rechercher dans le catalogue…"
               autoFocus
-              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
+              className="champ w-full pl-9 pr-3"
             />
           </div>
 

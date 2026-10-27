@@ -15,6 +15,7 @@ import {
 import { useIndicateursStock } from '@/domains/shop/hooks/useAnalytique';
 import { date, decimal, fcfa, nombre, pourcent } from '@/shared/utils/format';
 import type { ProduitStock } from '@/domains/shop/types/analytique';
+import Puce from '@/shared/components/dashboard/Puce';
 
 /** Les vues du stock, chacune répondant à une décision différente. */
 type Vue = 'tout' | 'rupture' | 'alerte' | 'surstock' | 'sans-prix';
@@ -186,7 +187,7 @@ export default function StockPage() {
       {/* ── Filtres ──────────────────────────────────────────────────────── */}
       <Bloc className="p-3 sm:p-4">
         <div className="flex flex-wrap items-center gap-2">
-          <div className="inline-flex flex-wrap rounded-lg border border-gray-200 overflow-hidden">
+          <div className="segments">
             {VUES.map((v) => (
               <button
                 key={v.cle}
@@ -194,9 +195,7 @@ export default function StockPage() {
                 onClick={() => changerVue(v.cle)}
                 aria-pressed={vue === v.cle}
                 title={v.aide}
-                className={`px-3 py-2 text-sm font-medium border-r border-gray-200 last:border-r-0 transition-colors ${
-                  vue === v.cle ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
-                }`}
+                className={`segment ${vue === v.cle ? 'actif' : ''}`}
               >
                 {v.libelle}
               </button>
@@ -218,7 +217,7 @@ export default function StockPage() {
               }}
               placeholder="Produit ou rayon…"
               aria-label="Rechercher un produit"
-              className="w-full pl-8 pr-2.5 py-2 rounded-lg border border-gray-200 text-sm"
+              className="champ w-full pl-8 pr-2.5"
             />
           </div>
 
@@ -226,7 +225,7 @@ export default function StockPage() {
             value={tri}
             onChange={(e) => setTri(e.target.value as Tri)}
             aria-label="Trier"
-            className="px-2.5 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 bg-white"
+            className="champ text-gray-700"
           >
             <option value="couverture">Couverture la plus courte</option>
             <option value="stock">Stock le plus faible</option>
@@ -361,8 +360,8 @@ function EtatStock({ produit }: { produit: ProduitStock }) {
 
   if (etats.length === 0) {
     return (
-      <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full border bg-green-50 text-green-700 border-green-200">
-        <span aria-hidden="true">🟢</span> Normal
+      <span className="badge gap-1 border bg-green-50 text-green-700 border-green-200">
+        <Puce valeur="🟢" /> Normal
       </span>
     );
   }
@@ -372,9 +371,9 @@ function EtatStock({ produit }: { produit: ProduitStock }) {
       {etats.map((e) => (
         <span
           key={e.libelle}
-          className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full border ${e.classe}`}
+          className={`badge gap-1 border ${e.classe}`}
         >
-          <span aria-hidden="true">{e.puce}</span> {e.libelle}
+          <Puce valeur={e.puce} /> {e.libelle}
         </span>
       ))}
     </div>

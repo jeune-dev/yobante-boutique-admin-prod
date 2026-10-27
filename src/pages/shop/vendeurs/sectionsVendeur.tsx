@@ -369,7 +369,7 @@ export function SectionProduits({ vendeurId }: { vendeurId: string }) {
                     </td>
                     <td data-label="Statut" className="px-4 py-2.5">
                       <span
-                        className={`text-xs font-medium px-2 py-0.5 rounded-full ${CLASSE_STATUT_PRODUIT(p.statutValidation)}`}
+                        className={`badge ${CLASSE_STATUT_PRODUIT(p.statutValidation)}`}
                       >
                         {String(p.statutValidation).replace(/_/g, ' ')}
                       </span>
@@ -468,7 +468,7 @@ export function SectionReversements({ vendeurId }: { vendeurId: string }) {
                   </td>
                   <td data-label="Statut" className="px-4 py-2.5">
                     <span
-                      className={`text-xs font-medium px-2 py-0.5 rounded-full ${CLASSE_STATUT_REVERSEMENT[r.statut]}`}
+                      className={`badge ${CLASSE_STATUT_REVERSEMENT[r.statut]}`}
                     >
                       {LIBELLE_STATUT_REVERSEMENT[r.statut]}
                     </span>

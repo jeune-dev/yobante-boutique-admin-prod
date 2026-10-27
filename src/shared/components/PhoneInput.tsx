@@ -17,7 +17,7 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({ value, onChange, label }
         preferredCountries={['sn', 'fr']}
         value={value}
         onChange={(phone, meta) => onChange(phone, meta)}
-        className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+        className="champ mt-1 w-full"
       />
     </div>
   );

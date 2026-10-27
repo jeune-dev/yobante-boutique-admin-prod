@@ -1,3 +1,4 @@
+import Puce from '@/shared/components/dashboard/Puce';
 import {
   CLASSE_NIVEAU_STOCK,
   LIBELLE_NIVEAU_STOCK,
@@ -32,8 +33,8 @@ export default function BadgeStock({ niveau, stock, compact = false }: Props) {
         className="inline-flex items-center gap-1.5 whitespace-nowrap"
         title={`${libelle}${stock !== undefined ? ` — ${stock} en stock` : ''}`}
       >
-        <span aria-hidden="true">{PUCE_NIVEAU_STOCK[niveau]}</span>
-        {stock !== undefined && <span className="font-medium text-gray-900">{stock}</span>}
+        <Puce valeur={PUCE_NIVEAU_STOCK[niveau]} />
+        {stock !== undefined && <span className="font-medium text-gray-900 tabular-nums">{stock}</span>}
         <span className="sr-only">{libelle}</span>
       </span>
     );
@@ -41,11 +42,11 @@ export default function BadgeStock({ niveau, stock, compact = false }: Props) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-xs font-semibold whitespace-nowrap ${
+      className={`badge border ${
         CLASSE_NIVEAU_STOCK[niveau] ?? 'bg-gray-50 text-gray-600 border-gray-200'
       }`}
     >
-      <span aria-hidden="true">{PUCE_NIVEAU_STOCK[niveau]}</span>
+      <Puce valeur={PUCE_NIVEAU_STOCK[niveau]} />
       {libelle}
       {stock !== undefined && <span className="font-normal opacity-80">· {stock}</span>}
     </span>

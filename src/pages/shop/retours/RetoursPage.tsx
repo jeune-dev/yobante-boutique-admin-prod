@@ -84,7 +84,7 @@ export default function RetoursPage() {
     <div className="space-y-3 sm:space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Retours produits</h1>
+          <h1 className="text-[22px] sm:text-2xl font-semibold tracking-tight text-gray-900">Retours produits</h1>
           <p className="text-sm text-gray-500 mt-0.5">
             {nombre(total)} retour(s) · taux et motifs sur la période choisie.
           </p>
@@ -185,7 +185,7 @@ export default function RetoursPage() {
 
       {/* ── Liste ────────────────────────────────────────────────────────── */}
       <Bloc className="p-4">
-        <div className="flex flex-wrap gap-1.5 mb-4">
+        <div className="segments mb-4">
           {STATUTS.map((s) => (
             <button
               key={s.libelle}
@@ -195,11 +195,7 @@ export default function RetoursPage() {
                 setPage(1);
               }}
               aria-pressed={statut === s.valeur}
-              className={`px-2.5 py-1 text-xs font-medium rounded-full border transition-colors ${
-                statut === s.valeur
-                  ? 'bg-gray-900 text-white border-gray-900'
-                  : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-              }`}
+              className={`segment ${statut === s.valeur ? 'actif' : ''}`}
             >
               {s.libelle}
             </button>
@@ -289,7 +285,7 @@ export default function RetoursPage() {
                       </td>
                       <td className="py-2.5" data-label="Statut">
                         <span
-                          className={`px-2 py-0.5 rounded-full text-xs font-semibold ${CLASSE_STATUT_RETOUR[r.statut]}`}
+                          className={`badge ${CLASSE_STATUT_RETOUR[r.statut]}`}
                         >
                           {LIBELLE_STATUT_RETOUR[r.statut]}
                         </span>
@@ -352,7 +348,7 @@ export default function RetoursPage() {
 
 function Bloc({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm ${className}`}>
+    <div className={`carte ${className}`}>
       {children}
     </div>
   );
@@ -376,7 +372,7 @@ function Tuile({
       <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${teinte}`}>
         <Icon name={icone} size={16} />
       </div>
-      <p className="text-lg sm:text-xl font-bold text-gray-900 mt-2 break-words tabular-nums">{valeur}</p>
+      <p className="text-lg sm:text-xl font-semibold tracking-tight text-gray-900 mt-2 break-words tabular-nums">{valeur}</p>
       <p className="text-[13px] text-gray-500 leading-tight">{libelle}</p>
       {sous && <p className="text-xs text-gray-400 leading-tight">{sous}</p>}
     </Bloc>

@@ -141,24 +141,16 @@ export default function RayonsPage() {
       />
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6">
+      <div className="segments mb-6">
         <button
           onClick={() => setEtatUrl({ onglet: 'rayons' })}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            tab === 'rayons'
-              ? 'bg-gray-900 text-white border border-gray-900'
-              : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
-          }`}
+          className={`segment ${tab === 'rayons' ? 'actif' : ''}`}
         >
           Rayons
         </button>
         <button
           onClick={() => setEtatUrl({ onglet: 'sous-rayons' })}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            tab === 'sous-rayons'
-              ? 'bg-gray-900 text-white border border-gray-900'
-              : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
-          }`}
+          className={`segment ${tab === 'sous-rayons' ? 'actif' : ''}`}
         >
           Sous-rayons
         </button>
@@ -166,14 +158,14 @@ export default function RayonsPage() {
 
       {/* Tab Rayons */}
       {tab === 'rayons' && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+        <div className="carte">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border-b border-gray-100">
             <input
               value={search}
               onChange={(e) => setEtatUrl({ q: e.target.value, page: '1' })}
               placeholder="Rechercher un rayon…"
               aria-label="Rechercher un rayon"
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              className="champ w-full sm:w-64"
             />
             <button
               onClick={openCreate}
@@ -265,13 +257,13 @@ export default function RayonsPage() {
 
       {/* Tab Sous-rayons */}
       {tab === 'sous-rayons' && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+        <div className="carte">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border-b border-gray-100">
             <select
               value={selectedRayon}
               onChange={(e) => setEtatUrl({ rayon: e.target.value })}
               aria-label="Choisir un rayon"
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-auto sm:max-w-xs bg-white focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              className="champ w-full sm:w-auto sm:max-w-xs"
             >
               <option value="">— Choisir un rayon —</option>
               {rayons.map((r: any) => (
@@ -394,7 +386,7 @@ export default function RayonsPage() {
             className="modal-box max-w-md p-5 sm:p-6"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-lg font-bold mb-4">
+            <h2 className="text-lg font-semibold mb-4 text-gray-900">
               {editItem ? 'Modifier le rayon' : 'Nouveau rayon'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -404,7 +396,7 @@ export default function RayonsPage() {
                   required
                   value={form.nom}
                   onChange={(e) => setForm((f) => ({ ...f, nom: e.target.value }))}
-                  className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                  className="champ mt-1 w-full"
                 />
               </div>
               <div>
@@ -413,7 +405,7 @@ export default function RayonsPage() {
                   value={form.description}
                   onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                   rows={3}
-                  className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                  className="champ mt-1 w-full"
                 />
               </div>
               <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2">
@@ -427,7 +419,7 @@ export default function RayonsPage() {
                 <button
                   type="submit"
                   disabled={creerMutation.isPending || modifierMutation.isPending}
-                  className="px-4 py-2.5 sm:py-2 text-sm bg-yellow-400 text-gray-900 rounded-lg hover:bg-yellow-300 disabled:opacity-60"
+                  className="btn-primaire sm:py-2"
                 >
                   {creerMutation.isPending || modifierMutation.isPending
                     ? 'Enregistrement…'
@@ -452,7 +444,7 @@ export default function RayonsPage() {
             className="modal-box max-w-md p-5 sm:p-6"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-lg font-bold mb-4">
+            <h2 className="text-lg font-semibold mb-4 text-gray-900">
               {editSr ? 'Modifier le sous-rayon' : 'Nouveau sous-rayon'}
             </h2>
             <form
@@ -469,7 +461,7 @@ export default function RayonsPage() {
                   required
                   value={srForm.nom}
                   onChange={(e) => setSrForm((f) => ({ ...f, nom: e.target.value }))}
-                  className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                  className="champ mt-1 w-full"
                 />
               </div>
               <div>
@@ -478,7 +470,7 @@ export default function RayonsPage() {
                   value={srForm.description}
                   onChange={(e) => setSrForm((f) => ({ ...f, description: e.target.value }))}
                   rows={2}
-                  className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                  className="champ mt-1 w-full"
                 />
               </div>
               <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2">
@@ -492,7 +484,7 @@ export default function RayonsPage() {
                 <button
                   type="submit"
                   disabled={creerSrMutation.isPending || modifierSrMutation.isPending}
-                  className="px-4 py-2.5 sm:py-2 text-sm bg-yellow-400 text-gray-900 rounded-lg hover:bg-yellow-300 disabled:opacity-60"
+                  className="btn-primaire sm:py-2"
                 >
                   {creerSrMutation.isPending || modifierSrMutation.isPending
                     ? 'Enregistrement…'

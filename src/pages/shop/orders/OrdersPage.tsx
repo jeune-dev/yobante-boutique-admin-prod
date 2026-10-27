@@ -26,6 +26,7 @@ import {
 import { dansIntervalle, dansPeriode, libelleIntervalle, libellePeriode } from '@/shared/utils/filtres';
 import { enDate, enNombre, type ColonneExport } from '@/shared/utils/exportExcel';
 import { EntetePage } from '@/shared/components/dashboard/Blocs';
+import { montant } from '@/shared/utils/format';
 
 const api = {
   getCommandes: (p: any) =>
@@ -225,19 +226,19 @@ export default function OrdersPage() {
             teinte: 'bg-red-50 text-red-600',
           },
         ].map((k) => (
-          <div key={k.label} className="flex items-center gap-3.5 bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+          <div key={k.label} className="carte flex items-center gap-3.5 p-4">
             <span className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${k.teinte}`}>
               <Icon name={k.icone} size={22} />
             </span>
             <div className="min-w-0">
-              <p className="text-2xl font-bold leading-none text-gray-900 tabular-nums">{k.value ?? '…'}</p>
+              <p className="text-2xl font-semibold tracking-tight leading-none text-gray-900 tabular-nums">{k.value ?? '…'}</p>
               <p className="text-sm font-medium text-gray-600 mt-1">{k.label}</p>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+      <div className="carte">
         <BarreFiltres
           nbActifs={nbActifs}
           onReinitialiser={() =>
@@ -252,7 +253,7 @@ export default function OrdersPage() {
                 }}
                 placeholder="Rechercher…"
                 aria-label="Rechercher une commande"
-                className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-56 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                className="champ w-full sm:w-56"
               />
               <select
                 value={statut}
@@ -260,7 +261,7 @@ export default function OrdersPage() {
                   setFiltres({ statut: e.target.value, page: '1' });
                 }}
                 aria-label="Filtrer par statut"
-                className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-auto bg-white focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                className="champ w-full sm:w-auto"
               >
                 <option value="">Tous les statuts</option>
                 {ORDRE_STATUTS_COMMANDE.map((s) => (
@@ -355,7 +356,7 @@ export default function OrdersPage() {
                   <td className="px-4 whitespace-nowrap" data-label="Montant">
                     <div className="text-right md:text-left">
                       <p className="font-semibold text-gray-900 tabular-nums">
-                        {c.montantTotal?.toLocaleString('fr-FR')} FCFA
+                        {montant(c.montantTotal)}
                       </p>
                       <p className="text-[13px] text-gray-500">
                         {c.items?.length ? `${c.items.length} article(s)` : '—'}
@@ -368,7 +369,7 @@ export default function OrdersPage() {
                   <td className="px-4" data-label="Statut">
                     <div className="flex flex-wrap items-center justify-end md:justify-start gap-1.5">
                       <span
-                        className={`whitespace-nowrap px-2.5 py-1 rounded-full text-xs font-semibold ${
+                        className={`badge ${
                           STATUT_COLORS[c.statut] || 'bg-gray-100'
                         }`}
                       >
@@ -378,7 +379,7 @@ export default function OrdersPage() {
                       {/* Un vendeur a déclaré ses produits indisponibles. */}
                       {c.refusVendeurs > 0 && (
                         <span
-                          className="px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-700 whitespace-nowrap"
+                          className="badge bg-red-50 text-red-700"
                           title="Produits déclarés indisponibles par un vendeur — voir le détail"
                         >
                           Indisponible
@@ -439,7 +440,7 @@ export default function OrdersPage() {
         <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Rejeter la commande">
           <div className="modal-box max-w-md">
             <div className="p-5 sm:p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
                 Rejeter la commande
               </h2>
               <p className="text-sm text-gray-600 mb-4">
@@ -451,7 +452,7 @@ export default function OrdersPage() {
                 placeholder="Motif du rejet (ex: Stock insuffisant, Produit indisponible)…"
                 aria-label="Motif du rejet"
                 maxLength={500}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none"
+                className="champ w-full resize-none focus:border-red-400 focus:ring-red-400/20"
                 rows={4}
               />
               <div className="flex gap-3 mt-6">

@@ -265,7 +265,7 @@ function ModaleTaux({ compte, onFermer }: { compte: CompteVendeur; onFermer: () 
             onChange={(e) => setTaux(e.target.value)}
             placeholder="Laisser vide pour le taux par défaut"
             autoFocus
-            className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-200 text-sm"
+            className="champ mt-1 w-full"
           />
         </label>
 
@@ -338,7 +338,7 @@ function ModaleReversement({ compte, onFermer }: { compte: CompteVendeur; onFerm
             onChange={(e) => setMontant(e.target.value)}
             autoFocus
             required
-            className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-200 text-sm tabular-nums"
+            className="champ mt-1 w-full tabular-nums"
           />
         </label>
 
@@ -347,7 +347,7 @@ function ModaleReversement({ compte, onFermer }: { compte: CompteVendeur; onFerm
           <select
             value={methode}
             onChange={(e) => setMethode(e.target.value)}
-            className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white"
+            className="champ mt-1 w-full"
           >
             {METHODES_REVERSEMENT.map((m) => (
               <option key={m} value={m}>
@@ -364,7 +364,7 @@ function ModaleReversement({ compte, onFermer }: { compte: CompteVendeur; onFerm
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="Référence du virement, période couverte…"
-            className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-200 text-sm"
+            className="champ mt-1 w-full"
           />
         </label>
 
@@ -395,14 +395,14 @@ function Modale({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4"
+      className="modal-overlay"
       role="dialog"
       aria-modal="true"
       aria-label={titre}
       onClick={onFermer}
     >
       <div
-        className="w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-xl shadow-xl max-h-[90vh] overflow-y-auto"
+        className="modal-box sm:max-w-md"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-gray-100">
@@ -427,7 +427,7 @@ function BoutonPrincipal({ children, enCours }: { children: React.ReactNode; enC
     <button
       type="submit"
       disabled={enCours}
-      className="px-4 py-2 text-sm font-semibold rounded-lg bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-50"
+      className="btn-sombre"
     >
       {enCours ? 'Enregistrement…' : children}
     </button>
@@ -445,7 +445,7 @@ function BoutonSecondaire({
     <button
       type="button"
       onClick={onClick}
-      className="px-4 py-2 text-sm font-semibold rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50"
+      className="btn-secondaire"
     >
       {children}
     </button>

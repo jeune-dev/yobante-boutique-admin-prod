@@ -298,7 +298,7 @@ export default function ProduitsSectionModal({
                       value={remiseDe(p.id)}
                       onChange={(e) => setRemises((r) => ({ ...r, [p.id]: e.target.value }))}
                       aria-label={`Remise pour ${p.nom}`}
-                      className="w-16 px-2 py-1.5 text-sm border border-gray-200 rounded-lg text-right focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                      className="champ w-16 px-2 py-1.5 text-right"
                     />
                     <span className="text-xs text-gray-500">%</span>
                   </label>
@@ -327,7 +327,7 @@ export default function ProduitsSectionModal({
             onChange={(e) => setRecherche(e.target.value)}
             placeholder="Rechercher dans le catalogue…"
             autoFocus
-            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
+            className="champ w-full pl-9 pr-3"
           />
         </div>
 

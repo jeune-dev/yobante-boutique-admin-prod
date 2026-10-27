@@ -66,16 +66,14 @@ export default function ProduitsPage() {
 
       <Bloc className="p-3 sm:p-4">
         <div className="flex flex-wrap items-center gap-2">
-          <div className="inline-flex rounded-lg border border-gray-200 overflow-hidden">
+          <div className="segments">
             {ORIGINES.map((o) => (
               <button
                 key={o}
                 type="button"
                 onClick={() => setOrigine(o)}
                 aria-pressed={origine === o}
-                className={`px-3 py-2 text-sm font-medium border-r border-gray-200 last:border-r-0 transition-colors ${
-                  origine === o ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
-                }`}
+                className={`segment ${origine === o ? 'actif' : ''}`}
               >
                 {LIBELLE_ORIGINE[o]}
               </button>
@@ -86,7 +84,7 @@ export default function ProduitsPage() {
             value={rayonId}
             onChange={(e) => setRayonId(e.target.value)}
             aria-label="Filtrer par rayon"
-            className="px-2.5 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 bg-white max-w-full min-w-0"
+            className="champ text-gray-700 max-w-full min-w-0"
           >
             <option value="">Tous les rayons</option>
             {rayons.map((r) => (
@@ -100,7 +98,7 @@ export default function ProduitsPage() {
             value={limit}
             onChange={(e) => setLimit(Number(e.target.value))}
             aria-label="Nombre de produits"
-            className="px-2.5 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 bg-white"
+            className="champ text-gray-700"
           >
             {TAILLES.map((t) => (
               <option key={t} value={t}>
@@ -157,7 +155,7 @@ export default function ProduitsPage() {
                     </td>
                     <td data-label="Vendeur" className="px-3 sm:px-4 py-2.5">
                       <span
-                        className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                        className={`badge ${
                           p.marketplace
                             ? 'bg-purple-50 text-purple-700'
                             : 'bg-gray-100 text-gray-600'

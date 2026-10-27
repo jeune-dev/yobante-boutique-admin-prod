@@ -75,7 +75,7 @@ const telephoneSaisi = (f: Formulaire) => {
 };
 
 const CHAMP =
-  'mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300';
+  'champ mt-1 w-full';
 
 export default function AdministrateursPage() {
   const qc = useQueryClient();
@@ -249,7 +249,7 @@ export default function AdministrateursPage() {
         </button>
       </EntetePage>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+      <div className="carte">
         <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-3">
           <input
             value={search}
@@ -259,7 +259,7 @@ export default function AdministrateursPage() {
             }}
             placeholder="Rechercher (nom, prénom, email)…"
             aria-label="Rechercher un administrateur"
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-72 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+            className="champ w-full sm:w-72"
           />
           <select
             value={statut}
@@ -268,7 +268,7 @@ export default function AdministrateursPage() {
               setPage(1);
             }}
             aria-label="Filtrer par statut"
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-44 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-300"
+            className="champ w-full sm:w-44"
           >
             <option value="">Tous les statuts</option>
             <option value="actif">Actifs</option>
@@ -433,7 +433,7 @@ export default function AdministrateursPage() {
             className="modal-box max-w-2xl p-5 sm:p-6 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-lg font-bold mb-1">
+            <h2 className="text-lg font-semibold mb-1 text-gray-900">
               {enEdition ? "Modifier l'administrateur" : 'Nouvel administrateur'}
             </h2>
             {!enEdition && (
@@ -524,7 +524,7 @@ export default function AdministrateursPage() {
                 <button
                   type="submit"
                   disabled={enregistrer.isPending}
-                  className="px-4 py-2.5 sm:py-2 text-sm bg-yellow-400 text-gray-900 rounded-lg hover:bg-yellow-300 disabled:opacity-60"
+                  className="btn-primaire sm:py-2"
                 >
                   {enregistrer.isPending
                     ? 'Enregistrement…'

@@ -92,23 +92,23 @@ export default function UserDetailPage() {
       {/* ── Identité : une carte de profil plutôt qu'une grille de champs ── */}
       <Bloc className="p-5 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5">
-          <span className="w-16 h-16 rounded-2xl bg-yellow-50 text-yellow-700 text-xl font-bold flex items-center justify-center shrink-0">
+          <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-blue-900 text-xl font-semibold tracking-tight text-white">
             {`${user.prenom?.[0] ?? ''}${user.nom?.[0] ?? ''}`.toUpperCase() || '?'}
           </span>
           <div className="min-w-0 flex-1">
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 break-words">
+            <h1 className="text-[22px] sm:text-2xl font-semibold tracking-tight text-gray-900 break-words">
               {user.prenom} {user.nom}
             </h1>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <span
-                className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                className={`badge ${
                   user.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                 }`}
               >
                 {user.isActive ? 'Actif' : 'Bloqué'}
               </span>
               <span
-                className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                className={`badge ${
                   user.isVerified ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'
                 }`}
               >
@@ -217,7 +217,7 @@ export default function UserDetailPage() {
                     </td>
                     <td data-label="Statut" className="px-4 py-2.5">
                       <span
-                        className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                        className={`badge ${
                           COULEUR_STATUT[c.statut] ?? 'bg-gray-100 text-gray-600'
                         }`}
                       >

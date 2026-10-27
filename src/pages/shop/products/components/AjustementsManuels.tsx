@@ -43,7 +43,7 @@ export default function AjustementsManuels({ produitId }: { produitId: string })
   return (
     <Bloc>
       <div className="px-3 sm:px-4 py-3 border-b border-gray-100">
-        <h2 className="font-bold text-gray-900">Modifications manuelles</h2>
+        <h2 className="font-semibold text-gray-900">Modifications manuelles</h2>
         <p className="text-xs text-gray-400 mt-0.5">
           Chaque correction saisie par un administrateur, avec son motif. L’historique n’est jamais
           écrasé ni supprimé.

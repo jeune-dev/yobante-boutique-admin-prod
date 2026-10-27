@@ -82,11 +82,11 @@ export default function MenuActions({
         setOuvert(false);
         a.onClick();
       }}
-      className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors ${
-        a.danger ? 'text-red-600 hover:bg-red-50' : 'text-gray-700 hover:bg-gray-50'
+      className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-medium transition-colors ${
+        a.danger ? 'text-red-600 hover:bg-red-50' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
       }`}
     >
-      {a.icone && <Icon name={a.icone} size={16} className="shrink-0 opacity-70" />}
+      {a.icone && <Icon name={a.icone} size={16} className={`shrink-0 ${a.danger ? '' : 'text-gray-400'}`} />}
       {a.libelle}
     </button>
   );
@@ -114,7 +114,7 @@ export default function MenuActions({
             ref={menu}
             role="menu"
             onClick={(e) => e.stopPropagation()}
-            className="fixed z-[80] min-w-[13rem] overflow-hidden rounded-xl border border-gray-100 bg-white py-1 shadow-lg"
+            className="fixed z-[80] min-w-[13rem] animate-apparition overflow-hidden rounded-xl border border-gray-200/80 bg-white p-1 shadow-flottant"
             style={position ?? { top: -9999, right: 0 }}
           >
             {normales.map(entree)}

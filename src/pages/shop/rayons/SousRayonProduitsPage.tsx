@@ -91,7 +91,7 @@ export default function SousRayonProduitsPage() {
       <AdminBackButton parent={pageRayon} className="mb-3" />
       <div className="flex flex-wrap items-start gap-3 mb-6">
         <div className="min-w-0 flex-1 basis-40">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
+          <h1 className="text-[22px] sm:text-2xl font-semibold tracking-tight text-gray-900 truncate">
             {sousRayon?.nom ?? 'Sous-rayon'}
           </h1>
           <p className="text-sm text-gray-500 mt-1">
@@ -111,13 +111,13 @@ export default function SousRayonProduitsPage() {
         <button
           onClick={() => setAjoutOuvert(true)}
           disabled={!rayon}
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 text-sm font-medium px-3.5 py-2.5 sm:py-2 rounded-lg bg-yellow-400 text-gray-900 hover:bg-yellow-300 disabled:opacity-50 shrink-0"
+          className="btn-primaire w-full sm:w-auto sm:py-2 shrink-0"
         >
           <Icon name="plus" size={15} /> Ajouter un produit
         </button>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+      <div className="carte">
         {produitsQuery.isLoading ? (
           <div className="p-8 text-center text-gray-400">Chargement…</div>
         ) : produitsQuery.isError ? (
@@ -272,7 +272,7 @@ function ModaleAjout({
             onChange={(e) => setRecherche(e.target.value)}
             placeholder="Rechercher dans le catalogue…"
             autoFocus
-            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
+            className="champ w-full pl-9 pr-3"
           />
         </div>
 

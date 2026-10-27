@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import Icon from '@/shared/components/dashboard/Icon';
 import Cliquable from '@/shared/components/dashboard/Cliquable';
+import Puce from '@/shared/components/dashboard/Puce';
 
 /* ──────────────────────────────────────────────────────────────────────────
    Briques de présentation du dashboard.
@@ -18,7 +19,7 @@ export function Bloc({
   className?: string;
 }) {
   return (
-    <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm ${className}`}>
+    <div className={`carte ${className}`}>
       {children}
     </div>
   );
@@ -26,14 +27,14 @@ export function Bloc({
 
 export function Titre({ children, aide }: { children: ReactNode; aide?: string }) {
   return (
-    <h2 className="text-lg font-semibold leading-tight text-gray-900" title={aide}>
+    <h2 className="text-base font-semibold leading-tight text-gray-900" title={aide}>
       {children}
     </h2>
   );
 }
 
 export function Vide({ texte }: { texte: string }) {
-  return <p className="text-[15px] text-gray-400 py-10 text-center">{texte}</p>;
+  return <p className="py-10 text-center text-sm text-gray-500">{texte}</p>;
 }
 
 /**
@@ -54,10 +55,12 @@ export function EntetePage({
   className?: string;
 }) {
   return (
-    <div className={`flex flex-wrap items-center justify-between gap-3 ${className}`}>
+    <div className={`flex flex-wrap items-end justify-between gap-x-4 gap-y-3 ${className}`}>
       <div className="min-w-0">
-        <h1 className="text-xl sm:text-2xl font-bold leading-tight text-gray-900">{titre}</h1>
-        {soustitre && <p className="text-sm sm:text-[15px] text-gray-500 mt-1">{soustitre}</p>}
+        <h1 className="text-[22px] font-semibold leading-tight tracking-tight text-gray-900 sm:text-2xl">
+          {titre}
+        </h1>
+        {soustitre && <p className="mt-1 text-sm text-gray-500">{soustitre}</p>}
       </div>
       {children && (
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto min-w-0">{children}</div>
@@ -94,9 +97,9 @@ export function TitreIcone({
   children: ReactNode;
 }) {
   return (
-    <h2 className="flex items-center gap-3 text-lg font-semibold leading-tight text-gray-900">
-      <span className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${ACCENTS[accent].pastille}`}>
-        <Icon name={icone} size={18} />
+    <h2 className="flex items-center gap-3 text-base font-semibold leading-tight text-gray-900">
+      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${ACCENTS[accent].pastille}`}>
+        <Icon name={icone} size={17} />
       </span>
       <span className="min-w-0">{children}</span>
     </h2>
@@ -135,22 +138,22 @@ export function Chiffre({
     <Cliquable
       vers={vers}
       titre={aide}
-      survol={`hover:shadow-md ${accent ? ACCENTS[accent].bord : 'hover:border-gray-200'}`}
-      className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm"
+      survol={`hover:shadow-survol ${accent ? ACCENTS[accent].bord : 'hover:border-gray-300'}`}
+      className="rounded-xl border border-gray-200/80 bg-white p-4 shadow-carte"
     >
       <div className="flex items-center gap-2.5">
         {icone && accent && (
-          <span className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${ACCENTS[accent].pastille}`}>
-            <Icon name={icone} size={18} />
+          <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${ACCENTS[accent].pastille}`}>
+            <Icon name={icone} size={16} />
           </span>
         )}
-        <p className="min-w-0 flex-1 text-sm font-medium leading-snug text-gray-600">{libelle}</p>
-        {vers && <Icon name="chevron-right" size={16} className="text-gray-300 group-hover:text-gray-600 shrink-0" />}
+        <p className="min-w-0 flex-1 text-sm font-medium leading-snug text-gray-500">{libelle}</p>
+        {vers && <Icon name="chevron-right" size={16} className="shrink-0 text-gray-300 transition-colors group-hover:text-gray-600" />}
       </div>
-      <p className={`text-xl sm:text-2xl font-bold leading-tight mt-2 break-words tabular-nums ${TONS[ton]}`}>
+      <p className={`mt-3 break-words text-2xl font-semibold leading-tight tracking-tight tabular-nums ${TONS[ton]}`}>
         {valeur}
       </p>
-      {aide && <p className="text-[13px] text-gray-500 mt-1 leading-snug">{aide}</p>}
+      {aide && <p className="mt-1 text-[13px] leading-snug text-gray-500">{aide}</p>}
     </Cliquable>
   );
 }
@@ -177,17 +180,17 @@ export function Tuile({
     <Cliquable
       vers={vers}
       titre={aide}
-      survol="hover:shadow-md hover:border-gray-200"
-      className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4"
+      survol="hover:shadow-survol hover:border-gray-300"
+      className="rounded-xl border border-gray-200/80 bg-white p-4 shadow-carte sm:p-5"
     >
       <div className="flex items-start justify-between gap-2">
-        <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${teinte}`}>
-          <Icon name={icone} size={22} />
+        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${teinte}`}>
+          <Icon name={icone} size={20} />
         </div>
-        {vers && <Icon name="chevron-right" size={16} className="text-gray-300 group-hover:text-gray-600 shrink-0" />}
+        {vers && <Icon name="chevron-right" size={16} className="shrink-0 text-gray-300 transition-colors group-hover:text-gray-600" />}
       </div>
-      <p className="text-2xl sm:text-3xl font-bold leading-none text-gray-900 mt-3 tabular-nums">{valeur}</p>
-      <p className="text-sm font-medium text-gray-600 mt-1.5">{libelle}</p>
+      <p className="mt-4 text-[26px] font-semibold leading-none tracking-tight text-gray-900 tabular-nums">{valeur}</p>
+      <p className="mt-2 text-sm font-medium text-gray-500">{libelle}</p>
       {sous && <p className="text-[13px] text-gray-400">{sous}</p>}
     </Cliquable>
   );
@@ -221,14 +224,14 @@ export function Barre({
 
   return (
     <Cliquable vers={vers} className={vers ? '-mx-2 px-2 py-1 rounded-lg border border-transparent' : ''}>
-      <div className="flex items-baseline justify-between gap-3 text-[15px] mb-1.5">
+      <div className="mb-1.5 flex items-baseline justify-between gap-3 text-sm">
         <span className="text-gray-700 truncate min-w-0">{libelle}</span>
         <span className="font-semibold text-gray-900 shrink-0 tabular-nums flex items-center gap-1">
           {valeur}
           {vers && <Icon name="chevron-right" size={12} className="text-gray-300 group-hover:text-gray-600" />}
         </span>
       </div>
-      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+      <div className="h-1.5 overflow-hidden rounded-full bg-gray-100">
         <div className={`h-full rounded-full ${couleur}`} style={{ width: `${part}%` }} />
       </div>
       {detail && <p className="text-xs text-gray-500 mt-1">{detail}</p>}
@@ -251,10 +254,10 @@ export function Pastille({
   aide?: string;
 }) {
   return (
-    <div className={`rounded-xl px-3 py-3 text-center ${teinte}`} title={aide}>
-      <p className="text-2xl font-bold leading-none tabular-nums">{valeur}</p>
-      <p className="mt-1.5 text-[13px] font-medium leading-tight">
-        {puce && <span aria-hidden="true">{puce} </span>}
+    <div className={`rounded-xl px-3 py-3.5 text-center ${teinte}`} title={aide}>
+      <p className="text-2xl font-semibold leading-none tracking-tight tabular-nums">{valeur}</p>
+      <p className="mt-2 flex items-center justify-center gap-1.5 text-[13px] font-medium leading-tight">
+        <Puce valeur={puce} />
         {libelle}
       </p>
       {aide && <p className="mt-1 text-xs leading-tight opacity-75">{aide}</p>}
@@ -269,7 +272,7 @@ export function Pastille({
  */
 export function Reserve({ children }: { children: ReactNode }) {
   return (
-    <p className="flex items-start gap-2 text-sm text-orange-800 bg-orange-50 border border-orange-100 rounded-xl px-3 py-2.5">
+    <p className="flex items-start gap-2 rounded-lg border border-orange-200/70 bg-orange-50 px-3 py-2.5 text-sm text-orange-800">
       <Icon name="alert-triangle" size={15} className="mt-0.5 shrink-0" />
       <span>{children}</span>
     </p>
@@ -289,9 +292,9 @@ export function BoutonActualiser({
       type="button"
       onClick={onClick}
       disabled={enCours}
-      className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+      className="btn-secondaire"
     >
-      <Icon name="refresh-cw" size={16} className={enCours ? 'animate-spin' : ''} />
+      <Icon name="refresh-cw" size={15} className={enCours ? 'animate-spin' : ''} />
       {enCours ? 'Actualisation…' : 'Actualiser'}
     </button>
   );
@@ -301,13 +304,13 @@ export function BoutonActualiser({
 export function Squelette({ tuiles = 4 }: { tuiles?: number }) {
   return (
     <div className="space-y-4 animate-pulse">
-      <div className="h-7 w-48 bg-gray-100 rounded" />
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="h-7 w-48 rounded-md bg-gray-200/70" />
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {Array.from({ length: tuiles }).map((_, i) => (
-          <div key={i} className="h-28 bg-gray-100 rounded-2xl" />
+          <div key={i} className="h-28 rounded-xl bg-gray-200/60" />
         ))}
       </div>
-      <div className="h-64 bg-gray-100 rounded-2xl" />
+      <div className="h-64 rounded-xl bg-gray-200/60" />
     </div>
   );
 }

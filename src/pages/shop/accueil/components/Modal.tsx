@@ -46,7 +46,7 @@ export default function Modal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-[2px] animate-[fadeIn_120ms_ease-out]"
+      className="modal-overlay"
       // Le clic sur le fond ferme, mais pas celui sur la fenêtre elle-même.
       onClick={(e) => e.target === e.currentTarget && onFermer()}
       role="dialog"
@@ -54,18 +54,18 @@ export default function Modal({
       aria-label={titre}
     >
       <div
-        className={`w-full ${LARGEURS[largeur]} max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl overflow-hidden`}
+        className={`modal-box flex max-h-[90vh] flex-col overflow-hidden ${LARGEURS[largeur]}`}
       >
         <div className="flex items-start gap-3 px-5 py-4 border-b border-gray-100 shrink-0">
           <div className="min-w-0 flex-1">
-            <h3 className="font-bold text-gray-900 truncate">{titre}</h3>
+            <h3 className="truncate text-base font-semibold text-gray-900">{titre}</h3>
             {sousTitre && <p className="text-xs text-gray-500 mt-0.5">{sousTitre}</p>}
           </div>
           <button
             type="button"
             onClick={onFermer}
             aria-label="Fermer"
-            className="p-1.5 -m-1 rounded-lg text-gray-400 hover:bg-gray-50 hover:text-gray-700 shrink-0"
+            className="btn-icon -m-1.5 shrink-0 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
           >
             <Icon name="x" size={18} />
           </button>
@@ -148,10 +148,7 @@ export function Champ({
   aide?: string;
   lignes?: number;
 }) {
-  const classes =
-    'w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white ' +
-    'focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent ' +
-    'placeholder:text-gray-400';
+  const classes = 'champ w-full';
 
   return (
     <div>

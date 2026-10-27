@@ -26,6 +26,21 @@ export interface PaymentFilters {
   limit?: number;
 }
 
+/** Libellés lisibles des codes renvoyés par l'API (fiche commande, listes). */
+export const LIBELLE_METHODE_PAIEMENT: Record<string, string> = {
+  wave: 'Wave',
+  orange_money: 'Orange Money',
+  carte: 'Carte bancaire',
+  cash_livraison: 'Paiement à la livraison',
+};
+
+export const LIBELLE_STATUT_PAIEMENT: Record<string, string> = {
+  en_attente: 'en attente',
+  succes: 'réussi',
+  echec: 'échoué',
+  rembourse: 'remboursé',
+};
+
 export const paymentsApi = {
   getAll: (filters?: PaymentFilters): Promise<any> =>
     shopClient.get('/admin/paiements', { params: filters }),

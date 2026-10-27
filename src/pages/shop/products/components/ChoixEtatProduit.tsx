@@ -32,7 +32,7 @@ export default function ChoixEtatProduit({
             value={etat}
             onChange={(e) => onEtat(e.target.value as EtatProduit)}
             aria-label="État du produit"
-            className="mt-2 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+            className="champ mt-2 w-full"
           >
             {ETATS_PRODUIT.map((e) => (
               <option key={e} value={e}>

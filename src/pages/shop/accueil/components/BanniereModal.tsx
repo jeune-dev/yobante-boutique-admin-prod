@@ -191,7 +191,7 @@ export default function BanniereModal({ banniere, onFermer, onEnregistre }: Prop
                   </span>
                 )}
                 <span className="absolute inset-0 bg-gray-900/0 group-hover:bg-gray-900/40 transition-colors flex items-center justify-center">
-                  <span className="opacity-0 group-hover:opacity-100 text-xs font-semibold text-white bg-gray-900/80 px-2.5 py-1 rounded-full">
+                  <span className="badge opacity-0 group-hover:opacity-100 text-white bg-gray-900/80">
                     Changer l'image
                   </span>
                 </span>
@@ -251,7 +251,7 @@ export default function BanniereModal({ banniere, onFermer, onEnregistre }: Prop
           <select
             value={rayonId}
             onChange={(e) => setRayonId(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
+            className="champ w-full"
           >
             <option value="">Aucun rayon</option>
             {rayons.map((r) => (
@@ -309,7 +309,7 @@ export default function BanniereModal({ banniere, onFermer, onEnregistre }: Prop
                 value={recherche}
                 onChange={(e) => setRecherche(e.target.value)}
                 placeholder="Rechercher un produit à mettre en avant…"
-                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
+                className="champ w-full pl-9 pr-3"
               />
             </div>
 

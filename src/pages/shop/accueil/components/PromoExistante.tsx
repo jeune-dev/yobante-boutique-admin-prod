@@ -85,7 +85,7 @@ export default function PromoExistante({
       </div>
 
       {/* Mini fiche produit */}
-      <div className="flex gap-3 p-3 rounded-2xl border border-gray-100 bg-white shadow-sm">
+      <div className="carte flex gap-3 p-3">
         <div className="w-20 h-20 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0 overflow-hidden">
           {image ? (
             <img src={image} alt="" className="w-full h-full object-contain p-1.5" />
@@ -126,14 +126,14 @@ export default function PromoExistante({
         <button
           type="button"
           onClick={onAnnuler}
-          className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
+          className="btn-secondaire"
         >
           Annuler
         </button>
         <button
           type="button"
           onClick={onConfirmer}
-          className="px-4 py-2 text-sm font-semibold rounded-lg bg-yellow-400 text-gray-900 hover:bg-yellow-300"
+          className="btn-primaire"
         >
           Confirmer
         </button>

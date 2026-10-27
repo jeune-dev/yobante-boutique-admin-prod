@@ -82,7 +82,7 @@ export default function ReclamationsPage() {
 
       <Bloc className="p-3 sm:p-4">
         <div className="flex flex-wrap items-center gap-2">
-          <div className="inline-flex flex-wrap rounded-lg border border-gray-200 overflow-hidden">
+          <div className="segments">
             {FILTRES_STATUT.map((f) => (
               <button
                 key={f.libelle}
@@ -92,18 +92,14 @@ export default function ReclamationsPage() {
                   setPage(1);
                 }}
                 aria-pressed={statut === f.valeur}
-                className={`px-3 py-2 text-sm font-medium border-r border-gray-200 last:border-r-0 transition-colors ${
-                  statut === f.valeur
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-white text-gray-600 hover:bg-gray-50'
-                }`}
+                className={`segment ${statut === f.valeur ? 'actif' : ''}`}
               >
                 {f.libelle}
               </button>
             ))}
           </div>
 
-          <div className="inline-flex rounded-lg border border-gray-200 overflow-hidden">
+          <div className="segments">
             {FILTRES_TYPE.map((f) => (
               <button
                 key={f.libelle}
@@ -113,9 +109,7 @@ export default function ReclamationsPage() {
                   setPage(1);
                 }}
                 aria-pressed={type === f.valeur}
-                className={`px-3 py-2 text-sm font-medium border-r border-gray-200 last:border-r-0 transition-colors ${
-                  type === f.valeur ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
-                }`}
+                className={`segment ${type === f.valeur ? 'actif' : ''}`}
               >
                 {f.libelle}
               </button>
@@ -154,11 +148,11 @@ export default function ReclamationsPage() {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
+                      <span className="badge bg-gray-100 text-gray-700">
                         {LIBELLE_TYPE_SIGNALEMENT[s.type]}
                       </span>
                       <span
-                        className={`text-xs font-medium px-2 py-0.5 rounded-full ${CLASSE_STATUT_SIGNALEMENT[s.statut]}`}
+                        className={`badge ${CLASSE_STATUT_SIGNALEMENT[s.statut]}`}
                       >
                         {LIBELLE_STATUT_SIGNALEMENT[s.statut]}
                       </span>
@@ -196,7 +190,7 @@ export default function ReclamationsPage() {
                     <button
                       type="button"
                       onClick={() => setReponse(s)}
-                      className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
+                      className="btn-secondaire"
                     >
                       <Icon name="message-square" size={13} />
                       {s.reponseAdmin ? 'Modifier la réponse' : 'Répondre'}
@@ -206,7 +200,7 @@ export default function ReclamationsPage() {
                         type="button"
                         onClick={() => changer(s, 'traite')}
                         disabled={traiter.isPending}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-50"
+                        className="btn-sombre btn-sm"
                       >
                         <Icon name="check" size={13} /> Traité
                       </button>
@@ -216,7 +210,7 @@ export default function ReclamationsPage() {
                         type="button"
                         onClick={() => changer(s, 'rejete')}
                         disabled={traiter.isPending}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg border border-gray-200 text-red-600 hover:bg-red-50 disabled:opacity-50"
+                        className="btn-danger-doux"
                       >
                         <Icon name="x" size={13} /> Rejeter
                       </button>
@@ -278,14 +272,14 @@ function ModaleReponse({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4"
+      className="modal-overlay"
       role="dialog"
       aria-modal="true"
       aria-label="Répondre à la réclamation"
       onClick={onFermer}
     >
       <div
-        className="w-full sm:max-w-lg bg-white rounded-t-2xl sm:rounded-xl shadow-xl max-h-[90vh] overflow-y-auto"
+        className="modal-box sm:max-w-lg"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-gray-100">
@@ -326,7 +320,7 @@ function ModaleReponse({
               autoFocus
               required
               placeholder="Ce qui a été vérifié et ce qui a été décidé."
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-200 text-sm"
+              className="champ mt-1 w-full"
             />
           </label>
 
@@ -335,7 +329,7 @@ function ModaleReponse({
             <select
               value={statut}
               onChange={(e) => setStatut(e.target.value as StatutSignalement)}
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white"
+              className="champ mt-1 w-full"
             >
               <option value="traite">Traité — la réclamation était fondée</option>
               <option value="rejete">Rejeté — aucune action nécessaire</option>
@@ -347,14 +341,14 @@ function ModaleReponse({
             <button
               type="button"
               onClick={onFermer}
-              className="px-4 py-2 text-sm font-semibold rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50"
+              className="btn-secondaire"
             >
               Annuler
             </button>
             <button
               type="submit"
               disabled={enCours}
-              className="px-4 py-2 text-sm font-semibold rounded-lg bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-50"
+              className="btn-sombre"
             >
               {enCours ? 'Enregistrement…' : 'Enregistrer'}
             </button>

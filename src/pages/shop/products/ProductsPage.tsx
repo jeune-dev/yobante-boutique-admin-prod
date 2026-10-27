@@ -33,6 +33,7 @@ import {
 } from '@/domains/shop/etatProduit';
 import { LIBELLE_NIVEAU_STOCK, type NiveauStock } from '@/domains/shop/types/indicateurs';
 import { EntetePage } from '@/shared/components/dashboard/Blocs';
+import { montant } from '@/shared/utils/format';
 
 const api = {
   getProduits: (p: any) =>
@@ -300,7 +301,7 @@ export default function ProductsPage() {
         </button>
       </EntetePage>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+      <div className="carte">
         <BarreFiltres
           nbActifs={nbActifs}
           onReinitialiser={() =>
@@ -325,7 +326,7 @@ export default function ProductsPage() {
               onChange={(e) => setFiltres({ q: e.target.value, page: '1' })}
               placeholder="Rechercher un produit…"
               aria-label="Rechercher un produit"
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-72 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              className="champ w-full sm:w-72"
             />
           }
           actions={
@@ -469,7 +470,7 @@ export default function ProductsPage() {
                             </span>
                             {estEtatProduit(p.etat) && (
                               <span
-                                className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${CLASSE_ETAT_PRODUIT[p.etat as EtatProduit]}`}
+                                className={`badge inline-block ${CLASSE_ETAT_PRODUIT[p.etat as EtatProduit]}`}
                               >
                                 {LIBELLE_ETAT_PRODUIT[p.etat as EtatProduit]}
                               </span>
@@ -489,7 +490,7 @@ export default function ProductsPage() {
                     >
                       <div className="text-right md:text-left">
                         <p className="font-semibold text-gray-900 tabular-nums">
-                          {p.prix?.toLocaleString('fr-FR')} FCFA
+                          {montant(p.prix)}
                           {p.venduAuPoids ? ' / kg' : ''}
                         </p>
                         {p.prixAchat != null && (
@@ -567,7 +568,7 @@ export default function ProductsPage() {
                     </td>
                     <td className="px-4" data-label="Statut">
                       <span
-                        className={`inline-block whitespace-nowrap px-2.5 py-1 rounded-full text-xs font-semibold ${
+                        className={`badge inline-block ${
                           p.statutValidation === 'valide'
                             ? 'bg-green-100 text-green-700'
                             : p.statutValidation === 'en_attente'
@@ -668,7 +669,7 @@ export default function ProductsPage() {
             className="modal-box max-w-md p-5 sm:p-6"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-lg font-bold mb-1">
+            <h2 className="text-lg font-semibold mb-1 text-gray-900">
               {SECTIONS[promoModal.section].title}
             </h2>
             <p className="text-sm text-gray-500 mb-4">{promoModal.produit.nom}</p>
@@ -677,8 +678,8 @@ export default function ProductsPage() {
                 <label className="text-sm font-medium text-gray-700">Prix actuel</label>
                 <input
                   readOnly
-                  value={`${prixActuel.toLocaleString('fr-FR')} FCFA`}
-                  className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-400 cursor-not-allowed"
+                  value={montant(prixActuel)}
+                  className="champ mt-1 w-full cursor-not-allowed bg-gray-50 text-gray-500"
                 />
               </div>
               <div>
@@ -690,7 +691,7 @@ export default function ProductsPage() {
                   max="99"
                   value={pct}
                   onChange={(e) => setPct(e.target.value)}
-                  className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                  className="champ mt-1 w-full"
                   placeholder="Ex: 20"
                 />
               </div>
@@ -698,8 +699,8 @@ export default function ProductsPage() {
                 <label className="text-sm font-medium text-gray-700">Prix promotionnel</label>
                 <input
                   readOnly
-                  value={pct ? `${prixPromo.toLocaleString('fr-FR')} FCFA` : '—'}
-                  className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-400 cursor-not-allowed"
+                  value={pct ? montant(prixPromo) : '—'}
+                  className="champ mt-1 w-full cursor-not-allowed bg-gray-50 text-gray-500"
                 />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -710,7 +711,7 @@ export default function ProductsPage() {
                     type="datetime-local"
                     value={dateDebut}
                     onChange={(e) => setDateDebut(e.target.value)}
-                    className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                    className="champ mt-1 w-full"
                   />
                 </div>
                 <div>
@@ -720,7 +721,7 @@ export default function ProductsPage() {
                     type="datetime-local"
                     value={dateFin}
                     onChange={(e) => setDateFin(e.target.value)}
-                    className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                    className="champ mt-1 w-full"
                   />
                 </div>
               </div>
@@ -735,7 +736,7 @@ export default function ProductsPage() {
                 <button
                   type="submit"
                   disabled={promoMutation.isPending}
-                  className="px-4 py-2.5 sm:py-2 text-sm bg-yellow-400 text-gray-900 rounded-lg hover:bg-yellow-300 disabled:opacity-60"
+                  className="btn-primaire sm:py-2"
                 >
                   Valider la promotion
                 </button>

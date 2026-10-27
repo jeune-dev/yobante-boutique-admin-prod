@@ -130,14 +130,14 @@ export default function VendeurDetailPage() {
           )}
 
           <div className="min-w-0 flex-1">
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 break-words">
+            <h1 className="text-[22px] sm:text-2xl font-semibold tracking-tight text-gray-900 break-words">
               {boutique === '—' ? nomComplet(vendeur) : boutique}
             </h1>
             <p className="text-sm text-gray-500 break-words">{nomComplet(vendeur)}</p>
 
             <div className="flex flex-wrap items-center gap-1.5 mt-2">
               <span
-                className={`px-2 py-1 rounded-full text-xs font-medium ${
+                className={`badge ${
                   bloque ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
                 }`}
               >

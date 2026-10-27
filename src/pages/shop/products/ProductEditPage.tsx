@@ -155,9 +155,9 @@ export default function ProductEditPage() {
   return (
     <div className="max-w-2xl mx-auto">
       <AdminBackButton parent="/boutique/produits" className="mb-3" />
-      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">Modifier le produit</h1>
+      <h1 className="text-[22px] sm:text-2xl font-semibold tracking-tight text-gray-900 mb-6">Modifier le produit</h1>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-6">
+      <div className="carte p-4 sm:p-6">
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="text-sm font-medium text-gray-700">Nom *</label>
@@ -165,7 +165,7 @@ export default function ProductEditPage() {
               required
               value={nom}
               onChange={(e) => setNom(e.target.value)}
-              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              className="champ mt-1 w-full"
             />
           </div>
 
@@ -175,7 +175,7 @@ export default function ProductEditPage() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
-              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300 resize-vertical"
+              className="champ mt-1 w-full resize-vertical"
             />
           </div>
 
@@ -190,7 +190,7 @@ export default function ProductEditPage() {
                 min="0"
                 value={prix}
                 onChange={(e) => setPrix(e.target.value)}
-                className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                className="champ mt-1 w-full"
               />
               <label className="mt-2 flex items-center gap-2 text-xs text-gray-600">
                 <input
@@ -227,7 +227,7 @@ export default function ProductEditPage() {
                 value={prixAchat}
                 onChange={(e) => setPrixAchat(e.target.value)}
                 placeholder="Optionnel"
-                className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                className="champ mt-1 w-full"
               />
               <p className="mt-1 text-xs text-gray-400">
                 Réservé à l'administration. Laisser vide pour effacer.
@@ -266,7 +266,7 @@ export default function ProductEditPage() {
                 setRayonId(e.target.value);
                 setSousRayonId('');
               }}
-              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              className="champ mt-1 w-full"
             >
               <option value="">— Sélectionner un rayon —</option>
               {rayons.map((r: any) => (
@@ -283,7 +283,7 @@ export default function ProductEditPage() {
               value={sousRayonId}
               onChange={(e) => setSousRayonId(e.target.value)}
               disabled={!rayonId}
-              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300 disabled:bg-gray-50 disabled:text-gray-400"
+              className="champ mt-1 w-full"
             >
               <option value="">— Sélectionner un sous-rayon —</option>
               {sousRayons.map((sr: any) => (
@@ -300,7 +300,7 @@ export default function ProductEditPage() {
               <input
                 value={reference}
                 onChange={(e) => setReference(e.target.value)}
-                className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                className="champ mt-1 w-full"
               />
             </div>
             <div>
@@ -311,7 +311,7 @@ export default function ProductEditPage() {
                 step="0.01"
                 value={poids}
                 onChange={(e) => setPoids(e.target.value)}
-                className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                className="champ mt-1 w-full"
               />
             </div>
           </div>
@@ -338,7 +338,7 @@ export default function ProductEditPage() {
             <button
               type="submit"
               disabled={updateMutation.isPending}
-              className="px-4 py-2 text-sm bg-yellow-400 text-gray-900 rounded-lg hover:bg-yellow-300 disabled:opacity-60"
+              className="btn-primaire"
             >
               {updateMutation.isPending ? 'Mise à jour…' : 'Mettre à jour'}
             </button>
