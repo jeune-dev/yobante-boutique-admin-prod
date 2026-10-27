@@ -119,7 +119,7 @@ function MotDePasse() {
 
   const valider = () => {
     if (nouveau.length < 8) {
-      showError('Le nouveau mot de passe doit faire au moins 8 caractères');
+      showError('Le nouveau mot de passe doit contenir au moins 8 caractères');
       return;
     }
     if (nouveau !== confirmation) {

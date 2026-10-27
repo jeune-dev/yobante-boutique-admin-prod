@@ -187,7 +187,7 @@ export default function VendeursPage() {
     { titre: 'Nom', valeur: (v) => v.nom, largeur: 16 },
     { titre: 'Boutique', valeur: (v) => nomBoutique(v), largeur: 24 },
     { titre: 'Adresse de la boutique', valeur: (v) => adresseBoutique(v), largeur: 30 },
-    { titre: 'Email', valeur: (v) => v.email, largeur: 30 },
+    { titre: 'E-mail', valeur: (v) => v.email, largeur: 30 },
     { titre: 'Téléphone', valeur: (v) => telephoneVendeur(v), largeur: 17 },
     { titre: 'Statut', valeur: (v) => (estBloque(v) ? 'Bloqué' : 'Actif'), largeur: 10 },
     { titre: 'Mot de passe temporaire', valeur: (v) => !!v.mustChangePassword, largeur: 14 },
@@ -233,7 +233,7 @@ export default function VendeursPage() {
     }
     const confirme = await showConfirm({
       titre: 'Créer le vendeur',
-      message: `Créer le compte vendeur de ${form.prenom} ${form.nom} ?\nSon identifiant (${form.email.trim()}) et son mot de passe lui seront envoyés par email. Il se connectera depuis l'application mobile.`,
+      message: `Créer le compte vendeur de ${form.prenom} ${form.nom} ?\nSon identifiant (${form.email.trim()}) et son mot de passe lui seront envoyés par e-mail. Il se connectera depuis l'application mobile.`,
       confirmText: 'Créer',
     });
     if (!confirme) return;
@@ -462,7 +462,7 @@ export default function VendeursPage() {
       </div>
 
       {/* Modal Créer vendeur — l'administrateur choisit le mot de passe ; le
-          vendeur le reçoit par email avec son identifiant et se connecte
+          vendeur le reçoit par e-mail avec son identifiant et se connecte
           depuis l'application mobile (pas d'accès au dashboard web). */}
       {showModal && (
         <div
@@ -478,7 +478,7 @@ export default function VendeursPage() {
           >
             <h2 className="text-lg font-semibold mb-1 text-gray-900">Nouveau vendeur</h2>
             <p className="text-xs text-gray-500 mb-4">
-              Le compte sera <strong>actif immédiatement</strong>. Le vendeur reçoit par email son
+              Le compte sera <strong>actif immédiatement</strong>. Le vendeur reçoit par e-mail son
               identifiant et le mot de passe ci-dessous, et se connecte depuis{' '}
               <strong>l'application mobile</strong> (le dashboard est réservé aux administrateurs).
             </p>
@@ -504,7 +504,7 @@ export default function VendeursPage() {
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Email *</label>
+                <label className="text-sm font-medium text-gray-700">E-mail *</label>
                 <input
                   required
                   type="email"
@@ -657,7 +657,7 @@ function CelluleFiabilite({ fiabilite }: { fiabilite?: any }) {
 
   return (
     <div
-      title={`${annulationsImputables} annulation(s) et ${retoursImputables} retour(s) imputables sur ${commandesTotal} commande(s)`}
+      title={`${annulationsImputables} annulation(s) et ${retoursImputables} retour(s) imputable(s) sur ${commandesTotal} commande(s)`}
     >
       <span className={`badge ${teinte}`}>
         {scoreFiabilite}%

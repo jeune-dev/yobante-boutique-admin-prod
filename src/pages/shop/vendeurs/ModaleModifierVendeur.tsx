@@ -101,7 +101,7 @@ export default function ModaleModifierVendeur({
             </div>
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700">Email *</label>
+            <label className="text-sm font-medium text-gray-700">E-mail *</label>
             <input
               required
               type="email"

@@ -23,7 +23,7 @@ type Vue = 'tout' | 'rupture' | 'alerte' | 'surstock' | 'sans-prix';
 const VUES: Array<{ cle: Vue; libelle: string; aide: string }> = [
   { cle: 'tout', libelle: 'Tous', aide: 'Tout le catalogue actif' },
   { cle: 'alerte', libelle: 'Sous seuil', aide: 'Moins de deux semaines de ventes en stock' },
-  { cle: 'surstock', libelle: 'Surstock', aide: 'Plus de deux mois d’écoulement immobilisés' },
+  { cle: 'surstock', libelle: 'Sur stock', aide: 'Plus de deux mois d’écoulement immobilisés' },
   { cle: 'sans-prix', libelle: 'Sans prix d’achat', aide: 'Marge et valeur de stock incalculables' },
 ];
 
@@ -144,7 +144,7 @@ export default function StockPage() {
           aide="Moins de 14 jours de ventes observées en stock"
         />
         <Chiffre
-          libelle="Surstock"
+          libelle="Sur stock"
           valeur={nombre(synthese?.rotationFaible)}
           aide="Plus de 60 jours de couverture"
         />
@@ -167,7 +167,7 @@ export default function StockPage() {
             aide="À réapprovisionner sous quinze jours"
           />
           <Pastille
-            libelle="Surstock"
+            libelle="Sur stock"
             valeur={nombre(synthese?.rotationFaible)}
             puce="🟠"
             teinte="bg-orange-50 text-orange-700"
@@ -263,7 +263,11 @@ export default function StockPage() {
                     <th className="px-3 sm:px-4 py-2.5 font-medium text-right">Ventes / j</th>
                     <th className="px-3 sm:px-4 py-2.5 font-medium text-right">Couverture</th>
                     <th className="px-3 sm:px-4 py-2.5 font-medium text-right">Valeur</th>
-                    <th className="px-3 sm:px-4 py-2.5 font-medium">État</th>
+                    {/* Décalage dédié : le montant de « Valeur » est calé à droite et
+                        le badge d'état à gauche, ils se touchaient sur un portable. */}
+                    <th className="px-3 sm:px-4 py-2.5 font-medium">
+                      <span className="md:pl-6">État</span>
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -327,7 +331,9 @@ export default function StockPage() {
                         )}
                       </td>
                       <td data-label="État" className="px-3 sm:px-4 py-2.5">
-                        <EtatStock produit={p} />
+                        <div className="md:pl-6">
+                          <EtatStock produit={p} />
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -352,7 +358,7 @@ function EtatStock({ produit }: { produit: ProduitStock }) {
       classe: 'bg-red-50 text-red-700 border-red-200',
     },
     produit.rotationFaible && {
-      libelle: 'Surstock',
+      libelle: 'Sur stock',
       puce: '🟠',
       classe: 'bg-orange-50 text-orange-700 border-orange-200',
     },

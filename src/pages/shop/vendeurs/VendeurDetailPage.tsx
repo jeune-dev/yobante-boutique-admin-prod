@@ -149,7 +149,7 @@ export default function VendeurDetailPage() {
                     vendeur.isVerified ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'
                   }`}
                 >
-                  {vendeur.isVerified ? 'Email vérifié' : 'Email non vérifié'}
+                  {vendeur.isVerified ? 'E-mail vérifié' : 'E-mail non vérifié'}
                 </span>
               )}
               {vendeur.mustChangePassword && (
@@ -182,7 +182,7 @@ export default function VendeurDetailPage() {
             type="button"
             onClick={() => actions.demanderRenvoi(vendeur)}
             disabled={actionEnCours}
-            title="Renvoyer les identifiants par email"
+            title="Renvoyer les identifiants par e-mail"
             className="px-3.5 py-2 rounded-lg text-sm font-medium bg-yellow-50 text-yellow-700 hover:bg-yellow-100 transition-colors disabled:opacity-50"
           >
             Renvoyer les identifiants

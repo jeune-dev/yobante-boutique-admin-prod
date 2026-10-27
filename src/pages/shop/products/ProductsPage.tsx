@@ -705,7 +705,7 @@ export default function ProductsPage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Date début</label>
+                  <label className="text-sm font-medium text-gray-700">Date de début</label>
                   <input
                     required
                     type="datetime-local"
@@ -715,7 +715,7 @@ export default function ProductsPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Date fin</label>
+                  <label className="text-sm font-medium text-gray-700">Date de fin</label>
                   <input
                     required
                     type="datetime-local"

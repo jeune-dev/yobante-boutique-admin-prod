@@ -63,7 +63,7 @@ const COLONNES_EXPORT: ColonneExport<any>[] = [
   { titre: 'Date', valeur: (c) => enDate(c.createdAt), largeur: 17 },
   { titre: 'Statut', valeur: (c) => libelleStatut(c.statut), largeur: 16 },
   { titre: 'Client', valeur: (c) => [c.user?.prenom, c.user?.nom].filter(Boolean).join(' '), largeur: 24 },
-  { titre: 'Email client', valeur: (c) => c.user?.email, largeur: 28 },
+  { titre: 'E-mail client', valeur: (c) => c.user?.email, largeur: 28 },
   { titre: 'Téléphone client', valeur: (c) => c.user?.telephone, largeur: 17 },
   { titre: 'Montant total (FCFA)', valeur: (c) => enNombre(c.montantTotal), montant: true, largeur: 18 },
   { titre: 'Nombre d’articles', valeur: (c) => enNombre(c.items?.length), largeur: 10 },
@@ -449,7 +449,7 @@ export default function OrdersPage() {
               <textarea
                 value={rejectMotif}
                 onChange={(e) => setRejectMotif(e.target.value)}
-                placeholder="Motif du rejet (ex: Stock insuffisant, Produit indisponible)…"
+                placeholder="Motif du rejet (ex. : stock insuffisant, produit indisponible)…"
                 aria-label="Motif du rejet"
                 maxLength={500}
                 className="champ w-full resize-none focus:border-red-400 focus:ring-red-400/20"

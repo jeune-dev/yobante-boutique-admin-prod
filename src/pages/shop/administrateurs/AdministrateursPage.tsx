@@ -229,7 +229,7 @@ export default function AdministrateursPage() {
   const handleRenvoyer = async (a: Administrateur) => {
     const confirme = await showConfirm({
       titre: 'Renvoyer les identifiants',
-      message: `Générer un nouveau mot de passe temporaire pour ${nomComplet(a)} ?\nL'ancien ne fonctionnera plus. Les identifiants seront envoyés à : ${a.email ?? 'aucun email'}`,
+      message: `Générer un nouveau mot de passe temporaire pour ${nomComplet(a)} ?\nL'ancien ne fonctionnera plus. Les identifiants seront envoyés à : ${a.email ?? 'aucun e-mail'}`,
       confirmText: 'Renvoyer',
     });
     if (!confirme) return;
@@ -257,7 +257,7 @@ export default function AdministrateursPage() {
               setSearch(e.target.value);
               setPage(1);
             }}
-            placeholder="Rechercher (nom, prénom, email)…"
+            placeholder="Rechercher (nom, prénom, e-mail)…"
             aria-label="Rechercher un administrateur"
             className="champ w-full sm:w-72"
           />
@@ -439,7 +439,7 @@ export default function AdministrateursPage() {
             {!enEdition && (
               <p className="text-xs text-gray-500 mb-4">
                 Le compte est <strong>actif immédiatement</strong>. Un mot de passe temporaire est
-                envoyé par email ; il devra être changé à la première connexion.
+                envoyé par e-mail ; il devra être changé à la première connexion.
               </p>
             )}
             <form onSubmit={handleEnregistrer} className="space-y-4 mt-4">
@@ -466,7 +466,7 @@ export default function AdministrateursPage() {
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Email *</label>
+                <label className="text-sm font-medium text-gray-700">E-mail *</label>
                 <input
                   required
                   type="email"

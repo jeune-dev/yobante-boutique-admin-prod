@@ -81,10 +81,10 @@ export function useActionsVendeur() {
   };
 
   const demanderRenvoi = async (v: Vendeur) => {
-    const destEmail = v.email ? v.email.trim() : 'aucun email';
+    const destEmail = v.email ? v.email.trim() : 'aucun e-mail';
     const confirme = await showConfirm({
       titre: 'Renvoyer les identifiants',
-      message: `Générer un nouveau mot de passe temporaire pour ${nomComplet(v)} ?\nLes identifiants seront envoyés par email à : ${destEmail}\nLe vendeur devra le changer à sa prochaine connexion dans l'application mobile.`,
+      message: `Générer un nouveau mot de passe temporaire pour ${nomComplet(v)} ?\nLes identifiants seront envoyés par e-mail à : ${destEmail}\nLe vendeur devra le changer à sa prochaine connexion dans l'application mobile.`,
       confirmText: 'Renvoyer',
     });
     if (!confirme) return;

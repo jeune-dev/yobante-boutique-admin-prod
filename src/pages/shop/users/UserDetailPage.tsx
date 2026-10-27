@@ -124,7 +124,7 @@ export default function UserDetailPage() {
               <Icon name="mail" size={18} />
             </span>
             <div className="min-w-0">
-              <dt className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Email</dt>
+              <dt className="text-xs font-semibold text-gray-500 uppercase tracking-wide">E-mail</dt>
               <dd className="text-[15px] text-gray-900 break-words">{user.email}</dd>
             </div>
           </div>

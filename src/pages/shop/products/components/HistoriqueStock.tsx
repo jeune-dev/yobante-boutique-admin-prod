@@ -229,7 +229,7 @@ export default function HistoriqueStock({ produitId, onIndicateurs }: Props) {
               value={saisie.search}
               onChange={(e) => modifier('search')(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && appliquer()}
-              placeholder="Ex : CMD-1730… ou Diop"
+              placeholder="Ex. : CMD-1730… ou Diop"
               className={champ}
             />
           </div>

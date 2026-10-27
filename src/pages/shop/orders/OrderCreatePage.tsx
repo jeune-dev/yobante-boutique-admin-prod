@@ -188,7 +188,7 @@ function SelectionClient({
         type="search"
         value={recherche}
         onChange={(e) => setRecherche(e.target.value)}
-        placeholder="Nom, prénom ou email…"
+        placeholder="Nom, prénom ou e-mail…"
         autoComplete="off"
         aria-invalid={!!erreur}
         aria-describedby={erreur ? 'erreur-client' : undefined}

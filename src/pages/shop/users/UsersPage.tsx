@@ -52,17 +52,17 @@ const SEGMENTS: Record<string, string> = {
 const nomComplet = (u: ShopUser) => `${u.prenom ?? ''} ${u.nom ?? ''}`.trim();
 
 const OPTIONS_VERIFIE = [
-  { valeur: 'oui', libelle: 'Email vérifié' },
-  { valeur: 'non', libelle: 'Email non vérifié' },
+  { valeur: 'oui', libelle: 'E-mail vérifié' },
+  { valeur: 'non', libelle: 'E-mail non vérifié' },
 ] as const;
 
 /** Colonnes du fichier Excel des clients. */
 const COLONNES_EXPORT: ColonneExport<ShopUser>[] = [
   { titre: 'Prénom', valeur: (u) => u.prenom, largeur: 16 },
   { titre: 'Nom', valeur: (u) => u.nom, largeur: 16 },
-  { titre: 'Email', valeur: (u) => u.email, largeur: 30 },
+  { titre: 'E-mail', valeur: (u) => u.email, largeur: 30 },
   { titre: 'Téléphone', valeur: (u) => u.telephone, largeur: 17 },
-  { titre: 'Email vérifié', valeur: (u) => !!u.isVerified, largeur: 12 },
+  { titre: 'E-mail vérifié', valeur: (u) => !!u.isVerified, largeur: 12 },
   { titre: 'Statut', valeur: (u) => (u.isActive ? 'Actif' : 'Bloqué'), largeur: 10 },
   { titre: 'Commandes', valeur: (u) => u.activite?.nbCommandes ?? 0, largeur: 11 },
   { titre: 'Commandes livrées', valeur: (u) => u.activite?.nbCommandesLivrees ?? 0, largeur: 11 },
@@ -252,7 +252,7 @@ export default function UsersPage() {
               <input
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Rechercher un client (nom, email)…"
+                placeholder="Rechercher un client (nom, e-mail)…"
                 aria-label="Rechercher un client"
                 className="champ w-full sm:w-72"
               />
@@ -275,7 +275,7 @@ export default function UsersPage() {
                 Segment: SEGMENTS[segment],
                 'Période de commande': libellePeriode(filtres.du, filtres.au),
                 'Date d’inscription': libellePeriode(filtres.inscritDu, filtres.inscritAu),
-                'Email vérifié': OPTIONS_VERIFIE.find((o) => o.valeur === filtres.verifie)?.libelle,
+                'E-mail vérifié': OPTIONS_VERIFIE.find((o) => o.valeur === filtres.verifie)?.libelle,
                 'Nombre de commandes': libelleIntervalle(filtres.commandesMin, filtres.commandesMax),
                 'Montant dépensé (FCFA)': libelleIntervalle(filtres.depenseMin, filtres.depenseMax),
               }}
@@ -289,7 +289,7 @@ export default function UsersPage() {
             options={FILTRES_STATUT.filter((f) => f.url).map((f) => ({ valeur: f.url, libelle: f.label }))}
           />
           <FiltreSelect
-            libelle="Vérification de l'email"
+            libelle="Vérification de l'e-mail"
             valeur={filtres.verifie}
             onChange={(v) => setFiltres({ verifie: v, page: '1' })}
             options={OPTIONS_VERIFIE}
@@ -363,7 +363,7 @@ export default function UsersPage() {
                               u.isVerified ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-500'
                             }`}
                           >
-                            {u.isVerified ? 'Email vérifié' : 'Email non vérifié'}
+                            {u.isVerified ? 'E-mail vérifié' : 'E-mail non vérifié'}
                           </span>
                         </div>
                       </div>

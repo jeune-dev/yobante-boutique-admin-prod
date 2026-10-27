@@ -244,7 +244,7 @@ export default function StockModal({ produit, onFermer }: Props) {
             rows={3}
             value={commentaire}
             onChange={(e) => setCommentaire(e.target.value)}
-            placeholder="Ex : inventaire du 23/10, palette abîmée à la livraison…"
+            placeholder="Ex. : inventaire du 23/10, palette abîmée à la livraison…"
             aria-invalid={Boolean(afficher('commentaire'))}
             aria-describedby={afficher('commentaire') ? 'stock-commentaire-erreur' : undefined}
             className={classesChamp(afficher('commentaire'))}

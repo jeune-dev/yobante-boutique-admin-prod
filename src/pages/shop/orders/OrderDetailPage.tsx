@@ -548,7 +548,7 @@ export default function OrderDetailPage() {
               <textarea
                 value={rejectMotif}
                 onChange={(e) => setRejectMotif(e.target.value)}
-                placeholder="Motif du rejet (ex: Stock insuffisant, Produit indisponible)…"
+                placeholder="Motif du rejet (ex. : stock insuffisant, produit indisponible)…"
                 aria-label="Motif du rejet"
                 maxLength={500}
                 className="champ w-full resize-none focus:border-red-400 focus:ring-red-400/20"
@@ -587,7 +587,7 @@ export default function OrderDetailPage() {
       {modaleAnnulation && (
         <ModaleMotif
           titre="Annuler la commande"
-          explication="Le client est averti automatiquement, par notification et par email. Le stock des articles est recrédité."
+          explication="Le client est averti automatiquement, par notification et par e-mail. Le stock des articles est recrédité."
           motif={motifAnnulation}
           onMotifChange={setMotifAnnulation}
           responsabilite={responsabiliteAnnulation}
@@ -956,7 +956,7 @@ function ModaleRuptureStock({
           value={valeur.motif}
           onChange={(e) => onChange({ ...valeur, motif: e.target.value })}
           rows={3}
-          placeholder="Ex : produit épuisé chez le vendeur"
+          placeholder="Ex. : produit épuisé chez le vendeur"
           className="champ mt-1 w-full focus:border-red-400 focus:ring-red-400/20"
         />
         <div className="flex justify-end gap-2 mt-4">

@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { usePayments, useRembourser } from '@/domains/shop/hooks/usePayments';
+import { useConfirmerPaiement, usePayments, useRembourser } from '@/domains/shop/hooks/usePayments';
 import { Payment } from '@/domains/shop/api/payments.api';
-import { showSuccess, showConfirm } from '@/shared/utils/alert';
+import { showError, showSuccess, showConfirm } from '@/shared/utils/alert';
+import { libelleStatut } from '@/domains/shop/statutsCommande';
 import Pagination from '@/shared/components/tables/Pagination';
 import { useOuvrirLigne } from '@/shared/hooks/useOuvrirLigne';
 import Icon from '@/shared/components/dashboard/Icon';
@@ -17,7 +18,8 @@ function fmtDate(iso: string) {
 const STATUTS: Record<string, { label: string; cls: string }> = {
   en_attente: { label: 'En attente', cls: 'bg-amber-50 text-amber-700' },
   succes:     { label: 'Succès',     cls: 'bg-green-50 text-green-700' },
-  echec:      { label: 'Échoué',     cls: 'bg-red-50 text-red-700' },
+  // Code du serveur : `echoue` (`echec` est refusé avec une erreur 400).
+  echoue:     { label: 'Échoué',     cls: 'bg-red-50 text-red-700' },
   rembourse:  { label: 'Remboursé',  cls: 'bg-gray-100 text-gray-700' },
 };
 
@@ -35,6 +37,7 @@ export default function PaymentsPage() {
 
   const { data, isLoading, isError, error, refetch } = usePayments({ page, limit: 15, statut: statutFilter || undefined });
   const rembourserMut = useRembourser();
+  const confirmerMut = useConfirmerPaiement();
 
   // Le backend renvoie { paiements, pagination: { total, totalPages, page, limit } }.
   const payments = (data as any)?.paiements ?? [];
@@ -59,11 +62,25 @@ export default function PaymentsPage() {
     });
   };
 
+  const confirmerPaiement = (p: Payment) => {
+    showConfirm({
+      titre: 'Confirmer le paiement',
+      message: `Enregistrer ${fmtFcfa(Number(p.montant))} comme reçu pour la commande #${p.commandeId?.slice(0, 8).toUpperCase() ?? ''} ?`,
+      confirmText: 'Confirmer la réception',
+    }).then((confirme) => {
+      if (!confirme) return;
+      confirmerMut.mutate(p.id, {
+        onSuccess: (data) => showSuccess(data),
+        onError: (e) => showError(e),
+      });
+    });
+  };
+
   const FILTRES = [
     { label: 'Tous', val: '' },
     { label: 'Succès', val: 'succes' },
     { label: 'En attente', val: 'en_attente' },
-    { label: 'Échoués', val: 'echec' },
+    { label: 'Échoués', val: 'echoue' },
     { label: 'Remboursés', val: 'rembourse' },
   ];
 
@@ -125,8 +142,15 @@ export default function PaymentsPage() {
                 {payments.map((p: Payment) => {
                   const s = STATUTS[p.statut];
                   const m = METHODES[p.methode];
-                  const commande = (p as any).Commande ?? (p as any).commande;
-                  const user = commande?.User ?? commande?.user;
+                  const commande = (p as any).commande ?? (p as any).Commande;
+                  // L'API renvoie le client au premier niveau du paiement (`user`).
+                  const user = p.user ?? (p as any).User ?? commande?.user ?? commande?.User;
+                  const statutCommande: string | undefined = commande?.statut;
+                  // Le serveur ne fait pas suivre le paiement quand la commande
+                  // avance : on montre l'écart pour qu'il ne passe pas inaperçu.
+                  const aConfirmer = p.statut === 'en_attente' && statutCommande === 'livree';
+                  const sansObjet =
+                    p.statut === 'en_attente' && (statutCommande === 'annulee' || statutCommande === 'rejetee');
                   return (
                     <tr
                       key={p.id}
@@ -147,7 +171,9 @@ export default function PaymentsPage() {
                           <div className="min-w-0">
                             <p className="font-medium text-gray-900 whitespace-nowrap">{user.prenom} {user.nom}</p>
                             {user.email && (
-                              <p className="text-[13px] text-gray-500 wrap-anywhere">{user.email}</p>
+                              <p className="max-w-[240px] truncate text-[13px] text-gray-500" title={user.email}>
+                                {user.email}
+                              </p>
                             )}
                           </div>
                         ) : (
@@ -166,13 +192,34 @@ export default function PaymentsPage() {
                         </p>
                       </td>
                       <td className="px-4" data-label="Statut">
-                        <span className={`badge ${s?.cls ?? 'bg-gray-100 text-gray-700'}`}>
-                          {s?.label ?? p.statut}
-                        </span>
+                        <div className="flex flex-col items-end gap-1 md:items-start">
+                          <span className={`badge ${s?.cls ?? 'bg-gray-100 text-gray-700'}`}>
+                            {s?.label ?? p.statut}
+                          </span>
+                          {statutCommande && (
+                            <span
+                              className={`text-xs ${aConfirmer ? 'font-medium text-orange-700' : 'text-gray-500'}`}
+                            >
+                              Commande {libelleStatut(statutCommande).toLowerCase()}
+                              {aConfirmer && ' · à confirmer'}
+                              {sansObjet && ' · paiement sans objet'}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 tbl-actions" data-label="Actions">
                         <div className="flex items-center justify-end gap-1">
-                          {p.statut === 'succes' ? (
+                          {p.statut === 'en_attente' && !sansObjet ? (
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); confirmerPaiement(p); }}
+                              disabled={confirmerMut.isPending}
+                              title="Enregistrer ce paiement comme reçu"
+                              className={`${aConfirmer ? 'btn-sombre' : 'btn-secondaire'} btn-sm`}
+                            >
+                              <Icon name="check" size={13} /> Confirmer
+                            </button>
+                          ) : p.statut === 'succes' ? (
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); confirmerRemboursement(p); }}

@@ -12,7 +12,7 @@ import '@/assets/css/Login.css';
 
 /**
  * Première connexion d'un administrateur créé depuis le dashboard (ou dont les
- * identifiants ont été renvoyés) : le mot de passe temporaire reçu par email
+ * identifiants ont été renvoyés) : le mot de passe temporaire reçu par e-mail
  * doit être remplacé. Le backend refuse toute route admin d'ici là.
  */
 export const ChangerMotDePassePage = () => {
@@ -53,7 +53,7 @@ export const ChangerMotDePassePage = () => {
     e.preventDefault();
     const erreur = erreurMotDePasse(nouveau, confirmation, temporaire);
     if (!temporaire) {
-      showError('Saisissez le mot de passe temporaire reçu par email.');
+      showError('Saisissez le mot de passe temporaire reçu par e-mail.');
       return;
     }
     if (erreur) {
@@ -101,7 +101,7 @@ export const ChangerMotDePassePage = () => {
             </h1>
             <p className="auth-brand-lead">
               Pour sécuriser votre compte administrateur, remplacez le mot de passe temporaire reçu
-              par email par un mot de passe personnel.
+              par e-mail par un mot de passe personnel.
             </p>
           </div>
           <div className="auth-brand-foot">© {new Date().getFullYear()} Yobante · Administration</div>

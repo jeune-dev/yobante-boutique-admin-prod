@@ -37,7 +37,8 @@ export const LIBELLE_METHODE_PAIEMENT: Record<string, string> = {
 export const LIBELLE_STATUT_PAIEMENT: Record<string, string> = {
   en_attente: 'en attente',
   succes: 'réussi',
-  echec: 'échoué',
+  // Code du serveur : `echoue` (et non `echec`, qui renvoie une erreur 400).
+  echoue: 'échoué',
   rembourse: 'remboursé',
 };
 
