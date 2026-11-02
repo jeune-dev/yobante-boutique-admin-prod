@@ -45,6 +45,9 @@ export const AnalyticsProduitsPage = lazy(() => import('@/pages/shop/analytics/P
 export const AnalyticsClientsPage = lazy(() => import('@/pages/shop/analytics/ClientsPage'));
 export const AnalyticsVendeursPage = lazy(() => import('@/pages/shop/analytics/VendeursPage'));
 export const RentabilitePage = lazy(() => import('@/pages/shop/analytics/RentabilitePage'));
+export const MotDePasseOubliePage = lazy(() =>
+  import('@/pages/auth/MotDePasseOubliePage').then((m) => ({ default: m.MotDePasseOubliePage }))
+);
 export const SuppressionComptePage = lazy(() => import('@/pages/public/SuppressionComptePage'));
 export const PolitiqueConfidentialitePage = lazy(() => import('@/pages/public/PolitiqueConfidentialitePage'));
 export const ChangerMotDePassePage = lazy(() =>
@@ -104,6 +107,7 @@ export const router = createBrowserRouter(
       children: [
         { index: true, element: <Navigate to="/login" replace /> },
         { path: 'login', element: <LoginPage /> },
+        { path: 'mot-de-passe-oublie', element: attendre(<MotDePasseOubliePage />) },
         // Hors de PrivateRoute : celle-ci y renvoie tant que le mot de passe
         // temporaire n'a pas été remplacé. La page vérifie elle-même la session.
         { path: 'changer-mot-de-passe', element: attendre(<ChangerMotDePassePage />) },

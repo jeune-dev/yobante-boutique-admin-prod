@@ -880,3 +880,60 @@
 .auth-card .auth-form {
   max-width: none;
 }
+
+/* ══════════ MOT DE PASSE OUBLIÉ ══════════ */
+.auth-field-aside {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.45rem;
+}
+.auth-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--y-blue-600);
+  cursor: pointer;
+  text-decoration: none;
+}
+.auth-link:hover:not(:disabled) { text-decoration: underline; }
+.auth-link:disabled { color: var(--y-text3); cursor: default; }
+
+/* Étapes du parcours : e-mail → code → nouveau mot de passe. */
+.auth-steps {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 1.2rem;
+}
+.auth-steps span {
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--y-line);
+  transition: background 0.2s;
+}
+.auth-steps span.done { background: var(--y-blue-600); }
+
+.auth-note {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--y-text2);
+  margin-bottom: 1rem;
+}
+.auth-note strong { color: var(--y-ink); }
+
+.auth-input-code {
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  font-weight: 600;
+}
+
+.auth-actions-secondaires {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}

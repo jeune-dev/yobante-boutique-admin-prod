@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useLogin } from '@/auth/hooks/useLogin';
 import { showError } from '@/shared/utils/alert';
 import Icon from '@/shared/components/dashboard/Icon';
@@ -6,7 +7,11 @@ import '@/assets/css/Login.css';
 import { PICTO } from '@/assets/images/logos';
 
 export const LoginPage = () => {
-  const [email, setEmail] = useState('');
+  // Retour du parcours « mot de passe oublié » : l'email y est déjà saisi.
+  const location = useLocation();
+  const [email, setEmail] = useState(
+    () => (location.state as { email?: string } | null)?.email ?? ''
+  );
   const [password, setPassword] = useState('');
   const [showPwd, setShowPwd] = useState(false);
   const login = useLogin();
@@ -83,6 +88,11 @@ export const LoginPage = () => {
               >
                 <Icon name={showPwd ? 'eye-off' : 'eye'} size={15} />
               </button>
+            </div>
+            <div className="auth-field-aside">
+              <Link className="auth-link" to="/mot-de-passe-oublie" state={{ email }}>
+                Mot de passe oublié ?
+              </Link>
             </div>
           </div>
 

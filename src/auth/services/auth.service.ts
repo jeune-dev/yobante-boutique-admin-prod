@@ -81,6 +81,29 @@ export const estMotDePasseAChanger = (erreur: unknown) => {
 export const estAdminBoutique = (user?: { role?: string } | null) =>
   user?.role?.toUpperCase() === ROLE_ADMIN;
 
+/**
+ * Mot de passe oublié d'un administrateur : code envoyé par e-mail, vérifié,
+ * puis nouveau mot de passe. Routes publiques, réservées aux comptes ADMIN.
+ */
+export const motDePasseOublieService = {
+  /** Réponse identique que le compte existe ou non. */
+  demanderCode: (email: string) =>
+    shopClient.post('/auth/admin/forgot-password', { email: email.trim() }),
+
+  verifierCode: (email: string, otp: string) =>
+    shopClient.post('/auth/admin/verify-reset-code', {
+      email: email.trim(),
+      otp: otp.trim().toUpperCase(),
+    }),
+
+  reinitialiser: (email: string, otp: string, newPassword: string) =>
+    shopClient.post('/auth/admin/reset-password', {
+      email: email.trim(),
+      otp: otp.trim().toUpperCase(),
+      newPassword,
+    }),
+};
+
 export const authService = {
   login: async (payload: LoginPayload): Promise<LoginResult> => {
     let shopResult: LoginResult['shop'];
